@@ -38,9 +38,6 @@ const personalDetailsSchema = z.object({
   pincode: z.string().min(6, 'A valid pin code is required'),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
   confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
 });
 
 const businessDetailsSchema = z.object({
@@ -57,9 +54,16 @@ const documentUploadsSchema = z.object({
 });
 
 // We only need the shape for triggering validation
-const combinedSchemaForValidation = personalDetailsSchema.merge(businessDetailsSchema).merge(documentUploadsSchema);
+const combinedSchemaForValidation = personalDetailsSchema
+  .merge(businessDetailsSchema)
+  .merge(documentUploadsSchema)
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
+
 // Final schema for submission includes password
-const finalSchema = personalDetailsSchema.merge(businessDetailsSchema).merge(documentUploadsSchema);
+const finalSchema = combinedSchemaForValidation;
 
 type FormValues = z.infer<typeof finalSchema>;
 
