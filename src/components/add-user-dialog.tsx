@@ -24,7 +24,7 @@ import type { Role } from '@/types';
 import { addUser } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
 
-const userRoles: Role[] = ['Admin', 'Seller', 'Partner'];
+const userRoles: Role[] = ['Admin', 'Manager', 'Business Manager', 'Support Team', 'Wallet Manager', 'Seller', 'Partner'];
 
 const addUserSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -32,7 +32,7 @@ const addUserSchema = z.object({
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
-  role: z.enum(userRoles),
+  role: z.enum(userRoles as [string, ...string[]]),
 });
 
 interface AddUserDialogProps {

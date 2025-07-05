@@ -1,6 +1,7 @@
 
 
-export type Role = 'Admin' | 'Seller' | 'Partner';
+
+export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
 
