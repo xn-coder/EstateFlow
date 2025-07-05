@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -47,8 +48,14 @@ export async function getPendingPartners(): Promise<PartnerActivationInfo[]> {
 export async function activatePartner(userId: string): Promise<{ success: boolean; error?: string }> {
   try {
     const userRef = doc(db, 'users', userId);
+    
+    // Generate the partner ID
+    const randomNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit random number
+    const partnerCode = `DAS${randomNumber}`;
+
     await updateDoc(userRef, {
-      status: 'Active'
+      status: 'Active',
+      partnerCode: partnerCode,
     });
     return { success: true };
   } catch (error) {

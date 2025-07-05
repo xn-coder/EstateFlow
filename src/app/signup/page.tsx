@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -17,7 +18,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CalendarIcon, Upload, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, subYears } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { registerPartner } from './actions';
@@ -117,6 +118,9 @@ function FileUploadButton({ label, onFileSelect, previewUrl, hint }: { label: st
   );
 }
 
+const eighteenYearsAgo = subYears(new Date(), 18);
+const oneHundredYearsAgo = subYears(new Date(), 100);
+
 export default function SignupPage() {
   const [step, setStep] = React.useState(1);
   const router = useRouter();
@@ -208,7 +212,18 @@ export default function SignupPage() {
                         <PopoverTrigger asChild><FormControl><Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
                             {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button></FormControl></PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date('1900-01-01')} initialFocus /></PopoverContent>
+                        <PopoverContent className="w-auto p-0" align="start">
+                           <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            captionLayout="dropdown-buttons"
+                            fromYear={oneHundredYearsAgo.getFullYear()}
+                            toYear={eighteenYearsAgo.getFullYear()}
+                            disabled={(date) => date > eighteenYearsAgo}
+                            initialFocus
+                          />
+                        </PopoverContent>
                       </Popover><FormMessage /></FormItem>
                     )} />
                     <FormField control={methods.control} name="gender" render={({ field }) => (

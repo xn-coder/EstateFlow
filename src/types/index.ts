@@ -1,3 +1,4 @@
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -11,6 +12,7 @@ export interface User {
   phone?: string;
   partnerProfileId?: string;
   status?: 'Pending' | 'Active' | 'Deactivated';
+  partnerCode?: string;
 }
 
 export interface PartnerData {
