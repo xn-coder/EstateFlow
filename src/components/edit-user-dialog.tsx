@@ -23,7 +23,6 @@ import { Upload } from 'lucide-react';
 import type { Role, User } from '@/types';
 import { editUser } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ADMIN_ROLES } from '@/lib/roles';
 
 const userRoles = ADMIN_ROLES;
@@ -106,117 +105,115 @@ export default function EditUserDialog({ children, user, onUserUpdated }: EditUs
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md p-0 max-h-[90vh] flex flex-col">
+        <DialogHeader className="p-6 pb-4">
           <DialogTitle>Edit User</DialogTitle>
           <DialogDescription>Make changes to {user.name}'s profile.</DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <ScrollArea className="max-h-[60vh] pr-6">
-                <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                    <Avatar className="h-24 w-24 border">
-                        <AvatarImage src={avatarPreview || ''} alt={user.name} />
-                        <AvatarFallback>
-                            {user.name.substring(0,2).toUpperCase()}
-                        </AvatarFallback>
-                    </Avatar>
-                    <div className="relative">
-                        <Button type="button" variant="outline">
-                        <Upload className="mr-2 h-4 w-4" />
-                        Change Image
-                        </Button>
-                        <Input
-                        type="file"
-                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                        onChange={handleAvatarChange}
-                        accept="image/*"
-                        />
-                    </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="firstName"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>First Name</FormLabel>
-                            <FormControl>
-                            <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
+        <div className="flex-1 overflow-y-auto px-6">
+            <Form {...form}>
+            <form id="edit-user-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <Avatar className="h-24 w-24 border">
+                    <AvatarImage src={avatarPreview || ''} alt={user.name} />
+                    <AvatarFallback>
+                        {user.name.substring(0,2).toUpperCase()}
+                    </AvatarFallback>
+                </Avatar>
+                <div className="relative">
+                    <Button type="button" variant="outline">
+                    <Upload className="mr-2 h-4 w-4" />
+                    Change Image
+                    </Button>
+                    <Input
+                    type="file"
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    onChange={handleAvatarChange}
+                    accept="image/*"
                     />
-                    <FormField
-                        control={form.control}
-                        name="lastName"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Last Name</FormLabel>
-                            <FormControl>
-                            <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    </div>
+                </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>First Name</FormLabel>
                         <FormControl>
-                            <Input type="email" value={user.email} readOnly disabled />
+                        <Input {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
-                    <FormField
+                    )}
+                />
+                <FormField
                     control={form.control}
-                    name="phone"
+                    name="lastName"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                        <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                </div>
+                <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                        <Input type="email" value={user.email} readOnly disabled />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                        <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                    control={form.control}
+                    name="role"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                            <Input {...field} />
-                        </FormControl>
+                        <FormLabel>Role</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select access level" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {userRoles.map(role => (
+                                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                         <FormMessage />
                         </FormItem>
                     )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="role"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Role</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select access level" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {userRoles.map(role => (
-                                        <SelectItem key={role} value={role}>{role}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-            </ScrollArea>
-            <DialogFooter className="pt-4">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">Cancel</Button>
-              </DialogClose>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                />
+            </form>
+            </Form>
+        </div>
+        <DialogFooter className="p-6 pt-4 border-t bg-background">
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">Cancel</Button>
+          </DialogClose>
+          <Button type="submit" form="edit-user-form" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
