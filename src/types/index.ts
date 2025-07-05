@@ -39,6 +39,13 @@ export interface Lead {
   status: 'New' | 'Contacted' | 'Closed';
 }
 
+export interface SlideshowItem {
+  id: string;
+  image: string;
+  title: string;
+  link: string;
+}
+
 export interface WebsiteData {
   businessInfo: {
     name: string;
@@ -47,10 +54,7 @@ export interface WebsiteData {
     metaKeywords?: string;
     metaDescription?: string;
   };
-  slideshowImage: {
-    url: string;
-    text: string;
-  };
+  slideshows: SlideshowItem[];
   contactDetails: {
     name: string;
     phone: string;

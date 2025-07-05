@@ -2,12 +2,14 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
 import { websiteData } from '@/lib/website-data';
 import EditBusinessProfileDialog from './edit-business-profile-dialog';
+import EditSlideshowDialog from './edit-slideshow-dialog';
 
 // A simple row component to display info
 const InfoRow: React.FC<{ label: string; children: React.ReactNode, isLongText?: boolean }> = ({ label, children, isLongText }) => (
@@ -55,11 +57,31 @@ export default function ManageWebsiteContent() {
             </CardContent>
         </Card>
 
-        <EditableCard title="Slideshow Image">
-            <a href={websiteData.slideshowImage.url} className="text-primary hover:underline">
-                {websiteData.slideshowImage.text}
-            </a>
-        </EditableCard>
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-lg font-semibold">Slideshow</CardTitle>
+                 <EditSlideshowDialog>
+                    <Button variant="ghost" size="icon">
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                </EditSlideshowDialog>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    {websiteData.slideshows.map((slide) => (
+                        <div key={slide.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                            <div className="flex items-center gap-4">
+                                <Image src={slide.image} alt={slide.title} width={120} height={50} className="rounded-md object-cover" data-ai-hint="presentation slide" />
+                                <div>
+                                    <p className="font-medium">{slide.title}</p>
+                                    <a href={slide.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">{slide.link}</a>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
 
         <EditableCard title="Contact Details">
            <div className="divide-y">

@@ -9,10 +9,14 @@ export const websiteData: WebsiteData = {
     metaKeywords: 'real estate, property, homes for sale',
     metaDescription: 'Find your dream home with EstateFlow. We offer the best properties in the market.',
   },
-  slideshowImage: {
-    url: '#',
-    text: 'dotfiv promotion content',
-  },
+  slideshows: [
+    {
+      id: 'slide1',
+      image: 'https://placehold.co/1200x400.png',
+      title: 'dotfiv promotion content',
+      link: '#',
+    },
+  ],
   contactDetails: {
     name: 'Name Here',
     phone: '0998 877 6655',
