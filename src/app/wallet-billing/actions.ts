@@ -1,7 +1,8 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, doc, getDocs, getDoc, writeBatch, updateDoc, addDoc, query, limit, setDoc, where } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, writeBatch, updateDoc, addDoc, query, limit, setDoc, where, runTransaction } from 'firebase/firestore';
 import type { Payable, PaymentHistory, Receivable, User, WalletSummary } from '@/types';
 import { initialPayables, initialPaymentHistory, initialReceivables } from '@/lib/data';
 import * as z from 'zod';
@@ -47,6 +48,7 @@ export async function getWalletSummaryData(): Promise<WalletSummary> {
         await initializeWalletSummary(); // Ensure summary doc exists
         await seedCollection(payablesRef, initialPayables);
         await seedCollection(receivablesRef, initialReceivables);
+        await seedCollection(paymentHistoryRef, initialPaymentHistory);
 
         const payablesQuery = query(collection(db, 'payables'), where('status', '==', 'Pending'));
         const receivablesQuery = query(collection(db, 'receivables'), where('status', '==', 'Pending'));
@@ -95,24 +97,130 @@ export async function getPaymentHistory(): Promise<PaymentHistory[]> {
 // --- Data Update Actions ---
 
 export async function updateReceivableStatus(id: string, status: 'Pending' | 'Received') {
+  if (status === 'Pending') {
+    // This case is for potential future use (e.g., reversing a transaction)
+    // For now, it only updates the status.
+    try {
+      const docRef = doc(db, 'receivables', id);
+      await updateDoc(docRef, { status });
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating receivable status:", error);
+      return { success: false, error: "Failed to update status." };
+    }
+  }
+
+  // Handle 'Received' status with a transaction
   try {
-    const docRef = doc(db, 'receivables', id);
-    await updateDoc(docRef, { status });
+    const receivableRef = doc(db, 'receivables', id);
+
+    await runTransaction(db, async (transaction) => {
+      const receivableDoc = await transaction.get(receivableRef);
+      if (!receivableDoc.exists()) {
+        throw new Error("Receivable document not found!");
+      }
+      const receivableData = receivableDoc.data() as Receivable;
+      
+      if (receivableData.status === 'Received') {
+          console.log("Receivable already marked as Received.");
+          return; // Avoid double-processing
+      }
+      
+      const amount = receivableData.pendingAmount;
+
+      transaction.update(receivableRef, { status: 'Received' });
+
+      const summaryDoc = await transaction.get(walletSummaryRef);
+      if (!summaryDoc.exists()) {
+          throw new Error("Wallet summary not found!");
+      }
+      const summaryData = summaryDoc.data() as { totalBalance: number; revenue: number };
+      transaction.update(walletSummaryRef, {
+        totalBalance: summaryData.totalBalance + amount,
+        revenue: summaryData.revenue + amount,
+      });
+      
+      const newHistory: Omit<PaymentHistory, 'id'> = {
+        date: new Date().toISOString().split('T')[0],
+        name: `Received from ${receivableData.partnerName}`,
+        transactionId: `REC-${receivableData.id}`,
+        amount,
+        paymentMethod: 'System',
+        type: 'Credit',
+      };
+      const newHistoryRef = doc(collection(db, 'paymentHistory'));
+      transaction.set(newHistoryRef, newHistory);
+    });
+
     return { success: true };
   } catch (error) {
-    console.error("Error updating receivable status:", error);
-    return { success: false, error: "Failed to update status." };
+    console.error("Error receiving payment:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to update status.";
+    return { success: false, error: errorMessage };
   }
 }
 
 export async function updatePayableStatus(id: string, status: 'Pending' | 'Paid') {
+   if (status === 'Pending') {
+    try {
+      const docRef = doc(db, 'payables', id);
+      await updateDoc(docRef, { status });
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating payable status:", error);
+      return { success: false, error: "Failed to update status." };
+    }
+  }
+
+  // Handle 'Paid' status with a transaction
   try {
-    const docRef = doc(db, 'payables', id);
-    await updateDoc(docRef, { status });
+    const payableRef = doc(db, 'payables', id);
+    
+    await runTransaction(db, async (transaction) => {
+        const payableDoc = await transaction.get(payableRef);
+        if (!payableDoc.exists()) {
+            throw new Error("Payable document not found!");
+        }
+        const payableData = payableDoc.data() as Payable;
+
+        if (payableData.status === 'Paid') {
+            console.log("Payable already marked as Paid.");
+            return; // Avoid double-processing
+        }
+
+        const amount = payableData.payableAmount;
+
+        const summaryDoc = await transaction.get(walletSummaryRef);
+        if (!summaryDoc.exists()) {
+            throw new Error("Wallet summary not found!");
+        }
+        const summaryData = summaryDoc.data() as { totalBalance: number; revenue: number };
+        
+        if (summaryData.totalBalance < amount) {
+            throw new Error('Insufficient wallet balance.');
+        }
+
+        transaction.update(payableRef, { status: 'Paid' });
+        
+        transaction.update(walletSummaryRef, { totalBalance: summaryData.totalBalance - amount });
+
+        const newHistory: Omit<PaymentHistory, 'id'> = {
+            date: new Date().toISOString().split('T')[0],
+            name: `Paid to ${payableData.recipientName}`,
+            transactionId: `PAY-${payableData.id}`,
+            amount,
+            paymentMethod: 'Wallet',
+            type: 'Debit',
+        };
+        const newHistoryRef = doc(collection(db, 'paymentHistory'));
+        transaction.set(newHistoryRef, newHistory);
+    });
+
     return { success: true };
   } catch (error) {
-    console.error("Error updating payable status:", error);
-    return { success: false, error: "Failed to update status." };
+    console.error("Error making payment:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to update status.";
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -183,3 +291,5 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
+
+    
