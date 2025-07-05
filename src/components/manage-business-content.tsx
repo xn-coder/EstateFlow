@@ -91,7 +91,7 @@ export default function ManageBusinessContent() {
         { label: 'Partner Activation', href: '/partner-activation' },
         { label: 'Deactivated Partner', href: '/deactivated-partner' },
         { label: 'Manage Customer', href: '#' },
-        { label: 'Manage Access', href: '/profile' },
+        { label: 'Manage Access', href: '/manage-access' },
         { label: 'Give Access', isDialog: true, Dialog: <AddUserDialog onUserAdded={() => {}} /> },
     ];
 

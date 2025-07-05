@@ -8,11 +8,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin-sidebar';
 import AppHeader from '@/components/app-header';
-import ProfileContent from '@/components/profile-content';
+import ManageAccessContent from '@/components/manage-access-content';
 import DashboardFooter from '@/components/dashboard-footer';
 import { ADMIN_ROLES } from '@/lib/roles';
 
-function ProfileSkeleton() {
+function ManageAccessSkeleton() {
   return (
     <div className="flex min-h-screen w-full bg-background">
       <div className="hidden w-64 flex-col gap-4 border-r p-2 md:flex">
@@ -37,27 +37,32 @@ function ProfileSkeleton() {
             <Skeleton className="h-10 w-10 rounded-full" />
           </div>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl mx-auto">
-          <Skeleton className="h-[120px] w-full" />
-          <Skeleton className="h-[160px] w-full" />
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
+          <Skeleton className="h-12 w-full max-w-sm" />
+          <Skeleton className="h-[400px] w-full" />
         </main>
       </div>
     </div>
   );
 }
 
-export default function ProfilePage() {
+export default function ManageAccessPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+
+  const authorizedRoles = ['Admin', 'Manager'];
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+    if (!loading && user && !authorizedRoles.includes(user.role)) {
+      router.push('/');
+    }
+  }, [user, loading, router, authorizedRoles]);
 
-  if (loading || !user) {
-    return <ProfileSkeleton />;
+  if (loading || !user || !authorizedRoles.includes(user.role)) {
+    return <ManageAccessSkeleton />;
   }
 
   return (
@@ -66,7 +71,7 @@ export default function ProfilePage() {
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          <ProfileContent currentUser={user} />
+          <ManageAccessContent currentUser={user} />
         </main>
         <DashboardFooter />
       </SidebarInset>
