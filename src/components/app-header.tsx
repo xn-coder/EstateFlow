@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Role, User } from '@/types';
@@ -10,7 +11,15 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { Building2 } from 'lucide-react';
+import { Building2, User as UserIcon, Globe, BookUser, LogOut } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface AppHeaderProps {
   role: Role;
@@ -56,14 +65,44 @@ export default function AppHeader({
             </SelectContent>
           </Select>
         </div>
-        <Avatar>
-          <AvatarImage
-            src={currentUser.avatar}
-            alt={currentUser.name}
-            data-ai-hint="person portrait"
-          />
-          <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-        </Avatar>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Avatar className="cursor-pointer">
+              <AvatarImage
+                src={currentUser.avatar}
+                alt={currentUser.name}
+                data-ai-hint="person portrait"
+              />
+              <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{currentUser.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{currentUser.email}</p>
+                </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <UserIcon className="mr-2 h-4 w-4" />
+              <span>Manage Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Globe className="mr-2 h-4 w-4" />
+              <span>Manage Website</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <BookUser className="mr-2 h-4 w-4" />
+              <span>Contact Book</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
