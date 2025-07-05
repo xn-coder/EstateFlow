@@ -18,10 +18,8 @@ const StatCard = ({ title, value, description }: { title: string; value: string;
 
 const managementItems = [
   'Manage Wallet',
-  'Withdrawal Request',
   'Receivable Cash List',
-  'Send Rewards Point',
-  'Billing and Invoice',
+  'Payable List',
   'Payment History',
 ];
 
@@ -37,10 +35,10 @@ export default function WalletBillingContent() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Wallet" value="100" description="Total Balance" />
-        <StatCard title="Revenue" value="1000" description="Weekly Earning" />
-        <StatCard title="Receivable" value="100" description="Pending Cash" />
-        <StatCard title="Payable" value="100" description="Sending Cash" />
+        <StatCard title="Total Balance" value="100" description="Available in your wallet" />
+        <StatCard title="Revenue" value="1000" description="Total income generated" />
+        <StatCard title="Receivable" value="100" description="Amount to be received" />
+        <StatCard title="Payable" value="100" description="Amount to be paid" />
       </div>
 
       <Card>
