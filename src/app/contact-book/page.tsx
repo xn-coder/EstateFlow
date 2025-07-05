@@ -12,7 +12,7 @@ import ContactBookContent from '@/components/contact-book-content';
 import DashboardFooter from '@/components/dashboard-footer';
 
 export default function ContactBookPage() {
-  const [role, setRole] = useState<Role>('Partner'); // Default to partner as per image
+  const [role, setRole] = useState<Role>('Admin');
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {

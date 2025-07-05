@@ -85,27 +85,26 @@ export default function ManageWebsiteContent() {
                     <CarouselContent>
                         {websiteData.slideshows.map((slide) => (
                             <CarouselItem key={slide.id}>
-                                <div className="relative h-80 w-full overflow-hidden rounded-lg">
-                                    <Image
-                                        src={slide.image}
-                                        alt={slide.title}
-                                        fill
-                                        className="object-cover"
-                                        data-ai-hint="presentation slide"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                    <div className="absolute bottom-6 left-6 text-white">
-                                        <h3 className="text-2xl font-bold">{slide.title}</h3>
-                                        <a
-                                            href={slide.link}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="mt-1 inline-block text-sm hover:underline break-all"
-                                        >
-                                           {slide.link}
-                                        </a>
+                                <a
+                                    href={slide.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block"
+                                >
+                                    <div className="relative h-80 w-full overflow-hidden rounded-lg">
+                                        <Image
+                                            src={slide.image}
+                                            alt={slide.title}
+                                            fill
+                                            className="object-cover"
+                                            data-ai-hint="presentation slide"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                        <div className="absolute bottom-6 left-6 text-white">
+                                            <h3 className="text-2xl font-bold">{slide.title}</h3>
+                                        </div>
                                     </div>
-                                </div>
+                                </a>
                             </CarouselItem>
                         ))}
                     </CarouselContent>
