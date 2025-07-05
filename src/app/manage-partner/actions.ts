@@ -56,3 +56,55 @@ export async function deactivatePartner(userId: string): Promise<{ success: bool
     return { success: false, error: 'Failed to deactivate partner.' };
   }
 }
+
+export async function getPartnerById(userId: string): Promise<PartnerActivationInfo | null> {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists() || userDoc.data().role !== 'Partner') {
+      return null;
+    }
+
+    const user = { id: userDoc.id, ...userDoc.data() } as User;
+
+    if (!user.partnerProfileId) {
+        // Create a default empty profile to avoid crashing the page.
+        const profile: PartnerData = {
+            id: '', name: user.name, email: user.email, phone: user.phone || '',
+            dob: new Date().toISOString(), gender: 'Other', qualification: '',
+            whatsapp: '', address: '', city: '', state: '', pincode: '',
+            businessType: '', businessAge: 0, areaCovered: '',
+            aadhaarCard: '', panCard: '',
+        }
+        return { user, profile };
+    }
+
+    const profileRef = doc(db, 'partnerProfiles', user.partnerProfileId);
+    const profileSnap = await getDoc(profileRef);
+
+    if (!profileSnap.exists()) {
+       // Return user with default profile
+        const profile: PartnerData = {
+            id: '', name: user.name, email: user.email, phone: user.phone || '',
+            dob: new Date().toISOString(), gender: 'Other', qualification: '',
+            whatsapp: '', address: '', city: '', state: '', pincode: '',
+            businessType: '', businessAge: 0, areaCovered: '',
+            aadhaarCard: '', panCard: '',
+        }
+        return { user, profile };
+    }
+    
+    const profileData = profileSnap.data();
+    const profile: PartnerData = {
+        id: profileSnap.id,
+        ...(profileData as Omit<PartnerData, 'id'>)
+    };
+
+    return { user, profile };
+
+  } catch (error) {
+    console.error(`Error fetching partner by ID (${userId}):`, error);
+    return null;
+  }
+}

@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,7 +11,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import type { PartnerActivationInfo } from '@/types';
 import { getActivePartners, deactivatePartner } from '@/app/manage-partner/actions';
-import PartnerDetailsDialog from './partner-details-dialog';
 import { Badge } from './ui/badge';
 import { Eye, MessageSquare, UserX, ArrowUpDown } from 'lucide-react';
 import {
@@ -125,11 +125,11 @@ export default function ManagePartnerContent() {
                                  <TableCell><Badge variant="secondary">Active</Badge></TableCell>
                                  <TableCell className="text-right">
                                      <div className="flex justify-end gap-2">
-                                        <PartnerDetailsDialog partnerInfo={{ user, profile }}>
-                                            <Button variant="ghost" size="icon" title="View Profile">
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
-                                        </PartnerDetailsDialog>
+                                        <Button asChild variant="ghost" size="icon" title="View Profile">
+                                          <Link href={`/manage-partner/${user.id}`}>
+                                            <Eye className="h-4 w-4" />
+                                          </Link>
+                                        </Button>
                                         <Button variant="ghost" size="icon" title="Message Partner" onClick={() => router.push('/updates')}>
                                             <MessageSquare className="h-4 w-4" />
                                         </Button>
