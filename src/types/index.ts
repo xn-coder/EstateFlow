@@ -37,3 +37,35 @@ export interface Lead {
   clientEmail: string;
   status: 'New' | 'Contacted' | 'Closed';
 }
+
+export interface WebsiteData {
+  businessInfo: {
+    name: string;
+    tagline: string;
+    avatar: string;
+  };
+  slideshowImage: {
+    url: string;
+    text: string;
+  };
+  contactDetails: {
+    name: string;
+    phone: string;
+    email: string;
+    address: string;
+  };
+  legalInfo: {
+    about: string;
+    terms: string;
+    privacy: string;
+    refund: string;
+    disclaimer: string;
+  };
+  links: {
+    website: string;
+    facebook: string;
+    instagram: string;
+    linkedin: string;
+    youtube: string;
+  };
+}

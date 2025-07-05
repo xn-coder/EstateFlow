@@ -91,9 +91,11 @@ export default function AppHeader({
                 <span>Manage Profile</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Globe className="mr-2 h-4 w-4" />
-              <span>Manage Website</span>
+            <DropdownMenuItem asChild>
+              <Link href="/manage-website">
+                <Globe className="mr-2 h-4 w-4" />
+                <span>Manage Website</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <BookUser className="mr-2 h-4 w-4" />
