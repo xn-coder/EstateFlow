@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Building2, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -139,6 +140,12 @@ export default function LoginPage() {
                 {isSeeding ? 'Seeding...' : 'Seed Database'}
             </Button>
             <p className="text-xs text-muted-foreground mt-2">Adds initial users to Firestore if they don't exist.</p>
+          </div>
+           <div className="mt-4 text-center text-sm">
+            Don&apos;t have an account?{' '}
+            <Link href="/signup" className="underline">
+              Register as a Partner
+            </Link>
           </div>
         </CardContent>
       </Card>

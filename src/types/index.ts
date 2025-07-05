@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -15,6 +9,30 @@ export interface User {
   role: Role;
   avatar: string;
   phone?: string;
+  partnerProfileId?: string;
+}
+
+export interface PartnerData {
+  id: string;
+  profileImage?: string;
+  name: string;
+  dob: string; // Stored as ISO string in Firestore
+  gender: 'Male' | 'Female' | 'Other';
+  qualification: string;
+  phone: string;
+  email: string;
+  whatsapp: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  businessLogo?: string;
+  businessType: string;
+  gstn?: string;
+  businessAge: number;
+  areaCovered: string;
+  aadhaarCard: string;
+  panCard: string;
 }
 
 export interface Property {
