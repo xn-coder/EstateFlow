@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PropertyListings from '@/components/property-listings';
 import UserManagement from '@/components/user-management';
 import LeadManagement from '@/components/lead-management';
-import PartnerDashboard from '@/components/partner-dashboard';
 import AdminDashboard from '@/components/admin-dashboard';
 import type { Role } from '@/types';
 import * as React from 'react';
@@ -16,8 +15,9 @@ export default function DashboardContent({ role }: { role: Role }) {
     return <AdminDashboard />;
   }
 
+  // The 'Partner' role is now handled directly in `src/app/page.tsx`
   if (role === 'Partner') {
-    return <PartnerDashboard />;
+    return null;
   }
 
   const tabs = [

@@ -10,6 +10,7 @@ import AdminSidebar from '@/components/admin-sidebar';
 import AppHeader from '@/components/app-header';
 import DashboardFooter from '@/components/dashboard-footer';
 import { ADMIN_ROLES } from '@/lib/roles';
+import PartnerDashboard from '@/components/partner-dashboard';
 
 function DashboardSkeleton() {
   return (
@@ -63,6 +64,10 @@ export default function Home() {
 
   if (loading || !user) {
     return <DashboardSkeleton />;
+  }
+  
+  if (user.role === 'Partner') {
+    return <PartnerDashboard currentUser={user} />;
   }
   
   return (
