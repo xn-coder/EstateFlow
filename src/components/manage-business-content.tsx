@@ -68,7 +68,7 @@ export default function ManageBusinessContent() {
         { label: 'Add a Catalog', href: '/add-catalog' },
         { label: 'Manage Catalog', href: '/manage-catalog' },
         { label: 'Add a Marketing Kits', href: '#' },
-        { label: 'Manage Marketing Kits', href: '#' },
+        { label: 'Manage Marketing Kits', href: '/manage-marketing-kits' },
         { label: 'Add a New Category', href: '#' },
         { label: 'Manage Category', href: '#' },
         { label: 'Manage a Content', href: '#' },

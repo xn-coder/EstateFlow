@@ -4,7 +4,7 @@
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 import * as z from 'zod';
-import type { Catalog } from '@/types';
+import type { Catalog, MarketingKitInfo } from '@/types';
 
 const catalogSlideshowSchema = z.object({
   id: z.string(),
@@ -26,7 +26,7 @@ const catalogMarketingKitSchema = z.object({
   uploadedFile: z.string().min(1, 'File is required'),
 });
 
-const catalogSchema: z.ZodType<Omit<Catalog, 'id'>> = z.object({
+const catalogSchema: z.ZodType<Omit<Catalog, 'id' | 'catalogCode'>> = z.object({
   // Step 1
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
@@ -58,12 +58,12 @@ const catalogSchema: z.ZodType<Omit<Catalog, 'id'>> = z.object({
 });
 
 
-export async function addCatalog(data: Omit<Catalog, 'id'>) {
+export async function addCatalog(data: Omit<Catalog, 'id' | 'catalogCode'>) {
   const placeholderImage = 'https://placehold.co/600x400.png';
   const placeholderFile = 'placeholder.pdf';
   const isBase64 = (str: string | undefined): boolean => !!str && str.startsWith('data:');
 
-  const dataForFirestore: Omit<Catalog, 'id'> = {
+  const dataForFirestore: Omit<Catalog, 'id' | 'catalogCode'> = {
     ...data,
     featuredImage: isBase64(data.featuredImage) ? placeholderImage : data.featuredImage,
     slideshows: (data.slideshows || []).map(s => ({
@@ -95,7 +95,12 @@ export async function addCatalog(data: Omit<Catalog, 'id'>) {
   }
   
   try {
-    await addDoc(collection(db, 'catalogs'), validation.data);
+    const catalogCode = `CD${Math.floor(100000 + Math.random() * 900000)}`;
+    const dataToSave = {
+      ...validation.data,
+      catalogCode,
+    };
+    await addDoc(collection(db, 'catalogs'), dataToSave);
     return { success: true, message: 'Catalog added successfully!' };
   } catch (error) {
     console.error('Error adding catalog:', error);
@@ -110,6 +115,30 @@ export async function getCatalogs(): Promise<Catalog[]> {
     return catalogsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Catalog));
   } catch (error) {
     console.error("Error fetching catalogs:", error);
+    return [];
+  }
+}
+
+export async function getMarketingKits(): Promise<MarketingKitInfo[]> {
+  try {
+    const catalogs = await getCatalogs();
+    const allKits: MarketingKitInfo[] = [];
+
+    catalogs.forEach(catalog => {
+      if (catalog.marketingKits && catalog.marketingKits.length > 0) {
+        const kitsFromCatalog = catalog.marketingKits.map(kit => ({
+          ...kit,
+          catalogId: catalog.id,
+          catalogTitle: catalog.title,
+          catalogCode: catalog.catalogCode,
+        }));
+        allKits.push(...kitsFromCatalog);
+      }
+    });
+
+    return allKits;
+  } catch (error) {
+    console.error("Error fetching marketing kits:", error);
     return [];
   }
 }

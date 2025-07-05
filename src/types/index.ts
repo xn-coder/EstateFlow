@@ -195,6 +195,7 @@ export interface CatalogMarketingKit {
 
 export interface Catalog {
   id: string;
+  catalogCode: string;
   // Step 1
   title: string;
   description: string;
@@ -223,4 +224,10 @@ export interface Catalog {
   notesContent?: string;
   termsContent?: string;
   policyContent?: string;
+}
+
+export interface MarketingKitInfo extends CatalogMarketingKit {
+  catalogId: string;
+  catalogTitle: string;
+  catalogCode: string;
 }

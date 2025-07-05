@@ -74,11 +74,13 @@ export default function ManageCatalogContent() {
                             <TableHead><Skeleton className="h-5 w-32" /></TableHead>
                             <TableHead><Skeleton className="h-5 w-24" /></TableHead>
                             <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+                            <TableHead><Skeleton className="h-5 w-24" /></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {[...Array(5)].map((_, i) => (
                             <TableRow key={i}>
+                                <TableCell><Skeleton className="h-5 w-full" /></TableCell>
                                 <TableCell><Skeleton className="h-5 w-full" /></TableCell>
                                 <TableCell><Skeleton className="h-5 w-full" /></TableCell>
                                 <TableCell><Skeleton className="h-5 w-full" /></TableCell>
@@ -93,6 +95,7 @@ export default function ManageCatalogContent() {
                          <TableRow>
                              <TableHead><button className="flex items-center gap-1">Title <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                              <TableHead><button className="flex items-center gap-1">Category <ArrowUpDown className="h-3 w-3" /></button></TableHead>
+                             <TableHead><button className="flex items-center gap-1">Code <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                              <TableHead><button className="flex items-center gap-1">Price <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                              <TableHead className="text-right">Actions</TableHead>
                          </TableRow>
@@ -102,6 +105,7 @@ export default function ManageCatalogContent() {
                              <TableRow key={catalog.id}>
                                  <TableCell className='font-medium'>{catalog.title}</TableCell>
                                  <TableCell className='text-muted-foreground'>{catalog.categoryName}</TableCell>
+                                 <TableCell className='text-muted-foreground font-mono text-xs'>{catalog.catalogCode}</TableCell>
                                  <TableCell>{formatCurrency(catalog.sellingPrice, catalog.pricingType)}</TableCell>
                                  <TableCell className="text-right">
                                      <div className="flex justify-end gap-2">
