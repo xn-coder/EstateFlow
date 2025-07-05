@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 import * as z from 'zod';
 import type { Catalog } from '@/types';
 
@@ -101,5 +101,15 @@ export async function addCatalog(data: Omit<Catalog, 'id'>) {
     console.error('Error adding catalog:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
     return { success: false, error: errorMessage };
+  }
+}
+
+export async function getCatalogs(): Promise<Catalog[]> {
+  try {
+    const catalogsSnapshot = await getDocs(collection(db, 'catalogs'));
+    return catalogsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Catalog));
+  } catch (error) {
+    console.error("Error fetching catalogs:", error);
+    return [];
   }
 }

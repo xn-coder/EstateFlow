@@ -66,7 +66,7 @@ export default function ManageBusinessContent() {
 
     const catalogItems = [
         { label: 'Add a Catalog', href: '/add-catalog' },
-        { label: 'Manage Catalog', href: '#' },
+        { label: 'Manage Catalog', href: '/manage-catalog' },
         { label: 'Add a Marketing Kits', href: '#' },
         { label: 'Manage Marketing Kits', href: '#' },
         { label: 'Add a New Category', href: '#' },
