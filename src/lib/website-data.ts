@@ -1,3 +1,4 @@
+
 import type { WebsiteData } from '@/types';
 
 export const websiteData: WebsiteData = {
@@ -5,6 +6,8 @@ export const websiteData: WebsiteData = {
     name: 'Business Name Here',
     tagline: 'Tagline Here',
     avatar: 'https://placehold.co/80x80.png',
+    metaKeywords: 'real estate, property, homes for sale',
+    metaDescription: 'Find your dream home with EstateFlow. We offer the best properties in the market.',
   },
   slideshowImage: {
     url: '#',

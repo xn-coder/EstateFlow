@@ -1,3 +1,4 @@
+
 export type Role = 'Admin' | 'Seller' | 'Partner';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -43,6 +44,8 @@ export interface WebsiteData {
     name: string;
     tagline: string;
     avatar: string;
+    metaKeywords?: string;
+    metaDescription?: string;
   };
   slideshowImage: {
     url: string;

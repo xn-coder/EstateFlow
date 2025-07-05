@@ -1,0 +1,163 @@
+
+'use client';
+
+import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Upload } from 'lucide-react';
+import { websiteData } from '@/lib/website-data';
+
+const businessProfileSchema = z.object({
+  name: z.string().min(1, 'Website title is required'),
+  tagline: z.string().optional(),
+  metaKeywords: z.string().optional(),
+  metaDescription: z.string().optional(),
+});
+
+interface EditBusinessProfileDialogProps {
+  children: React.ReactNode;
+}
+
+export default function EditBusinessProfileDialog({ children }: EditBusinessProfileDialogProps) {
+  const [open, setOpen] = React.useState(false);
+  const [logoPreview, setLogoPreview] = React.useState<string | null>(websiteData.businessInfo.avatar);
+
+  const form = useForm<z.infer<typeof businessProfileSchema>>({
+    resolver: zodResolver(businessProfileSchema),
+    defaultValues: {
+      name: websiteData.businessInfo.name,
+      tagline: websiteData.businessInfo.tagline,
+      metaKeywords: websiteData.businessInfo.metaKeywords || '',
+      metaDescription: websiteData.businessInfo.metaDescription || '',
+    },
+  });
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onSubmit = (values: z.infer<typeof businessProfileSchema>) => {
+    console.log('Business profile updated:', values);
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Business Profile</DialogTitle>
+          <DialogDescription>Update your business information and website SEO settings.</DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="flex items-center justify-center space-x-4">
+              <Avatar className="h-24 w-24 border">
+                <AvatarImage src={logoPreview || websiteData.businessInfo.avatar} alt="Business Logo" />
+                <AvatarFallback>{websiteData.businessInfo.name.substring(0, 2)}</AvatarFallback>
+              </Avatar>
+              <div className="relative">
+                <Button type="button" variant="outline">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Logo
+                </Button>
+                <Input
+                  type="file"
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                  onChange={handleLogoChange}
+                  accept="image/*"
+                />
+              </div>
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website Title</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="tagline"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website Tagline</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="metaKeywords"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website Meta Keywords</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="e.g., keyword1, keyword2" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="metaDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website Meta Description</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">Cancel</Button>
+              </DialogClose>
+              <Button type="submit">Save Changes</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}

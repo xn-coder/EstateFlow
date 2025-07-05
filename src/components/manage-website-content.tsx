@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
 import { websiteData } from '@/lib/website-data';
+import EditBusinessProfileDialog from './edit-business-profile-dialog';
 
 // A simple row component to display info
 const InfoRow: React.FC<{ label: string; children: React.ReactNode, isLongText?: boolean }> = ({ label, children, isLongText }) => (
@@ -46,9 +47,11 @@ export default function ManageWebsiteContent() {
                         <p className="text-muted-foreground">{websiteData.businessInfo.tagline}</p>
                     </div>
                 </div>
-                <Button variant="ghost" size="icon">
-                    <Pencil className="h-5 w-5" />
-                </Button>
+                <EditBusinessProfileDialog>
+                    <Button variant="ghost" size="icon">
+                        <Pencil className="h-5 w-5" />
+                    </Button>
+                </EditBusinessProfileDialog>
             </CardContent>
         </Card>
 
