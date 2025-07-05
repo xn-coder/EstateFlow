@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, writeBatch, doc } from 'firebase/firestore';
 import bcrypt from 'bcryptjs';
 import * as z from 'zod';
 import type { User } from '@/types';
@@ -20,6 +20,29 @@ export async function loginUser(email: string, password: string) {
 
   try {
     const usersRef = collection(db, 'users');
+
+    // Auto-create admin user if it doesn't exist, using credentials from .env.local
+    if (process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL) {
+      const adminQuery = query(usersRef, where('email', '==', email));
+      const adminSnapshot = await getDocs(adminQuery);
+      if (adminSnapshot.empty) {
+        console.log(`Admin user ${email} not found, creating from .env credentials.`);
+        const adminPassword = process.env.ADMIN_PASSWORD;
+        if (!adminPassword) {
+          throw new Error('ADMIN_PASSWORD is not set in the .env.local file.');
+        }
+        const passwordHash = await bcrypt.hash(adminPassword, 10);
+        await addDoc(usersRef, {
+          name: 'Super Admin',
+          email: email,
+          role: 'Admin',
+          avatar: 'https://placehold.co/40x40.png',
+          passwordHash: passwordHash
+        });
+        console.log('Admin user created. You can now log in with the credentials from .env.local.');
+      }
+    }
+
     const q = query(usersRef, where('email', '==', email));
     const querySnapshot = await getDocs(q);
 
@@ -47,46 +70,46 @@ export async function loginUser(email: string, password: string) {
     return { success: true, user: userForClient };
   } catch (error) {
     console.error('Login error:', error);
-    return { success: false, error: 'An unexpected error occurred.' };
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    return { success: false, error: errorMessage };
   }
 }
 
 export async function seedUsers() {
   try {
     const usersRef = collection(db, 'users');
-    const q = query(usersRef);
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-        // To prevent re-seeding, we can either throw an error or just return.
-        // Throwing an error provides better feedback to the user.
-        throw new Error("Users collection is not empty. Seeding aborted.");
-    }
-    
     const batch = writeBatch(db);
-    
-    for (const user of initialUsersForSeed) {
-      // Use a default password for all seeded users for simplicity
-      const passwordHash = await bcrypt.hash('password', 10);
-      const userDocRef = doc(usersRef);
-      // Omit id from the user object as Firestore will generate it.
-      const { id, ...userData } = user;
+    let usersSeededCount = 0;
 
-      batch.set(userDocRef, {
-        ...userData,
-        passwordHash: passwordHash
-      });
+    for (const user of initialUsersForSeed) {
+      const q = query(usersRef, where('email', '==', user.email));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        const passwordHash = await bcrypt.hash('password', 10);
+        const userDocRef = doc(usersRef);
+        const { id, ...userData } = user;
+
+        batch.set(userDocRef, {
+          ...userData,
+          passwordHash: passwordHash,
+        });
+        usersSeededCount++;
+      }
     }
 
-    await batch.commit();
-
-    return { success: true };
+    if (usersSeededCount > 0) {
+      await batch.commit();
+      return { success: true, message: `Successfully seeded ${usersSeededCount} users.` };
+    } else {
+      return { success: true, message: 'All initial users already exist.' };
+    }
   } catch (error) {
     console.error("Seeding error:", error);
     if (error instanceof Error) {
-        throw error;
+        return { success: false, error: error.message };
     }
-    throw new Error("An unexpected error occurred during seeding.");
+    return { success: false, error: "An unexpected error occurred during seeding." };
   }
 }
 

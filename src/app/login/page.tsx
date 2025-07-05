@@ -62,15 +62,23 @@ export default function LoginPage() {
   const handleSeed = async () => {
     setIsSeeding(true);
     try {
-      await seedUsers();
-      toast({
-        title: 'Database Seeded',
-        description: 'Initial users have been added to Firestore.',
-      });
+      const result = await seedUsers();
+      if (result.success) {
+        toast({
+          title: 'Database Seeded',
+          description: result.message,
+        });
+      } else {
+        toast({
+          title: 'Seeding Failed',
+          description: result.error || 'Could not seed the database.',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
        toast({
-        title: 'Seeding Failed',
-        description: (error as Error).message || 'Could not seed the database.',
+        title: 'Seeding Error',
+        description: (error as Error).message || 'An unexpected error occurred.',
         variant: 'destructive',
       });
     } finally {
@@ -130,7 +138,7 @@ export default function LoginPage() {
                 <Database className="mr-2 h-4 w-4" />
                 {isSeeding ? 'Seeding...' : 'Seed Database'}
             </Button>
-            <p className="text-xs text-muted-foreground mt-2">One-time action to add initial users to Firestore.</p>
+            <p className="text-xs text-muted-foreground mt-2">Adds initial users to Firestore if they don't exist.</p>
           </div>
         </CardContent>
       </Card>
