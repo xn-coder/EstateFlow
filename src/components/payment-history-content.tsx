@@ -52,11 +52,8 @@ export default function PaymentHistoryContent() {
   };
   
   const handlePrint = () => {
-    toast({ title: 'Info', description: 'Preparing document for printing...' });
-    // A timeout can give the user a moment to see the toast before the print dialog appears
-    setTimeout(() => {
-      window.print();
-    }, 500);
+    toast({ title: 'Info', description: 'Opening print view...' });
+    window.open('/payment-history/print', '_blank');
   };
 
   return (
