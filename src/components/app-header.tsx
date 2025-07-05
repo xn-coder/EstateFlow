@@ -1,6 +1,7 @@
 
 'use client';
 
+import Link from 'next/link';
 import type { Role, User } from '@/types';
 import {
   Select,
@@ -84,9 +85,11 @@ export default function AppHeader({
                 </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <UserIcon className="mr-2 h-4 w-4" />
-              <span>Manage Profile</span>
+            <DropdownMenuItem asChild>
+              <Link href="/profile">
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Manage Profile</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Globe className="mr-2 h-4 w-4" />
