@@ -101,7 +101,7 @@ export default function ManagePartnerContent() {
                      <TableHeader>
                          <TableRow>
                              <TableHead><button className="flex items-center gap-1">Partner <ArrowUpDown className="h-3 w-3" /></button></TableHead>
-                             <TableHead><button className="flex items-center gap-1">Partner ID <ArrowUpDown className="h-3 w-3" /></button></TableHead>
+                             <TableHead className="hidden sm:table-cell"><button className="flex items-center gap-1">Partner ID <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                              <TableHead>Status</TableHead>
                              <TableHead className="text-right">Actions</TableHead>
                          </TableRow>
@@ -121,7 +121,7 @@ export default function ManagePartnerContent() {
                                         </div>
                                      </div>
                                  </TableCell>
-                                 <TableCell>{user.partnerCode || 'N/A'}</TableCell>
+                                 <TableCell className="hidden sm:table-cell">{user.partnerCode || 'N/A'}</TableCell>
                                  <TableCell><Badge variant="secondary">Active</Badge></TableCell>
                                  <TableCell className="text-right">
                                      <div className="flex justify-end gap-2">
