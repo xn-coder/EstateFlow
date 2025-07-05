@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -32,7 +33,7 @@ export default function AdminSidebar() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#" isActive tooltip="Dashboard">
+            <SidebarMenuButton href="/" isActive tooltip="Dashboard">
               <LayoutDashboard />
               Dashboard
             </SidebarMenuButton>
@@ -50,7 +51,7 @@ export default function AdminSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#" tooltip="Support Ticket">
+            <SidebarMenuButton href="/updates" tooltip="Support Ticket">
               <LifeBuoy />
               Support Ticket
             </SidebarMenuButton>
@@ -62,7 +63,7 @@ export default function AdminSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#" tooltip="Updates">
+            <SidebarMenuButton href="/updates" tooltip="Updates">
               <Bell />
               Updates
             </SidebarMenuButton>
