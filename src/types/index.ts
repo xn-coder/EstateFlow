@@ -84,3 +84,12 @@ export interface Contact {
   code: string;
   avatar: string;
 }
+
+export interface UpdateMessage {
+  id: string;
+  from: string;
+  subject: string;
+  body: string;
+  date: string;
+  read: boolean;
+}
