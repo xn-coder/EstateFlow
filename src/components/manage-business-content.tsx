@@ -56,9 +56,9 @@ export default function ManageBusinessContent() {
     const router = useRouter();
 
     const partnerItems = [
-        { label: 'Manage Partner', href: '#' },
+        { label: 'Manage Partner', href: '/manage-partner' },
         { label: 'Partner Activation', href: '/partner-activation' },
-        { label: 'Deactivated Partner', href: '#' },
+        { label: 'Deactivated Partner', href: '/deactivated-partner' },
         { label: 'Manage Customer', href: '#' },
         { label: 'Manage Access', href: '#' },
         { label: 'Give Access', href: '#' },

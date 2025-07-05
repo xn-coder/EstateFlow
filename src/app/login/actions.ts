@@ -58,6 +58,10 @@ export async function loginUser(email: string, password: string) {
       return { success: false, error: 'Your account is pending activation by an administrator.' };
     }
 
+    if (user.status === 'Deactivated') {
+      return { success: false, error: 'Your account has been deactivated. Please contact an administrator.' };
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
