@@ -41,21 +41,21 @@ export default function AppHeader({
     !isAdmin || (isAdmin && sidebar?.state === 'collapsed' && !sidebar?.isMobile);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center border-b bg-card px-4 shadow-sm">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center border-b bg-card px-2 sm:px-4 shadow-sm">
+      <div className="flex items-center gap-2 sm:gap-4">
         {isAdmin && <SidebarTrigger />}
         {showHeaderLogo && (
           <div className="flex items-center gap-2">
             <Building2 className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-primary font-headline">
+            <h1 className="hidden sm:block text-2xl font-bold text-primary font-headline">
               EstateFlow
             </h1>
           </div>
         )}
       </div>
 
-      <div className="flex flex-1 items-center justify-end space-x-4">
-        <div className="w-[180px]">
+      <div className="flex flex-1 items-center justify-end space-x-2 sm:space-x-4">
+        <div className="w-[130px] sm:w-[180px]">
           <Select value={role} onValueChange={(value: Role) => setRole(value)}>
             <SelectTrigger className="bg-background">
               <SelectValue placeholder="Select a role" />
