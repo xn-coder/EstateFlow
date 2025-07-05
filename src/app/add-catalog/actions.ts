@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -39,17 +40,17 @@ const catalogSchema: z.ZodType<Omit<Catalog, 'id'>> = z.object({
   earningType: z.enum(['Fixed rate', 'commission', 'reward point']),
   earning: z.coerce.number().min(0, 'Earning must be a positive number'),
   // Step 3
-  slideshows: z.array(catalogSlideshowSchema).min(1, 'At least one slideshow is required'),
+  slideshows: z.array(catalogSlideshowSchema).optional(),
   // Step 4
-  detailsContent: z.string().min(1, 'Details content is required'),
+  detailsContent: z.string().optional(),
   // Step 5
-  faqs: z.array(catalogFAQSchema).min(1, 'At least one FAQ is required'),
+  faqs: z.array(catalogFAQSchema).optional(),
   // Step 6
-  galleryImages: z.array(z.string()).min(1, 'At least one gallery image is required'),
+  galleryImages: z.array(z.string()).optional(),
   // Step 7
-  videoLink: z.string().url('Must be a valid URL'),
+  videoLink: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
   // Step 8
-  marketingKits: z.array(catalogMarketingKitSchema).min(1, 'At least one marketing kit is required'),
+  marketingKits: z.array(catalogMarketingKitSchema).optional(),
   // Step 9
   notesContent: z.string().optional(),
   termsContent: z.string().optional(),
@@ -58,7 +59,17 @@ const catalogSchema: z.ZodType<Omit<Catalog, 'id'>> = z.object({
 
 
 export async function addCatalog(data: Omit<Catalog, 'id'>) {
-  const validation = catalogSchema.safeParse(data);
+  // Clean up data before validation.
+  const cleanedData = {
+    ...data,
+    slideshows: (data.slideshows || []).filter(s => s.image && s.title),
+    faqs: (data.faqs || []).filter(f => f.question && f.answer),
+    marketingKits: (data.marketingKits || []).filter(k => k.featuredImage && k.nameOrTitle && k.uploadedFile),
+    galleryImages: (data.galleryImages || []).filter(g => g),
+    videoLink: data.videoLink || '',
+  };
+
+  const validation = catalogSchema.safeParse(cleanedData);
   if (!validation.success) {
     console.error('Validation errors:', validation.error.flatten());
     return { success: false, error: 'Invalid data submitted. Please check all form fields.' };
