@@ -245,47 +245,53 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
       return { success: false, error: 'Incorrect admin password.' };
     }
     
-    // 2. Perform transaction logic
-    const summaryDoc = await getDoc(walletSummaryRef);
-    const summaryData = summaryDoc.data() as { totalBalance: number; revenue: number };
-    
-    let transactionName = action;
-    if (recipientId) {
-        if (action === 'send a partner') transactionName = `Paid to partner: ${recipientId}`;
-        else if (action === 'send a customer') transactionName = `Paid to customer: ${recipientId}`;
-    }
+    // 2. Perform transaction logic using Firestore Transaction
+    await runTransaction(db, async (transaction) => {
+      const summaryDoc = await transaction.get(walletSummaryRef);
+      if (!summaryDoc.exists()) {
+          throw new Error("Wallet summary not found!");
+      }
+      const summaryData = summaryDoc.data() as { totalBalance: number; revenue: number };
+      
+      let transactionName = action;
+      if (recipientId) {
+          if (action === 'send a partner') transactionName = `Paid to partner: ${recipientId}`;
+          else if (action === 'send a customer') transactionName = `Paid to customer: ${recipientId}`;
+      }
 
-    const newHistory: Omit<PaymentHistory, 'id'> = {
-        date: new Date().toISOString().split('T')[0],
-        name: transactionName,
-        transactionId: `TXN${Date.now()}`,
-        amount,
-        paymentMethod,
-        type: 'Credit', // Default
-    };
+      const newHistory: Omit<PaymentHistory, 'id'> = {
+          date: new Date().toISOString().split('T')[0],
+          name: transactionName,
+          transactionId: `TXN${Date.now()}`,
+          amount,
+          paymentMethod,
+          type: 'Credit', // Default
+      };
 
-    if (action === 'Topup wallet') {
-        newHistory.type = 'Credit';
-        await updateDoc(walletSummaryRef, { 
-            totalBalance: summaryData.totalBalance + amount,
-            revenue: summaryData.revenue + amount,
-         });
-    } else { // send a partner / send a customer
-        newHistory.type = 'Debit';
-        if (summaryData.totalBalance < amount) {
-            return { success: false, error: 'Insufficient wallet balance.' };
-        }
-        await updateDoc(walletSummaryRef, { totalBalance: summaryData.totalBalance - amount });
-    }
-    
-    // 3. Add to payment history
-    await addDoc(paymentHistoryRef, newHistory);
+      if (action === 'Topup wallet') {
+          newHistory.type = 'Credit';
+          transaction.update(walletSummaryRef, { 
+              totalBalance: summaryData.totalBalance + amount,
+           });
+      } else { // send a partner / send a customer
+          newHistory.type = 'Debit';
+          if (summaryData.totalBalance < amount) {
+              throw new Error('Insufficient wallet balance.');
+          }
+          transaction.update(walletSummaryRef, { totalBalance: summaryData.totalBalance - amount });
+      }
+      
+      // 3. Add to payment history inside the transaction
+      const newHistoryRef = doc(paymentHistoryRef);
+      transaction.set(newHistoryRef, newHistory);
+    });
 
     return { success: true, message: `Transaction '${action}' of ${amount} INR was successful.` };
 
   } catch (error) {
     console.error('Wallet transaction error:', error);
-    return { success: false, error: 'An unexpected error occurred.' };
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    return { success: false, error: errorMessage };
   }
 }
 
