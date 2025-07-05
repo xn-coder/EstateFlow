@@ -1,5 +1,5 @@
 
-import type { Property, User, Lead, PropertyType, Contact, UpdateMessage } from '@/types';
+import type { Property, User, Lead, PropertyType, Contact, UpdateMessage, Enquiry } from '@/types';
 
 export const users: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@estateflow.com', role: 'Admin', avatar: 'https://placehold.co/40x40.png' },
@@ -126,4 +126,22 @@ export const updateMessages: UpdateMessage[] = [
     date: '1 Week ago',
     read: true,
   },
+];
+
+export const businessReportData = [
+  { day: 'Mon', enquiry: 40, property: 24, booking: 24 },
+  { day: 'Tue', enquiry: 30, property: 13, booking: 22 },
+  { day: 'Wed', enquiry: 20, property: 58, booking: 29 },
+  { day: 'Thu', enquiry: 27, property: 39, booking: 20 },
+  { day: 'Fri', enquiry: 18, property: 48, booking: 21 },
+  { day: 'Sat', enquiry: 23, property: 38, booking: 25 },
+  { day: 'Sun', enquiry: 34, property: 43, booking: 31 },
+];
+
+export const enquiries: Enquiry[] = [
+  { id: '1', enquiryId: 'ENQ-001', date: '2024-05-20', name: 'John Doe', phone: '+1-202-555-0181', partnerId: 'PRT-123', catalogName: 'Sunrise Apartments', catalogCode: 'CAT-001' },
+  { id: '2', enquiryId: 'ENQ-002', date: '2024-05-19', name: 'Jane Smith', phone: '+1-202-555-0114', partnerId: 'PRT-124', catalogName: 'Ocean View Villas', catalogCode: 'CAT-002' },
+  { id: '3', enquiryId: 'ENQ-003', date: '2024-05-18', name: 'Sam Wilson', phone: '+1-202-555-0168', partnerId: 'PRT-125', catalogName: 'Downtown Lofts', catalogCode: 'CAT-003' },
+  { id: '4', enquiryId: 'ENQ-004', date: '2024-05-17', name: 'Lisa Ray', phone: '+1-202-555-0199', partnerId: 'PRT-123', catalogName: 'Sunrise Apartments', catalogCode: 'CAT-001' },
+  { id: '5', enquiryId: 'ENQ-005', date: '2024-05-16', name: 'Peter Jones', phone: '+1-202-555-0145', partnerId: 'PRT-126', catalogName: 'Green Meadows', catalogCode: 'CAT-004' },
 ];

@@ -5,10 +5,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PropertyListings from '@/components/property-listings';
 import UserManagement from '@/components/user-management';
 import LeadManagement from '@/components/lead-management';
+import PartnerDashboard from '@/components/partner-dashboard';
 import type { Role } from '@/types';
 import * as React from 'react';
 
 export default function DashboardContent({ role }: { role: Role }) {
+  if (role === 'Partner') {
+    return <PartnerDashboard />;
+  }
+
   const tabs = [
     { value: 'properties', label: 'Properties', icon: Building2, component: <PropertyListings role={role} />, roles: ['Admin', 'Seller', 'Partner'] },
     { value: 'users', label: 'Users', icon: Users, component: <UserManagement />, roles: ['Admin'] },

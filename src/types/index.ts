@@ -93,3 +93,14 @@ export interface UpdateMessage {
   date: string;
   read: boolean;
 }
+
+export interface Enquiry {
+  id: string;
+  enquiryId: string;
+  date: string;
+  name: string;
+  phone: string;
+  partnerId: string;
+  catalogName: string;
+  catalogCode: string;
+}
