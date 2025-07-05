@@ -4,7 +4,6 @@
 import { db } from '@/lib/firebase';
 import { collection, doc, getDocs, getDoc, writeBatch, updateDoc, addDoc, query, limit, setDoc, where, runTransaction } from 'firebase/firestore';
 import type { Payable, PaymentHistory, Receivable, User, WalletSummary } from '@/types';
-import { initialPayables, initialPaymentHistory, initialReceivables } from '@/lib/data';
 import * as z from 'zod';
 import bcrypt from 'bcryptjs';
 
@@ -14,21 +13,6 @@ const paymentHistoryRef = collection(db, 'paymentHistory');
 const walletSummaryRef = doc(db, 'wallet', 'summary');
 
 // --- Seeding Actions ---
-async function seedCollection(ref: any, initialData: any[]) {
-    const snapshot = await getDocs(query(ref, limit(1)));
-    if (snapshot.empty) {
-        console.log(`Seeding ${ref.path}...`);
-        const batch = writeBatch(db);
-        initialData.forEach(item => {
-            const { id, ...data } = item;
-            const docRef = doc(ref, id);
-            batch.set(docRef, data);
-        });
-        await batch.commit();
-        console.log(`Seeded ${initialData.length} documents into ${ref.path}.`);
-    }
-}
-
 async function initializeWalletSummary() {
     const docSnap = await getDoc(walletSummaryRef);
     if (!docSnap.exists()) {
@@ -46,9 +30,6 @@ async function initializeWalletSummary() {
 export async function getWalletSummaryData(): Promise<WalletSummary> {
     try {
         await initializeWalletSummary(); // Ensure summary doc exists
-        await seedCollection(payablesRef, initialPayables);
-        await seedCollection(receivablesRef, initialReceivables);
-        await seedCollection(paymentHistoryRef, initialPaymentHistory);
 
         const payablesQuery = query(collection(db, 'payables'), where('status', '==', 'Pending'));
         const receivablesQuery = query(collection(db, 'receivables'), where('status', '==', 'Pending'));
@@ -77,19 +58,16 @@ export async function getWalletSummaryData(): Promise<WalletSummary> {
 }
 
 export async function getReceivables(): Promise<Receivable[]> {
-  await seedCollection(receivablesRef, initialReceivables);
   const snapshot = await getDocs(receivablesRef);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Receivable));
 }
 
 export async function getPayables(): Promise<Payable[]> {
-  await seedCollection(payablesRef, initialPayables);
   const snapshot = await getDocs(payablesRef);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payable));
 }
 
 export async function getPaymentHistory(): Promise<PaymentHistory[]> {
-  await seedCollection(paymentHistoryRef, initialPaymentHistory);
   const snapshot = await getDocs(paymentHistoryRef);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PaymentHistory));
 }
@@ -224,9 +202,10 @@ export async function updatePayableStatus(id: string, status: 'Pending' | 'Paid'
   }
 }
 
-// --- Manage Wallet Transaction ---
-const paymentMethods = ["cash", "cheque", "debit card", "credit card", "gpay", "phonepe", "paytm", "upi", "others"] as const;
+const paymentMethods = ["Wallet", "cash", "cheque", "debit card", "credit card", "gpay", "phonepe", "paytm", "upi", "others"] as const;
 
+
+// --- Manage Wallet Transaction ---
 const manageWalletSchema = z.object({
   action: z.enum(["Topup wallet", "send a partner", "send a customer"]),
   amount: z.coerce.number().min(1),
@@ -310,4 +289,79 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
   }
 }
 
-    
+// --- Ad Hoc Payment ---
+const adHocPaymentSchema = z.object({
+  recipientName: z.string().min(1, 'Recipient name is required.'),
+  recipientId: z.string().min(1, 'Recipient ID is required.'),
+  amount: z.coerce.number().min(1, 'Amount must be greater than 0.'),
+  paymentMethod: z.enum(paymentMethods),
+  password: z.string().min(1, 'Admin password is required.'),
+  userId: z.string().min(1),
+});
+
+export async function makeAdHocPayment(data: z.infer<typeof adHocPaymentSchema>) {
+  const validation = adHocPaymentSchema.safeParse(data);
+  if (!validation.success) {
+      return { success: false, error: 'Invalid input.' };
+  }
+
+  const { userId, password, amount, paymentMethod, recipientName, recipientId } = data;
+
+  try {
+      // 1. Verify admin password
+      const userRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) {
+          return { success: false, error: 'User not found.' };
+      }
+      const user = userDoc.data() as User & { passwordHash: string };
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isPasswordValid) {
+          return { success: false, error: 'Incorrect admin password.' };
+      }
+      
+      // 2. Run transaction
+      await runTransaction(db, async (transaction) => {
+          // A. Update wallet balance if necessary
+          if (paymentMethod === 'Wallet') {
+              const summaryDoc = await transaction.get(walletSummaryRef);
+              if (!summaryDoc.exists()) {
+                  throw new Error("Wallet summary not found!");
+              }
+              const summaryData = summaryDoc.data() as { totalBalance: number };
+              if (summaryData.totalBalance < amount) {
+                  throw new Error('Insufficient wallet balance.');
+              }
+              transaction.update(walletSummaryRef, { totalBalance: summaryData.totalBalance - amount });
+          }
+
+          // B. Create new payable doc with status 'Paid'
+          const newPayableRef = doc(payablesRef);
+          transaction.set(newPayableRef, {
+              date: new Date().toISOString().split('T')[0],
+              recipientName: recipientName,
+              recipientId: recipientId,
+              payableAmount: amount,
+              status: 'Paid',
+          });
+          
+          // C. Create new payment history doc
+          const newHistoryRef = doc(paymentHistoryRef);
+          transaction.set(newHistoryRef, {
+              date: new Date().toISOString().split('T')[0],
+              name: `Paid to ${recipientName}`,
+              transactionId: `PAY-${newPayableRef.id}`,
+              amount: amount,
+              paymentMethod: paymentMethod,
+              type: 'Debit',
+          });
+      });
+      
+      return { success: true, message: 'Payment recorded successfully.' };
+
+  } catch (error) {
+      console.error('Ad-hoc payment error:', error);
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+      return { success: false, error: errorMessage };
+  }
+}

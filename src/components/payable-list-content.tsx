@@ -8,14 +8,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Eye, Printer, CheckCircle, ArrowUpDown, ArrowLeft } from 'lucide-react';
+import { Search, Eye, Printer, CheckCircle, ArrowUpDown, ArrowLeft, PlusCircle } from 'lucide-react';
 import { Badge } from './ui/badge';
-import type { Payable } from '@/types';
+import type { Payable, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { getPayables, updatePayableStatus } from '@/app/wallet-billing/actions';
 import { Skeleton } from './ui/skeleton';
+import AddPayableDialog from './add-payable-dialog';
 
-export default function PayableListContent() {
+interface PayableListContentProps {
+  currentUser: User;
+}
+
+export default function PayableListContent({ currentUser }: PayableListContentProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [payableItems, setPayableItems] = React.useState<Payable[]>([]);
@@ -64,15 +69,23 @@ export default function PayableListContent() {
     <div className="space-y-6 max-w-7xl mx-auto">
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => router.push('/wallet-billing')}>
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only">Back</span>
-            </Button>
-            <div>
-              <CardTitle>Payable List</CardTitle>
-              <CardDescription>A list of outstanding payments to be made.</CardDescription>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => router.push('/wallet-billing')}>
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="sr-only">Back</span>
+                </Button>
+                <div>
+                <CardTitle>Payable List</CardTitle>
+                <CardDescription>A list of outstanding payments to be made.</CardDescription>
+                </div>
             </div>
+             <AddPayableDialog currentUser={currentUser} onPaymentSuccess={fetchPayables}>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Payment
+                </Button>
+            </AddPayableDialog>
           </div>
         </CardHeader>
         <CardContent>
@@ -119,6 +132,12 @@ export default function PayableListContent() {
                         <TableCell><Skeleton className="h-8 w-24" /></TableCell>
                       </TableRow>
                     ))
+                ) : payableItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      No payable items found.
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   payableItems.map((item) => (
                       <TableRow key={item.id}>

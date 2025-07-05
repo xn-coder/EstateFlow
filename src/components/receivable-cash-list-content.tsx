@@ -120,6 +120,12 @@ export default function ReceivableCashListContent() {
                         <TableCell><Skeleton className="h-8 w-24" /></TableCell>
                       </TableRow>
                     ))
+                ) : receivableItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      No receivable items found.
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   receivableItems.map((item) => (
                       <TableRow key={item.id}>
