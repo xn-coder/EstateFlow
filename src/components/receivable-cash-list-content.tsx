@@ -9,23 +9,47 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Eye, Printer, CheckCircle, ArrowUpDown, ArrowLeft } from 'lucide-react';
-import { receivables } from '@/lib/data';
 import { Badge } from './ui/badge';
 import type { Receivable } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { getReceivables, updateReceivableStatus } from '@/app/wallet-billing/actions';
+import { Skeleton } from './ui/skeleton';
 
 export default function ReceivableCashListContent() {
   const router = useRouter();
   const { toast } = useToast();
-  const [receivableItems, setReceivableItems] = React.useState<Receivable[]>(receivables);
+  const [receivableItems, setReceivableItems] = React.useState<Receivable[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  const fetchReceivables = React.useCallback(async () => {
+    setLoading(true);
+    const data = await getReceivables();
+    setReceivableItems(data);
+    setLoading(false);
+  }, []);
+
+  React.useEffect(() => {
+    fetchReceivables();
+  }, [fetchReceivables]);
+
 
   const getStatusBadgeVariant = (status: Receivable['status']) => {
     return status === 'Received' ? 'secondary' : 'destructive';
   }
 
-  const handleMarkAsReceived = (id: string) => {
+  const handleMarkAsReceived = async (id: string) => {
+    const originalItems = [...receivableItems];
+    // Optimistic update
     setReceivableItems(prev => prev.map(item => item.id === id ? { ...item, status: 'Received' } : item));
-    toast({ title: 'Success', description: 'Status updated to Received.' });
+
+    const result = await updateReceivableStatus(id, 'Received');
+    if (result.success) {
+      toast({ title: 'Success', description: 'Status updated to Received.' });
+      fetchReceivables(); // Refetch to confirm
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+      setReceivableItems(originalItems); // Revert on failure
+    }
   };
 
   const handleViewDetails = () => {
@@ -85,30 +109,43 @@ export default function ReceivableCashListContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {receivableItems.map((item) => (
-                    <TableRow key={item.id}>
-                        <TableCell>{item.date}</TableCell>
-                        <TableCell className="font-medium">{item.partnerName}</TableCell>
-                        <TableCell className="hidden md:table-cell">{item.partnerId}</TableCell>
-                        <TableCell>
-                           {item.pendingAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusBadgeVariant(item.status)}>{item.status}</Badge>
-                        </TableCell>
-                        <TableCell className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-green-600 h-8 w-8" title="Mark as Received" onClick={() => handleMarkAsReceived(item.id)} disabled={item.status === 'Received'}>
-                                <CheckCircle className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary h-8 w-8" title="View Details" onClick={handleViewDetails}>
-                                <Eye className="h-4 w-4" />
-                            </Button>
-                             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-8 w-8" title="Print Invoice" onClick={handlePrintInvoice}>
-                                <Printer className="h-4 w-4" />
-                            </Button>
-                        </TableCell>
-                    </TableRow>
-                ))}
+                {loading ? (
+                   Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-24" /></TableCell>
+                      </TableRow>
+                    ))
+                ) : (
+                  receivableItems.map((item) => (
+                      <TableRow key={item.id}>
+                          <TableCell>{item.date}</TableCell>
+                          <TableCell className="font-medium">{item.partnerName}</TableCell>
+                          <TableCell className="hidden md:table-cell">{item.partnerId}</TableCell>
+                          <TableCell>
+                            {item.pendingAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusBadgeVariant(item.status)}>{item.status}</Badge>
+                          </TableCell>
+                          <TableCell className="flex items-center gap-1">
+                              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-green-600 h-8 w-8" title="Mark as Received" onClick={() => handleMarkAsReceived(item.id)} disabled={item.status === 'Received'}>
+                                  <CheckCircle className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary h-8 w-8" title="View Details" onClick={handleViewDetails}>
+                                  <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-8 w-8" title="Print Invoice" onClick={handlePrintInvoice}>
+                                  <Printer className="h-4 w-4" />
+                              </Button>
+                          </TableCell>
+                      </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

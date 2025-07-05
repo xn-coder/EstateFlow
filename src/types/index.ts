@@ -3,6 +3,7 @@
 
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -135,4 +136,11 @@ export interface PaymentHistory {
     amount: number;
     paymentMethod: string;
     type: 'Credit' | 'Debit';
+}
+
+export interface WalletSummary {
+  totalBalance: number;
+  revenue: number;
+  receivable: number;
+  payable: number;
 }

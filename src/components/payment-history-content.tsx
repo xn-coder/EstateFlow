@@ -9,14 +9,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, ArrowUpDown, ArrowLeft, Copy, FileDown, Printer } from 'lucide-react';
-import { paymentHistory } from '@/lib/data';
 import { Badge } from './ui/badge';
 import type { PaymentHistory } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { getPaymentHistory } from '@/app/wallet-billing/actions';
+import { Skeleton } from './ui/skeleton';
 
 export default function PaymentHistoryContent() {
   const router = useRouter();
   const { toast } = useToast();
+  const [paymentHistory, setPaymentHistory] = React.useState<PaymentHistory[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  const fetchHistory = React.useCallback(async () => {
+    setLoading(true);
+    const data = await getPaymentHistory();
+    setPaymentHistory(data);
+    setLoading(false);
+  }, []);
+
+  React.useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
 
   const handleCopy = () => {
     const header = ['Date', 'Name', 'Transaction ID', 'Amount', 'Payment Method', 'Type'];
@@ -53,6 +68,7 @@ export default function PaymentHistoryContent() {
   
   const handlePrint = () => {
     toast({ title: 'Info', description: 'Opening print view...' });
+    sessionStorage.setItem('paymentHistoryData', JSON.stringify(paymentHistory));
     window.open('/payment-history/print', '_blank');
   };
 
@@ -71,19 +87,19 @@ export default function PaymentHistoryContent() {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-2 pt-4 border-t">
-              <Button variant="outline" size="sm" onClick={handleCopy}>
+              <Button variant="outline" size="sm" onClick={handleCopy} disabled={loading}>
                 <Copy className="mr-2 h-4 w-4"/>
                 Copy
               </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadCSV}>
+              <Button variant="outline" size="sm" onClick={handleDownloadCSV} disabled={loading}>
                 <FileDown className="mr-2 h-4 w-4"/>
                 CSV
               </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadCSV}>
+              <Button variant="outline" size="sm" onClick={handleDownloadCSV} disabled={loading}>
                 <FileDown className="mr-2 h-4 w-4"/>
                 Excel
               </Button>
-              <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Button variant="outline" size="sm" onClick={handlePrint} disabled={loading}>
                 <Printer className="mr-2 h-4 w-4"/>
                 Print
               </Button>
@@ -122,20 +138,33 @@ export default function PaymentHistoryContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paymentHistory.map((item) => (
-                    <TableRow key={item.id}>
-                        <TableCell>{item.date}</TableCell>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell className="hidden md:table-cell">{item.transactionId}</TableCell>
-                        <TableCell className={item.type === 'Credit' ? 'text-green-600' : 'text-red-600'}>
-                           {item.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                        </TableCell>
-                        <TableCell>{item.paymentMethod}</TableCell>
-                        <TableCell>
-                          <Badge variant={item.type === 'Credit' ? 'secondary' : 'destructive'}>{item.type}</Badge>
-                        </TableCell>
-                    </TableRow>
-                ))}
+                {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                      </TableRow>
+                    ))
+                ) : (
+                  paymentHistory.map((item) => (
+                      <TableRow key={item.id}>
+                          <TableCell>{item.date}</TableCell>
+                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="hidden md:table-cell">{item.transactionId}</TableCell>
+                          <TableCell className={item.type === 'Credit' ? 'text-green-600' : 'text-red-600'}>
+                            {item.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                          </TableCell>
+                          <TableCell>{item.paymentMethod}</TableCell>
+                          <TableCell>
+                            <Badge variant={item.type === 'Credit' ? 'secondary' : 'destructive'}>{item.type}</Badge>
+                          </TableCell>
+                      </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

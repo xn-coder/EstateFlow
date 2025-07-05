@@ -20,6 +20,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
+import { manageWalletTransaction } from '@/app/wallet-billing/actions';
+import type { User } from '@/types';
 
 const walletActions = ["Topup wallet", "send a partner", "send a customer"] as const;
 const paymentMethods = ["cash", "cheque", "debit card", "credit card", "gpay", "phonepe", "paytm", "upi", "others"] as const;
@@ -33,11 +35,14 @@ const manageWalletSchema = z.object({
 
 interface ManageWalletDialogProps {
   children: React.ReactNode;
+  currentUser: User;
+  onTransactionSuccess: () => void;
 }
 
-export default function ManageWalletDialog({ children }: ManageWalletDialogProps) {
+export default function ManageWalletDialog({ children, currentUser, onTransactionSuccess }: ManageWalletDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<z.infer<typeof manageWalletSchema>>({
     resolver: zodResolver(manageWalletSchema),
@@ -49,12 +54,22 @@ export default function ManageWalletDialog({ children }: ManageWalletDialogProps
     },
   });
 
-  const onSubmit = (values: z.infer<typeof manageWalletSchema>) => {
-    // Here you would typically call a server action
-    console.log('Manage wallet form submitted:', values);
-    toast({ title: 'Success', description: `Action '${values.action}' processed successfully.` });
-    form.reset();
-    setOpen(false);
+  const onSubmit = async (values: z.infer<typeof manageWalletSchema>) => {
+    setIsSubmitting(true);
+    const result = await manageWalletTransaction({
+      ...values,
+      userId: currentUser.id,
+    });
+    
+    if (result.success) {
+      toast({ title: 'Success', description: result.message });
+      onTransactionSuccess();
+      setOpen(false);
+      form.reset();
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
+    setIsSubmitting(false);
   };
 
   return (
@@ -141,7 +156,9 @@ export default function ManageWalletDialog({ children }: ManageWalletDialogProps
           <DialogClose asChild>
             <Button type="button" variant="secondary">Cancel</Button>
           </DialogClose>
-          <Button type="submit" form="manage-wallet-form">Submit</Button>
+          <Button type="submit" form="manage-wallet-form" disabled={isSubmitting}>
+            {isSubmitting ? 'Processing...' : 'Submit'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
