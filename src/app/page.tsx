@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin-sidebar';
 import AppHeader from '@/components/app-header';
+import DashboardFooter from '@/components/dashboard-footer';
 
 export default function Home() {
   const [role, setRole] = useState<Role>('Admin');
@@ -71,11 +72,12 @@ export default function Home() {
   return (
     <SidebarProvider>
       {role === 'Admin' && <AdminSidebar />}
-      <SidebarInset>
+      <SidebarInset className="flex flex-col">
         <AppHeader role={role} setRole={handleSetRole} currentUser={currentUser} />
-        <div className="p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
           <DashboardContent role={role} />
-        </div>
+        </main>
+        <DashboardFooter />
       </SidebarInset>
     </SidebarProvider>
   );
