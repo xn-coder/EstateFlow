@@ -24,7 +24,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { manageWalletTransaction } from '@/app/wallet-billing/actions';
 import type { User } from '@/types';
 
-const walletActions = ["Topup wallet", "send a partner", "send a customer"] as const;
+const walletActions = ["Topup wallet", "Receive from partner", "Receive from customer", "Send to partner", "Send to customer"] as const;
 const paymentMethods = ["cash", "cheque", "debit card", "credit card", "gpay", "phonepe", "paytm", "upi", "others"] as const;
 
 const manageWalletSchema = z.object({
@@ -34,12 +34,12 @@ const manageWalletSchema = z.object({
   password: z.string().min(1, 'Admin password is required to confirm.'),
   recipientId: z.string().optional(),
 }).refine((data) => {
-    if ((data.action === 'send a partner' || data.action === 'send a customer') && (!data.recipientId || data.recipientId.trim() === '')) {
+    if ((data.action.includes('partner') || data.action.includes('customer')) && (!data.recipientId || data.recipientId.trim() === '')) {
       return false;
     }
     return true;
 }, {
-    message: 'Recipient ID is required.',
+    message: 'Recipient ID is required for this action.',
     path: ['recipientId'],
 });
 
@@ -116,15 +116,15 @@ export default function ManageWalletDialog({ children, currentUser, onTransactio
               )}
             />
             
-            {(actionType === 'send a partner' || actionType === 'send a customer') && (
+            {(actionType.includes('partner') || actionType.includes('customer')) && (
               <FormField
                 control={form.control}
                 name="recipientId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{actionType === 'send a partner' ? 'Partner ID' : 'Customer ID'}</FormLabel>
+                    <FormLabel>{actionType.includes('partner') ? 'Partner ID' : 'Customer ID'}</FormLabel>
                     <FormControl>
-                      <Input placeholder={`Enter ${actionType === 'send a partner' ? 'Partner' : 'Customer'} ID`} {...field} />
+                      <Input placeholder={`Enter ${actionType.includes('partner') ? 'Partner' : 'Customer'} ID`} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

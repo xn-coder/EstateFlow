@@ -203,18 +203,19 @@ export async function updatePayableStatus(id: string, status: 'Pending' | 'Paid'
 }
 
 const paymentMethods = ["Wallet", "cash", "cheque", "debit card", "credit card", "gpay", "phonepe", "paytm", "upi", "others"] as const;
+const walletActions = ["Topup wallet", "Receive from partner", "Receive from customer", "Send to partner", "Send to customer"] as const;
 
 
 // --- Manage Wallet Transaction ---
 const manageWalletSchema = z.object({
-  action: z.enum(["Topup wallet", "send a partner", "send a customer"]),
+  action: z.enum(walletActions),
   amount: z.coerce.number().min(1),
   paymentMethod: z.enum(paymentMethods),
   password: z.string().min(1),
   userId: z.string().min(1),
   recipientId: z.string().optional(),
 }).superRefine((data, ctx) => {
-    if ((data.action === "send a partner" || data.action === "send a customer") && (!data.recipientId || data.recipientId.trim().length === 0)) {
+    if ((data.action.includes('partner') || data.action.includes('customer')) && (!data.recipientId || data.recipientId.trim().length === 0)) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["recipientId"],
@@ -253,32 +254,67 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
       }
       const summaryData = summaryDoc.data() as { totalBalance: number; revenue: number };
       
-      let transactionName = action;
-      if (recipientId) {
-          if (action === 'send a partner') transactionName = `Paid to partner: ${recipientId}`;
-          else if (action === 'send a customer') transactionName = `Paid to customer: ${recipientId}`;
-      }
+      let transactionName: string;
+      let newHistory: Omit<PaymentHistory, 'id'>;
 
-      const newHistory: Omit<PaymentHistory, 'id'> = {
-          date: new Date().toISOString().split('T')[0],
-          name: transactionName,
-          transactionId: `TXN${Date.now()}`,
-          amount,
-          paymentMethod,
-          type: 'Credit', // Default
-      };
+      switch (action) {
+        case 'Topup wallet':
+          transactionName = 'Wallet Top-up';
+          newHistory = {
+            date: new Date().toISOString().split('T')[0],
+            name: transactionName,
+            transactionId: `TXN${Date.now()}`,
+            amount,
+            paymentMethod,
+            type: 'Credit',
+          };
+          transaction.update(walletSummaryRef, {
+            totalBalance: summaryData.totalBalance + amount,
+          });
+          break;
+        
+        case 'Receive from partner':
+        case 'Receive from customer':
+          transactionName = action === 'Receive from partner'
+            ? `Received from partner: ${recipientId}`
+            : `Received from customer: ${recipientId}`;
+          newHistory = {
+            date: new Date().toISOString().split('T')[0],
+            name: transactionName,
+            transactionId: `TXN${Date.now()}`,
+            amount,
+            paymentMethod,
+            type: 'Credit',
+          };
+          transaction.update(walletSummaryRef, {
+            totalBalance: summaryData.totalBalance + amount,
+            revenue: summaryData.revenue + amount,
+          });
+          break;
 
-      if (action === 'Topup wallet') {
-          newHistory.type = 'Credit';
-          transaction.update(walletSummaryRef, { 
-              totalBalance: summaryData.totalBalance + amount,
-           });
-      } else { // send a partner / send a customer
-          newHistory.type = 'Debit';
+        case 'Send to partner':
+        case 'Send to customer':
+          transactionName = action === 'Send to partner'
+            ? `Paid to partner: ${recipientId}`
+            : `Paid to customer: ${recipientId}`;
           if (summaryData.totalBalance < amount) {
-              throw new Error('Insufficient wallet balance.');
+            throw new Error('Insufficient wallet balance.');
           }
-          transaction.update(walletSummaryRef, { totalBalance: summaryData.totalBalance - amount });
+          newHistory = {
+            date: new Date().toISOString().split('T')[0],
+            name: transactionName,
+            transactionId: `TXN${Date.now()}`,
+            amount,
+            paymentMethod,
+            type: 'Debit',
+          };
+          transaction.update(walletSummaryRef, {
+            totalBalance: summaryData.totalBalance - amount,
+          });
+          break;
+
+        default:
+          throw new Error('Invalid wallet action');
       }
       
       // 3. Add to payment history inside the transaction
