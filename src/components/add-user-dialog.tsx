@@ -25,8 +25,9 @@ import type { Role } from '@/types';
 import { addUser } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ADMIN_ROLES } from '@/lib/roles';
 
-const userRoles: Role[] = ['Admin', 'Manager', 'Business Manager', 'Support Team', 'Wallet Manager', 'Seller', 'Partner'];
+const userRoles = ADMIN_ROLES;
 
 const addUserSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -56,7 +57,7 @@ export default function AddUserDialog({ children, onUserAdded }: AddUserDialogPr
       email: '',
       phone: '',
       password: '',
-      role: 'Seller',
+      role: 'Support Team',
     },
   });
 

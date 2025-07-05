@@ -9,9 +9,10 @@ import PartnerDashboard from '@/components/partner-dashboard';
 import AdminDashboard from '@/components/admin-dashboard';
 import type { Role } from '@/types';
 import * as React from 'react';
+import { ADMIN_ROLES } from '@/lib/roles';
 
 export default function DashboardContent({ role }: { role: Role }) {
-  if (role === 'Admin') {
+  if (ADMIN_ROLES.includes(role)) {
     return <AdminDashboard />;
   }
 

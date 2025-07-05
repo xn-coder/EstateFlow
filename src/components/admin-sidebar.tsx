@@ -1,6 +1,7 @@
 
 'use client';
 
+import type { Role } from '@/types';
 import {
   Sidebar,
   SidebarHeader,
@@ -19,7 +20,17 @@ import {
   Building2,
 } from 'lucide-react';
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  role: Role;
+}
+
+export default function AdminSidebar({ role }: AdminSidebarProps) {
+  const isAdmin = role === 'Admin';
+  const isManager = role === 'Manager';
+  const isBusinessManager = role === 'Business Manager';
+  const isSupportTeam = role === 'Support Team';
+  const isWalletManager = role === 'Wallet Manager';
+
   return (
     <Sidebar collapsible="icon" variant="sidebar" side="left">
       <SidebarHeader className="border-b">
@@ -38,36 +49,46 @@ export default function AdminSidebar() {
               Dashboard
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton href="#" tooltip="Manage Orders">
-              <ShoppingCart />
-              Manage Orders
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton href="#" tooltip="Manage Business">
-              <Briefcase />
-              Manage Business
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton href="/updates" tooltip="Support Ticket">
-              <LifeBuoy />
-              Support Ticket
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton href="#" tooltip="Wallet & Billing">
-              <Wallet />
-              Wallet & Billing
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton href="/updates" tooltip="Updates">
-              <Bell />
-              Updates
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {(isAdmin || isManager) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton href="#" tooltip="Manage Orders">
+                <ShoppingCart />
+                Manage Orders
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {(isAdmin || isManager || isBusinessManager) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton href="#" tooltip="Manage Business">
+                <Briefcase />
+                Manage Business
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {(isAdmin || isSupportTeam) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/updates" tooltip="Support Ticket">
+                <LifeBuoy />
+                Support Ticket
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {(isAdmin || isWalletManager) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton href="#" tooltip="Wallet & Billing">
+                <Wallet />
+                Wallet & Billing
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {(isAdmin || isManager || isBusinessManager || isSupportTeam || isWalletManager) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/updates" tooltip="Updates">
+                <Bell />
+                Updates
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarContent>
     </Sidebar>

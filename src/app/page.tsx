@@ -9,6 +9,8 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin-sidebar';
 import AppHeader from '@/components/app-header';
 import DashboardFooter from '@/components/dashboard-footer';
+import type { Role } from '@/types';
+import { ADMIN_ROLES } from '@/lib/roles';
 
 function DashboardSkeleton() {
   return (
@@ -64,7 +66,7 @@ export default function Home() {
     return <DashboardSkeleton />;
   }
 
-  const handleSetRole = (newRole: any) => {
+  const handleSetRole = (newRole: Role) => {
     // This function can be used to switch roles if a user has multiple.
     // For now, we can just log it or update the user object if needed.
     console.log('Role switched to:', newRole);
@@ -79,7 +81,7 @@ export default function Home() {
   
   return (
     <SidebarProvider>
-      {user.role === 'Admin' && <AdminSidebar />}
+      {ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} setRole={handleSetRole} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">

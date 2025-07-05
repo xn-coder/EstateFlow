@@ -10,6 +10,7 @@ import AdminSidebar from '@/components/admin-sidebar';
 import AppHeader from '@/components/app-header';
 import ManageWebsiteContent from '@/components/manage-website-content';
 import DashboardFooter from '@/components/dashboard-footer';
+import { ADMIN_ROLES } from '@/lib/roles';
 
 function ManageWebsiteSkeleton() {
   return (
@@ -69,7 +70,7 @@ export default function ManageWebsitePage() {
 
   return (
     <SidebarProvider>
-      {user.role === 'Admin' && <AdminSidebar />}
+      {ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} setRole={handleSetRole} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">

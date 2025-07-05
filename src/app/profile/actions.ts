@@ -5,6 +5,7 @@ import { doc, updateDoc, getDoc, addDoc, collection, deleteDoc, query, where, ge
 import * as z from 'zod';
 import type { Role, User } from '@/types';
 import bcrypt from 'bcryptjs';
+import { ADMIN_ROLES } from '@/lib/roles';
 
 // --- Update Profile Action ---
 const profileUpdateSchema = z.object({
@@ -82,13 +83,12 @@ export async function updateUserPassword(userId: string, currentPassword: string
 }
 
 // --- Add User Action ---
-const userRoles: Role[] = ['Admin', 'Manager', 'Business Manager', 'Support Team', 'Wallet Manager', 'Seller', 'Partner'];
 const addUserSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
-  role: z.enum(userRoles as [string, ...string[]]),
+  role: z.enum(ADMIN_ROLES as [string, ...string[]]),
 });
 
 
