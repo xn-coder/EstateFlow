@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -28,7 +29,7 @@ interface PartnerDetailsDialogProps {
 const DetailRow = ({ label, value }: { label: string; value?: React.ReactNode }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 py-3 border-b last:border-b-0">
     <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-    <dd className="text-sm col-span-2 sm:text-right">{value || 'N/A'}</dd>
+    <dd className="text-sm sm:col-span-2 sm:text-right">{value || 'N/A'}</dd>
   </div>
 );
 
@@ -68,34 +69,44 @@ export default function PartnerDetailsDialog({ children, partnerInfo, onActivate
         <ScrollArea className="max-h-[70vh]">
           <div className="p-6 space-y-6">
               <Card>
-                <CardContent className="p-4 flex items-center gap-4">
-                  <Avatar className="h-16 w-16 border">
-                      <AvatarImage src={profile.profileImage} alt={profile.name} data-ai-hint="person portrait" />
-                      <AvatarFallback>{profile.name.substring(0, 2)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                      <h2 className="text-lg font-bold">{profile.name}</h2>
-                      <p className="text-sm text-muted-foreground">Partner ID: {user.id}</p>
-                  </div>
+                <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <Avatar className="h-16 w-16 border">
+                            <AvatarImage src={profile.profileImage || user.avatar} alt={profile.name} data-ai-hint="person" />
+                            <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h2 className="text-xl font-bold">{profile.name}</h2>
+                            <p className="text-sm text-muted-foreground">{user.partnerCode || 'N/A'}</p>
+                        </div>
+                    </div>
                 </CardContent>
               </Card>
-
+              
               <Card>
                 <CardHeader>
-                  <CardTitle>Personal Details</CardTitle>
+                    <CardTitle className="text-base font-semibold">Contact Details</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <dl>
                     <DetailRow label="Contact Name" value={profile.name} />
-                    <DetailRow label="Date Of Birth" value={format(new Date(profile.dob), 'dd MMM yyyy')} />
-                    <DetailRow label="Gender" value={profile.gender} />
-                    <DetailRow label="Education Qualification" value={profile.qualification} />
                     <DetailRow label="Phone Number" value={profile.phone} />
                     <DetailRow label="Email Details" value={profile.email} />
                     <DetailRow label="WhatsApp No." value={profile.whatsapp} />
                     <DetailRow label="Address" value={profile.address} />
                     <DetailRow label="City & State" value={`${profile.city}, ${profile.state}`} />
                     <DetailRow label="Pin Code" value={profile.pincode} />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                  <CardTitle>Other Personal Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl>
+                    <DetailRow label="Date Of Birth" value={format(new Date(profile.dob), 'dd MMM yyyy')} />
+                    <DetailRow label="Gender" value={profile.gender} />
+                    <DetailRow label="Education Qualification" value={profile.qualification} />
                   </dl>
                 </CardContent>
               </Card>
