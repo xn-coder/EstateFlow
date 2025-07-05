@@ -39,6 +39,7 @@ export default function PayableListContent() {
 
   const handleMarkAsPaid = async (id: string) => {
     const originalItems = [...payableItems];
+    // Optimistic update
     setPayableItems(prev => prev.map(item => item.id === id ? { ...item, status: 'Paid' } : item));
     
     const result = await updatePayableStatus(id, 'Paid');

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -31,6 +32,15 @@ const manageWalletSchema = z.object({
   amount: z.coerce.number().min(1, 'Amount must be greater than 0.'),
   paymentMethod: z.enum(paymentMethods),
   password: z.string().min(1, 'Admin password is required to confirm.'),
+  recipientId: z.string().optional(),
+}).refine((data) => {
+    if ((data.action === 'send a partner' || data.action === 'send a customer') && (!data.recipientId || data.recipientId.trim() === '')) {
+      return false;
+    }
+    return true;
+}, {
+    message: 'Recipient ID is required.',
+    path: ['recipientId'],
 });
 
 interface ManageWalletDialogProps {
@@ -51,8 +61,11 @@ export default function ManageWalletDialog({ children, currentUser, onTransactio
       amount: 0,
       paymentMethod: 'cash',
       password: '',
+      recipientId: '',
     },
   });
+
+  const actionType = form.watch('action');
 
   const onSubmit = async (values: z.infer<typeof manageWalletSchema>) => {
     setIsSubmitting(true);
@@ -102,6 +115,23 @@ export default function ManageWalletDialog({ children, currentUser, onTransactio
                 </FormItem>
               )}
             />
+            
+            {(actionType === 'send a partner' || actionType === 'send a customer') && (
+              <FormField
+                control={form.control}
+                name="recipientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{actionType === 'send a partner' ? 'Partner ID' : 'Customer ID'}</FormLabel>
+                    <FormControl>
+                      <Input placeholder={`Enter ${actionType === 'send a partner' ? 'Partner' : 'Customer'} ID`} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="amount"

@@ -225,14 +225,25 @@ export async function updatePayableStatus(id: string, status: 'Pending' | 'Paid'
 }
 
 // --- Manage Wallet Transaction ---
+const paymentMethods = ["cash", "cheque", "debit card", "credit card", "gpay", "phonepe", "paytm", "upi", "others"] as const;
 
 const manageWalletSchema = z.object({
   action: z.enum(["Topup wallet", "send a partner", "send a customer"]),
   amount: z.coerce.number().min(1),
-  paymentMethod: z.string(),
+  paymentMethod: z.enum(paymentMethods),
   password: z.string().min(1),
   userId: z.string().min(1),
+  recipientId: z.string().optional(),
+}).superRefine((data, ctx) => {
+    if ((data.action === "send a partner" || data.action === "send a customer") && (!data.recipientId || data.recipientId.trim().length === 0)) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["recipientId"],
+            message: "Recipient ID is required for this action.",
+        });
+    }
 });
+
 
 export async function manageWalletTransaction(data: z.infer<typeof manageWalletSchema>) {
   const validation = manageWalletSchema.safeParse(data);
@@ -240,7 +251,7 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
     return { success: false, error: 'Invalid input.' };
   }
 
-  const { action, amount, paymentMethod, password, userId } = validation.data;
+  const { action, amount, paymentMethod, password, userId, recipientId } = validation.data;
 
   try {
     // 1. Verify admin password
@@ -258,9 +269,16 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
     // 2. Perform transaction logic
     const summaryDoc = await getDoc(walletSummaryRef);
     const summaryData = summaryDoc.data() as { totalBalance: number; revenue: number };
+    
+    let transactionName = action;
+    if (recipientId) {
+        if (action === 'send a partner') transactionName = `Paid to partner: ${recipientId}`;
+        else if (action === 'send a customer') transactionName = `Paid to customer: ${recipientId}`;
+    }
+
     const newHistory: Omit<PaymentHistory, 'id'> = {
         date: new Date().toISOString().split('T')[0],
-        name: action,
+        name: transactionName,
         transactionId: `TXN${Date.now()}`,
         amount,
         paymentMethod,
