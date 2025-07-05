@@ -1,4 +1,5 @@
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -170,4 +171,56 @@ export interface WalletSummary {
   revenue: number;
   receivable: number;
   payable: number;
+}
+
+export interface CatalogSlideshow {
+  id: string;
+  image: string;
+  title: string;
+}
+
+export interface CatalogFAQ {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export interface CatalogMarketingKit {
+  id: string;
+  kitType: 'poster' | 'brochure';
+  featuredImage: string;
+  nameOrTitle: string;
+  uploadedFile: string;
+}
+
+export interface Catalog {
+  id: string;
+  // Step 1
+  title: string;
+  description: string;
+  metaKeyword?: string;
+  mainCategory: string;
+  categoryName: string;
+  featuredImage: string;
+  // Step 2
+  pricingType: 'INR' | 'USD';
+  sellingPrice: number;
+  earningType: 'Fixed rate' | 'commission' | 'reward point';
+  earning: number;
+  // Step 3
+  slideshows: CatalogSlideshow[];
+  // Step 4
+  detailsContent: string;
+  // Step 5
+  faqs: CatalogFAQ[];
+  // Step 6
+  galleryImages: string[];
+  // Step 7
+  videoLink: string;
+  // Step 8
+  marketingKits: CatalogMarketingKit[];
+  // Step 9
+  notesContent?: string;
+  termsContent?: string;
+  policyContent?: string;
 }

@@ -65,14 +65,14 @@ export default function ManageBusinessContent() {
     ];
 
     const catalogItems = [
-        'Add a Catalog',
-        'Manage Catalog',
-        'Add a Marketing Kits',
-        'Manage Marketing Kits',
-        'Add a New Category',
-        'Manage Category',
-        'Manage a Content',
-        'Post a Content',
+        { label: 'Add a Catalog', href: '/add-catalog' },
+        { label: 'Manage Catalog', href: '#' },
+        { label: 'Add a Marketing Kits', href: '#' },
+        { label: 'Manage Marketing Kits', href: '#' },
+        { label: 'Add a New Category', href: '#' },
+        { label: 'Manage Category', href: '#' },
+        { label: 'Manage a Content', href: '#' },
+        { label: 'Post a Content', href: '#' },
     ];
     
     const accountItems = [
@@ -108,7 +108,7 @@ export default function ManageBusinessContent() {
              <Card>
                 <CardContent className="p-0">
                     <div className="divide-y">
-                        {catalogItems.map((item) => <ListItem key={item}>{item}</ListItem>)}
+                        {catalogItems.map((item) => <ListItem key={item.label} href={item.href}>{item.label}</ListItem>)}
                     </div>
                 </CardContent>
             </Card>
