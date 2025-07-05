@@ -10,6 +10,9 @@ import { Pencil } from 'lucide-react';
 import { websiteData } from '@/lib/website-data';
 import EditBusinessProfileDialog from './edit-business-profile-dialog';
 import EditSlideshowDialog from './edit-slideshow-dialog';
+import EditContactDetailsDialog from './edit-contact-details-dialog';
+import EditLegalInfoDialog from './edit-legal-info-dialog';
+import EditLinkDetailsDialog from './edit-link-details-dialog';
 import {
   Carousel,
   CarouselContent,
@@ -29,13 +32,11 @@ const InfoRow: React.FC<{ label: string; children: React.ReactNode, isLongText?:
 );
 
 // A card with an edit button in the header
-const EditableCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className }) => (
+const EditableCard: React.FC<{ title: string; children: React.ReactNode; editComponent: React.ReactNode; className?: string }> = ({ title, children, editComponent, className }) => (
     <Card className={className}>
         <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-            <Button variant="ghost" size="icon">
-                <Pencil className="h-4 w-4" />
-            </Button>
+            {editComponent}
         </CardHeader>
         <CardContent>{children}</CardContent>
     </Card>
@@ -114,7 +115,16 @@ export default function ManageWebsiteContent() {
             </CardContent>
         </Card>
 
-        <EditableCard title="Contact Details">
+        <EditableCard
+            title="Contact Details"
+            editComponent={
+                <EditContactDetailsDialog>
+                    <Button variant="ghost" size="icon">
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                </EditContactDetailsDialog>
+            }
+        >
            <div className="divide-y">
                 <InfoRow label="Contact Name">{websiteData.contactDetails.name}</InfoRow>
                 <InfoRow label="Display Phone Number">{websiteData.contactDetails.phone}</InfoRow>
@@ -123,7 +133,16 @@ export default function ManageWebsiteContent() {
            </div>
         </EditableCard>
 
-        <EditableCard title="Website About & Legal Link">
+        <EditableCard
+            title="Website About &amp; Legal Link"
+            editComponent={
+                <EditLegalInfoDialog>
+                    <Button variant="ghost" size="icon">
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                </EditLegalInfoDialog>
+            }
+        >
             <div className="divide-y">
                 <InfoRow label="About Page" isLongText>
                     {websiteData.legalInfo.about}
@@ -151,7 +170,16 @@ export default function ManageWebsiteContent() {
             </div>
         </EditableCard>
 
-        <EditableCard title="Your Link Details">
+        <EditableCard
+            title="Your Link Details"
+            editComponent={
+                <EditLinkDetailsDialog>
+                    <Button variant="ghost" size="icon">
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                </EditLinkDetailsDialog>
+            }
+        >
             <div className="divide-y">
                 <InfoRow label="Website">
                     <a href={`//${websiteData.links.website}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
