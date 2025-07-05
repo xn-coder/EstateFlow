@@ -1,4 +1,5 @@
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -75,4 +76,11 @@ export interface WebsiteData {
     linkedin: string;
     youtube: string;
   };
+}
+
+export interface Contact {
+  id: string;
+  name: string;
+  code: string;
+  avatar: string;
 }

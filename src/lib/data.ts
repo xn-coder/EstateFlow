@@ -1,4 +1,5 @@
-import type { Property, User, Lead, PropertyType } from '@/types';
+
+import type { Property, User, Lead, PropertyType, Contact } from '@/types';
 
 export const users: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@estateflow.com', role: 'Admin', avatar: 'https://placehold.co/40x40.png' },
@@ -84,3 +85,10 @@ export const leads: Lead[] = [
 ];
 
 export const propertyTypes: PropertyType[] = ['House', 'Apartment', 'Villa', 'Commercial', 'Land'];
+
+export const contacts: Contact[] = Array.from({ length: 10 }, (_, i) => ({
+  id: `c${i + 1}`,
+  name: 'First Last',
+  code: i % 2 === 0 ? `DSA 000 000 001` : `USR 000 000 001`,
+  avatar: 'https://placehold.co/40x40.png',
+}));

@@ -97,9 +97,11 @@ export default function AppHeader({
                 <span>Manage Website</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <BookUser className="mr-2 h-4 w-4" />
-              <span>Contact Book</span>
+            <DropdownMenuItem asChild>
+              <Link href="/contact-book">
+                <BookUser className="mr-2 h-4 w-4" />
+                <span>Contact Book</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
