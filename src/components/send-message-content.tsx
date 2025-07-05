@@ -88,22 +88,22 @@ interface MessageDetailProps {
 const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
   <Card>
     <CardHeader>
-      <Button variant="ghost" onClick={onBack} className="justify-start p-0 mb-4 h-auto">
+      <Button variant="ghost" onClick={onBack} className="justify-start p-0 mb-4 h-auto text-muted-foreground hover:text-foreground">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to messages
       </Button>
-      <div className="flex items-start justify-between">
+      <CardTitle className="text-xl mb-4">{message.subject}</CardTitle>
+      <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Avatar className="h-12 w-12 border">
+            <Avatar className="h-10 w-10 border">
               <AvatarImage src={'https://placehold.co/40x40.png'} alt={message.from} data-ai-hint="person abstract" />
               <AvatarFallback>{message.from.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-lg">{message.from}</CardTitle>
-              <p className="text-sm text-muted-foreground">Subject: {message.subject}</p>
+                <p className="font-semibold">{message.from}</p>
             </div>
           </div>
-          <div className="text-right text-xs text-muted-foreground pt-1">
+          <div className="text-sm text-muted-foreground">
             {message.date}
           </div>
       </div>
