@@ -507,7 +507,10 @@ const SidebarMenuItem = React.forwardRef<
   <li
     ref={ref}
     data-sidebar="menu-item"
-    className={cn("group/menu-item relative", className)}
+    className={cn(
+      "group/menu-item relative group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center",
+      className
+    )}
     {...props}
   />
 ))
@@ -566,11 +569,8 @@ const SidebarMenuButton = React.forwardRef<
       ...props,
     }
 
-    const content = isLink ? (
-      <Link href={href!} {...commonProps} ref={ref as React.Ref<HTMLAnchorElement>} />
-    ) : (
-      <button {...commonProps} ref={ref as React.Ref<HTMLButtonElement>} />
-    )
+    const Comp = isLink ? Link : "button"
+    const content = <Comp {...commonProps} href={href || ""} ref={ref as any} />
 
     if (!tooltip) {
       return content

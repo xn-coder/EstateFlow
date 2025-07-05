@@ -62,10 +62,10 @@ export default function PartnerDashboard() {
                   <TableHead><button className="flex items-center gap-1">Enquiry ID <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                   <TableHead><button className="flex items-center gap-1">Date <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                   <TableHead><button className="flex items-center gap-1">Name <ArrowUpDown className="h-3 w-3" /></button></TableHead>
-                  <TableHead><button className="flex items-center gap-1">Phone Number <ArrowUpDown className="h-3 w-3" /></button></TableHead>
-                  <TableHead><button className="flex items-center gap-1">Partner ID <ArrowUpDown className="h-3 w-3" /></button></TableHead>
+                  <TableHead className="hidden md:table-cell"><button className="flex items-center gap-1">Phone Number <ArrowUpDown className="h-3 w-3" /></button></TableHead>
+                  <TableHead className="hidden lg:table-cell"><button className="flex items-center gap-1">Partner ID <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                   <TableHead><button className="flex items-center gap-1">Catalog Name <ArrowUpDown className="h-3 w-3" /></button></TableHead>
-                  <TableHead><button className="flex items-center gap-1">Catalog Code <ArrowUpDown className="h-3 w-3" /></button></TableHead>
+                  <TableHead className="hidden lg:table-cell"><button className="flex items-center gap-1">Catalog Code <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                   <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -75,10 +75,10 @@ export default function PartnerDashboard() {
                         <TableCell>{enquiry.enquiryId}</TableCell>
                         <TableCell>{enquiry.date}</TableCell>
                         <TableCell>{enquiry.name}</TableCell>
-                        <TableCell>{enquiry.phone}</TableCell>
-                        <TableCell>{enquiry.partnerId}</TableCell>
+                        <TableCell className="hidden md:table-cell">{enquiry.phone}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{enquiry.partnerId}</TableCell>
                         <TableCell>{enquiry.catalogName}</TableCell>
-                        <TableCell>{enquiry.catalogCode}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{enquiry.catalogCode}</TableCell>
                         <TableCell className="flex items-center gap-2">
                             <Button variant="ghost" size="icon" className="text-green-500 hover:text-green-600 h-6 w-6">
                                 <CheckCircle className="h-4 w-4" />
