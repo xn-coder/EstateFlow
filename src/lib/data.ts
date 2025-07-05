@@ -1,4 +1,4 @@
-import type { Property, User, Lead, PropertyType, Contact, UpdateMessage, Enquiry } from '@/types';
+import type { Property, User, Lead, PropertyType, Contact, UpdateMessage, Enquiry, Receivable } from '@/types';
 
 export const initialUsersForSeed: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@estateflow.com', role: 'Admin', avatar: 'https://placehold.co/40x40.png' },
@@ -143,6 +143,14 @@ export const enquiries: Enquiry[] = [
   { id: '3', enquiryId: 'ENQ-003', date: '2024-05-18', name: 'Sam Wilson', phone: '+1-202-555-0168', partnerId: 'PRT-125', catalogName: 'Downtown Lofts', catalogCode: 'CAT-003' },
   { id: '4', enquiryId: 'ENQ-004', date: '2024-05-17', name: 'Lisa Ray', phone: '+1-202-555-0199', partnerId: 'PRT-123', catalogName: 'Sunrise Apartments', catalogCode: 'CAT-001' },
   { id: '5', enquiryId: 'ENQ-005', date: '2024-05-16', name: 'Peter Jones', phone: '+1-202-555-0145', partnerId: 'PRT-126', catalogName: 'Green Meadows', catalogCode: 'CAT-004' },
+];
+
+export const receivables: Receivable[] = [
+  { id: 'rec1', date: '2024-05-20', partnerName: 'Mike Johnson', partnerId: 'PRT-123', pendingAmount: 15000 },
+  { id: 'rec2', date: '2024-05-18', partnerName: 'Partner User', partnerId: 'PRT-124', pendingAmount: 2500 },
+  { id: 'rec3', date: '2024-05-15', partnerName: 'Mike Johnson', partnerId: 'PRT-123', pendingAmount: 8000 },
+  { id: 'rec4', date: '2024-05-12', partnerName: 'Partner User', partnerId: 'PRT-124', pendingAmount: 32000 },
+  { id: 'rec5', date: '2024-05-10', partnerName: 'Mike Johnson', partnerId: 'PRT-123', pendingAmount: 500 },
 ];
 
 // Mock user data is now in initialUsersForSeed and will be removed from general export

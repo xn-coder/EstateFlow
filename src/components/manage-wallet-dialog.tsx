@@ -1,0 +1,149 @@
+'use client';
+
+import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from './ui/scroll-area';
+
+const walletActions = ["Topup wallet", "send a partner", "send a customer"] as const;
+const paymentMethods = ["cash", "cheque", "debit card", "credit card", "gpay", "phonepe", "paytm", "upi", "others"] as const;
+
+const manageWalletSchema = z.object({
+  action: z.enum(walletActions),
+  amount: z.coerce.number().min(1, 'Amount must be greater than 0.'),
+  paymentMethod: z.enum(paymentMethods),
+  password: z.string().min(1, 'Admin password is required to confirm.'),
+});
+
+interface ManageWalletDialogProps {
+  children: React.ReactNode;
+}
+
+export default function ManageWalletDialog({ children }: ManageWalletDialogProps) {
+  const [open, setOpen] = React.useState(false);
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof manageWalletSchema>>({
+    resolver: zodResolver(manageWalletSchema),
+    defaultValues: {
+      action: 'Topup wallet',
+      amount: 0,
+      paymentMethod: 'cash',
+      password: '',
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof manageWalletSchema>) => {
+    // Here you would typically call a server action
+    console.log('Manage wallet form submitted:', values);
+    toast({ title: 'Success', description: `Action '${values.action}' processed successfully.` });
+    form.reset();
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Manage Wallet</DialogTitle>
+          <DialogDescription>Perform wallet transactions. Admin confirmation is required.</DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form id="manage-wallet-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="action"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Select Action</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an action" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {walletActions.map(action => <SelectItem key={action} value={action}>{action}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount (INR)</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="paymentMethod"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Payment Method</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a payment method" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        <ScrollArea className="h-48">
+                            {paymentMethods.map(method => <SelectItem key={method} value={method} className="capitalize">{method}</SelectItem>)}
+                        </ScrollArea>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Admin Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">Cancel</Button>
+          </DialogClose>
+          <Button type="submit" form="manage-wallet-form">Submit</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

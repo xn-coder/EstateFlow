@@ -3,6 +3,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import ManageWalletDialog from './manage-wallet-dialog';
 
 const StatCard = ({ title, value, description }: { title: string; value: string; description: string }) => (
   <Card>
@@ -17,18 +19,30 @@ const StatCard = ({ title, value, description }: { title: string; value: string;
 );
 
 const managementItems = [
-  'Manage Wallet',
-  'Receivable Cash List',
-  'Payable List',
-  'Payment History',
+  { label: 'Manage Wallet', href: '#', isDialog: true },
+  { label: 'Receivable Cash List', href: '/receivable-cash-list', isDialog: false },
+  { label: 'Payable List', href: '#', isDialog: false },
+  { label: 'Payment History', href: '#', isDialog: false },
 ];
 
-const ManagementListItem = ({ label }: { label: string }) => (
-    <button className="w-full flex justify-between items-center p-4 text-left transition-colors hover:bg-muted/50">
-        <span className="font-medium">{label}</span>
-        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-    </button>
-);
+const ManagementListItem = ({ label, href, isDialog }: { label: string; href: string; isDialog: boolean }) => {
+  const content = (
+    <div className="w-full flex justify-between items-center p-4 text-left transition-colors hover:bg-muted/50 cursor-pointer">
+      <span className="font-medium">{label}</span>
+      <ChevronRight className="h-5 w-5 text-muted-foreground" />
+    </div>
+  );
+
+  if (isDialog) {
+    return <ManageWalletDialog>{content}</ManageWalletDialog>;
+  }
+
+  if (href !== '#') {
+    return <Link href={href} className="block">{content}</Link>;
+  }
+
+  return <button className="w-full" disabled>{content}</button>;
+};
 
 
 export default function WalletBillingContent() {
@@ -45,7 +59,7 @@ export default function WalletBillingContent() {
         <CardContent className="p-0">
           <div className="divide-y">
             {managementItems.map((item) => (
-                <ManagementListItem key={item} label={item} />
+                <ManagementListItem key={item.label} {...item} />
             ))}
           </div>
         </CardContent>

@@ -1,6 +1,7 @@
 
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -105,4 +106,12 @@ export interface Enquiry {
   partnerId: string;
   catalogName: string;
   catalogCode: string;
+}
+
+export interface Receivable {
+  id: string;
+  date: string;
+  partnerName: string;
+  partnerId: string;
+  pendingAmount: number;
 }
