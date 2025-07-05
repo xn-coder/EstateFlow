@@ -56,12 +56,12 @@ export default function ManageBusinessContent() {
     const router = useRouter();
 
     const partnerItems = [
-        'Manage Partner',
-        'Partner Activation',
-        'Deactivated Partner',
-        'Manage Customer',
-        'Manage Access',
-        'Give Access',
+        { label: 'Manage Partner', href: '#' },
+        { label: 'Partner Activation', href: '/partner-activation' },
+        { label: 'Deactivated Partner', href: '#' },
+        { label: 'Manage Customer', href: '#' },
+        { label: 'Manage Access', href: '#' },
+        { label: 'Give Access', href: '#' },
     ];
 
     const catalogItems = [
@@ -94,7 +94,7 @@ export default function ManageBusinessContent() {
             <Card>
                 <CardContent className="p-0">
                     <div className="divide-y">
-                        {partnerItems.map((item) => <ListItem key={item}>{item}</ListItem>)}
+                        {partnerItems.map((item) => <ListItem key={item.label} href={item.href}>{item.label}</ListItem>)}
                     </div>
                 </CardContent>
             </Card>

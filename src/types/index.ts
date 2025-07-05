@@ -10,6 +10,7 @@ export interface User {
   avatar: string;
   phone?: string;
   partnerProfileId?: string;
+  status?: 'Pending' | 'Active' | 'Deactivated';
 }
 
 export interface PartnerData {
@@ -34,6 +35,12 @@ export interface PartnerData {
   aadhaarCard: string;
   panCard: string;
 }
+
+export interface PartnerActivationInfo {
+  user: User;
+  profile: PartnerData;
+}
+
 
 export interface Property {
   id: string;

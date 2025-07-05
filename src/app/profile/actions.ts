@@ -124,6 +124,7 @@ export async function addUser(userData: z.infer<typeof addUserSchema>) {
             role: userData.role,
             passwordHash: passwordHash,
             avatar: userData.avatar || `https://placehold.co/40x40.png`,
+            status: 'Active',
         });
 
         return { success: true, message: 'User added successfully.' };

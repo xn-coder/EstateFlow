@@ -37,7 +37,8 @@ export async function loginUser(email: string, password: string) {
           email: email,
           role: 'Admin',
           avatar: 'https://placehold.co/40x40.png',
-          passwordHash: passwordHash
+          passwordHash: passwordHash,
+          status: 'Active',
         });
         console.log('Admin user created. You can now log in with the credentials from .env.local.');
       }
@@ -52,6 +53,10 @@ export async function loginUser(email: string, password: string) {
 
     const userDoc = querySnapshot.docs[0];
     const user = userDoc.data() as User & { passwordHash: string };
+
+    if (user.status === 'Pending') {
+      return { success: false, error: 'Your account is pending activation by an administrator.' };
+    }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
@@ -93,6 +98,7 @@ export async function seedUsers() {
         batch.set(userDocRef, {
           ...userData,
           passwordHash: passwordHash,
+          status: 'Active',
         });
         usersSeededCount++;
       }

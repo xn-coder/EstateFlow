@@ -164,7 +164,7 @@ export default function SignupPage() {
   const onSubmit = async (data: FormValues) => {
     const result = await registerPartner(data);
     if(result.success) {
-        toast({ title: 'Registration Successful', description: 'Please log in with your new credentials.' });
+        toast({ title: 'Registration Successful', description: result.message });
         router.push('/login');
     } else {
         toast({ title: 'Registration Failed', description: result.error, variant: 'destructive' });

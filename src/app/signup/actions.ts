@@ -70,9 +70,10 @@ export async function registerPartner(data: z.infer<typeof partnerSchema>) {
       passwordHash: passwordHash,
       avatar: validation.data.profileImage || `https://placehold.co/40x40.png`,
       partnerProfileId: partnerProfileRef.id, // Link to the detailed profile
+      status: 'Pending',
     });
 
-    return { success: true, message: 'Partner registered successfully.' };
+    return { success: true, message: 'Partner registered successfully. Your account is pending admin activation.' };
   } catch (error) {
     console.error('Partner registration error:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
