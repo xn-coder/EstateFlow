@@ -22,10 +22,10 @@ import {
 } from '@/components/ui/carousel';
 
 // A simple row component to display info
-const InfoRow: React.FC<{ label: string; children: React.ReactNode, isLongText?: boolean }> = ({ label, children, isLongText }) => (
-  <div className={`flex ${isLongText ? 'flex-col' : 'flex-row items-center'} justify-between py-4 border-b last:border-b-0`}>
-    <p className="text-sm font-medium w-1/3">{label}</p>
-    <div className={`w-2/3 text-sm text-muted-foreground ${isLongText ? 'w-full mt-2' : 'text-right'}`}>
+const InfoRow: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div className={`flex flex-col items-start sm:flex-row sm:items-center justify-between py-4 border-b last:border-b-0`}>
+    <p className="text-sm font-medium w-full sm:w-1/3">{label}</p>
+    <div className={`w-full sm:w-2/3 text-sm text-muted-foreground text-left sm:text-right mt-1 sm:mt-0`}>
         {children}
     </div>
   </div>
@@ -46,8 +46,8 @@ export default function ManageWebsiteContent() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
         <Card>
-            <CardContent className="p-6 flex items-center justify-between">
-                <div className="flex items-center gap-6">
+            <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+                <div className="flex flex-col items-start text-left sm:flex-row sm:items-center sm:text-left gap-4">
                     <Avatar className="h-20 w-20 border">
                         <AvatarImage src={websiteData.businessInfo.avatar} alt={websiteData.businessInfo.name} data-ai-hint="logo company" />
                         <AvatarFallback>{websiteData.businessInfo.name.substring(0, 2)}</AvatarFallback>
@@ -91,7 +91,7 @@ export default function ManageWebsiteContent() {
                                     rel="noopener noreferrer"
                                     className="block"
                                 >
-                                    <div className="relative h-80 w-full overflow-hidden rounded-lg">
+                                    <div className="relative h-56 sm:h-80 w-full overflow-hidden rounded-lg">
                                         <Image
                                             src={slide.image}
                                             alt={slide.title}
@@ -100,8 +100,8 @@ export default function ManageWebsiteContent() {
                                             data-ai-hint="presentation slide"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                        <div className="absolute bottom-6 left-6 text-white">
-                                            <h3 className="text-2xl font-bold">{slide.title}</h3>
+                                        <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 text-white">
+                                            <h3 className="text-lg sm:text-2xl font-bold">{slide.title}</h3>
                                         </div>
                                     </div>
                                 </a>
@@ -143,7 +143,7 @@ export default function ManageWebsiteContent() {
             }
         >
             <div className="divide-y">
-                <InfoRow label="About Page" isLongText>
+                <InfoRow label="About Page">
                     {websiteData.legalInfo.about}
                 </InfoRow>
                 <InfoRow label="Terms Of Services">

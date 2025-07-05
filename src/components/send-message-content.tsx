@@ -92,7 +92,7 @@ const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to messages
         </Button>
-        <div className="flex items-center justify-between border-b pb-4">
+        <div className="flex flex-col gap-2 sm:flex-row items-start sm:items-center justify-between border-b pb-4">
             <div className="flex items-center gap-4">
                 <Avatar className="h-10 w-10 border">
                     <AvatarImage src={'https://placehold.co/40x40.png'} alt={message.from} data-ai-hint="person abstract" />
@@ -102,7 +102,7 @@ const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
                     <p className="font-semibold">{message.from}</p>
                 </div>
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground self-start sm:self-center">
                 {message.date}
             </div>
         </div>
@@ -169,7 +169,7 @@ export default function SendMessageContent() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-2">
         <Button onClick={() => { setView('list'); setSelectedMessage(null); }} className="flex-1" variant={view === 'list' ? 'default' : 'outline'}>
           Announcements
         </Button>

@@ -74,7 +74,7 @@ export default function EditBusinessProfileDialog({ children }: EditBusinessProf
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex items-center justify-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
               <Avatar className="h-24 w-24 border">
                 <AvatarImage src={logoPreview || websiteData.businessInfo.avatar} alt="Business Logo" />
                 <AvatarFallback>{websiteData.businessInfo.name.substring(0, 2)}</AvatarFallback>

@@ -62,7 +62,7 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <Card>
-        <CardContent className="p-6 flex items-center justify-between">
+        <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border">
               <AvatarImage src={currentUser.avatar} alt={currentUser.name} data-ai-hint="person" />
@@ -105,8 +105,11 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Manage Access</CardTitle>
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div>
+            <CardTitle className="text-lg">Manage Access</CardTitle>
+            <CardDescription>Add, view or remove team members.</CardDescription>
+          </div>
           <AddUserDialog onUserAdded={fetchUsers}>
             <Button>
               <Plus className="mr-2 h-4 w-4" /> Add User
@@ -114,7 +117,7 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
           </AddUserDialog>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between mb-4 gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-4 gap-2">
             <div className="flex items-center gap-2">
               <Select defaultValue="10">
                 <SelectTrigger className="w-auto">
@@ -128,7 +131,7 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
               </Select>
               <span className="text-sm text-muted-foreground hidden md:inline-block">entries per page</span>
             </div>
-            <div className="relative w-full max-w-xs">
+            <div className="relative w-full sm:w-auto sm:max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search..." className="pl-10" />
             </div>
@@ -193,7 +196,7 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
               </TableBody>
             </Table>
           </div>
-          <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between mt-4 text-sm text-muted-foreground gap-4 sm:gap-0">
             <div>Showing 1 to {teamMembers.slice(0, 4).length} of {teamMembers.length} entries</div>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="sm" disabled>«</Button>

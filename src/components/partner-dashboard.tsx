@@ -25,7 +25,7 @@ const StatCard = ({ title, value, description }: { title: string; value: string;
 export default function PartnerDashboard() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Projects" value="300" description="Properties" />
         <StatCard title="Enquiry" value="1000" description="Leads" />
         <StatCard title="Booking" value="1000" description="Earning" />
@@ -35,8 +35,8 @@ export default function PartnerDashboard() {
       <BusinessReportChart />
       
       <Card>
-        <CardContent className="p-6">
-           <div className="flex items-center justify-between mb-4 gap-2">
+        <CardContent className="p-4 sm:p-6">
+           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-4 gap-2">
             <div className="flex items-center gap-2">
               <Select defaultValue="10">
                 <SelectTrigger className="w-auto bg-white dark:bg-background">
@@ -50,7 +50,7 @@ export default function PartnerDashboard() {
               </Select>
               <span className="text-sm text-muted-foreground hidden md:inline-block">entries per page</span>
             </div>
-            <div className="relative w-full max-w-xs">
+            <div className="relative w-full sm:w-auto sm:max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search..." className="pl-10 bg-white dark:bg-background" />
             </div>
@@ -95,7 +95,7 @@ export default function PartnerDashboard() {
               </TableBody>
             </Table>
           </div>
-          <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between mt-4 text-sm text-muted-foreground gap-4 sm:gap-0">
             <div>Showing 1 to {enquiries.length} of {enquiries.length} entries</div>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="sm" disabled>«</Button>

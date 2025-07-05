@@ -101,7 +101,7 @@ export default function AddUserDialog({ children, onUserAdded }: AddUserDialogPr
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex items-center justify-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
               <Avatar className="h-24 w-24 border">
                 {avatarPreview ? (
                    <AvatarImage src={avatarPreview} alt="New user avatar" />
@@ -127,7 +127,7 @@ export default function AddUserDialog({ children, onUserAdded }: AddUserDialogPr
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="firstName"
