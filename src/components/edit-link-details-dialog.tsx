@@ -18,7 +18,9 @@ import {
 } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { websiteData } from '@/lib/website-data';
+import type { WebsiteData } from '@/types';
+import { updateLinks } from '@/app/manage-website/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const linkDetailsSchema = z.object({
   website: z.string().url('Must be a valid URL. e.g. https://example.com'),
@@ -30,25 +32,34 @@ const linkDetailsSchema = z.object({
 
 interface EditLinkDetailsDialogProps {
   children: React.ReactNode;
+  links: WebsiteData['links'];
+  onUpdate: () => void;
 }
 
-export default function EditLinkDetailsDialog({ children }: EditLinkDetailsDialogProps) {
+export default function EditLinkDetailsDialog({ children, links, onUpdate }: EditLinkDetailsDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof linkDetailsSchema>>({
     resolver: zodResolver(linkDetailsSchema),
-    defaultValues: {
-      website: websiteData.links.website.startsWith('http') ? websiteData.links.website : `https://${websiteData.links.website}`,
-      facebook: websiteData.links.facebook,
-      instagram: websiteData.links.instagram,
-      linkedin: websiteData.links.linkedin,
-      youtube: websiteData.links.youtube,
-    },
+    defaultValues: links,
   });
 
-  const onSubmit = (values: z.infer<typeof linkDetailsSchema>) => {
-    console.log('Link details updated:', values);
-    setOpen(false);
+  React.useEffect(() => {
+    if (open) {
+      form.reset(links);
+    }
+  }, [open, links, form]);
+
+  const onSubmit = async (values: z.infer<typeof linkDetailsSchema>) => {
+    const result = await updateLinks(values);
+    if (result.success) {
+      toast({ title: 'Success', description: 'Link details updated successfully.' });
+      onUpdate();
+      setOpen(false);
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
   };
 
   return (

@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -19,13 +19,15 @@ import {
 } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { websiteData } from '@/lib/website-data';
 import { Upload, Plus, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import type { WebsiteData, SlideshowItem } from '@/types';
+import { updateSlideshows } from '@/app/manage-website/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const slideshowItemSchema = z.object({
   id: z.string(),
-  image: z.any().describe('The slideshow image'),
+  image: z.string().min(1, 'Image is required.'),
   title: z.string().min(1, 'Title is required'),
   link: z.string().url('Must be a valid URL or a hash link like #').or(z.string().startsWith('#')),
 });
@@ -36,58 +38,59 @@ const slideshowSchema = z.object({
 
 interface EditSlideshowDialogProps {
   children: React.ReactNode;
+  slideshows: WebsiteData['slideshows'];
+  onUpdate: () => void;
 }
 
-export default function EditSlideshowDialog({ children }: EditSlideshowDialogProps) {
+export default function EditSlideshowDialog({ children, slideshows, onUpdate }: EditSlideshowDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const { toast } = useToast();
   
   const form = useForm<z.infer<typeof slideshowSchema>>({
     resolver: zodResolver(slideshowSchema),
     defaultValues: {
-      slideshows: websiteData.slideshows,
+      slideshows: slideshows,
     },
   });
   
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: 'slideshows',
   });
 
-  const [imagePreviews, setImagePreviews] = React.useState<Record<string, string>>({});
-  
-  React.useEffect(() => {
-    const initialPreviews: Record<string, string> = {};
-    fields.forEach((field, index) => {
-      // @ts-ignore
-      const imageUrl = websiteData.slideshows[index]?.image;
-      if (typeof imageUrl === 'string') {
-        initialPreviews[field.id] = imageUrl;
-      }
-    });
-    setImagePreviews(initialPreviews);
-  }, [fields, open]);
-
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (file: File | null) => void, fieldId: string) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0];
     if (file) {
-      onChange(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreviews(prev => ({...prev, [fieldId]: reader.result as string}));
+        const result = reader.result as string;
+        const currentField = fields[index];
+        update(index, { ...currentField, image: result });
       };
       reader.readAsDataURL(file);
     }
   };
 
   const addSlideshow = () => {
-    append({ id: `slide${Date.now()}`, image: null, title: 'New Slide', link: '#' });
+    append({ id: `slide${Date.now()}`, image: '', title: 'New Slide', link: '#' });
   };
   
-  const onSubmit = (values: z.infer<typeof slideshowSchema>) => {
-    console.log('Slideshows updated:', values);
-    setOpen(false);
+  const onSubmit = async (values: z.infer<typeof slideshowSchema>) => {
+    const result = await updateSlideshows(values.slideshows);
+    if (result.success) {
+      toast({ title: 'Success', description: 'Slideshows updated successfully.' });
+      onUpdate();
+      setOpen(false);
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
   };
+
+  React.useEffect(() => {
+    if (open) {
+      form.reset({ slideshows: slideshows });
+    }
+  }, [open, slideshows, form]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -107,30 +110,24 @@ export default function EditSlideshowDialog({ children }: EditSlideshowDialogPro
                             <div className="w-full sm:w-1/3">
                                 <FormLabel>Image</FormLabel>
                                 <div className="mt-2 aspect-video w-full rounded-md border flex items-center justify-center bg-muted overflow-hidden">
-                                    {imagePreviews[field.id] ? (
-                                        <Image src={imagePreviews[field.id]} alt="Slideshow preview" width={160} height={90} className="object-cover w-full h-full" data-ai-hint="presentation slide" />
+                                    {field.image ? (
+                                        <Image src={field.image} alt="Slideshow preview" width={160} height={90} className="object-cover w-full h-full" data-ai-hint="presentation slide" />
                                     ) : (
                                         <Upload className="h-8 w-8 text-muted-foreground" />
                                     )}
                                 </div>
-                                <Controller
-                                    control={form.control}
-                                    name={`slideshows.${index}.image`}
-                                    render={({ field: { onChange, value, ...rest } }) => (
-                                      <div className="relative mt-2">
-                                        <Button type="button" variant="outline" size="sm" className="w-full">
-                                            <Upload className="mr-2 h-4 w-4" /> Upload
-                                        </Button>
-                                        <Input
-                                            type="file"
-                                            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                                            onChange={(e) => handleImageChange(e, onChange, field.id)}
-                                            accept="image/*"
-                                            {...rest}
-                                        />
-                                      </div>
-                                    )}
-                                />
+                                <div className="relative mt-2">
+                                  <Button type="button" variant="outline" size="sm" className="w-full">
+                                      <Upload className="mr-2 h-4 w-4" /> Upload
+                                  </Button>
+                                  <Input
+                                      type="file"
+                                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                      onChange={(e) => handleImageChange(e, index)}
+                                      accept="image/*"
+                                  />
+                                </div>
+                                <FormMessage>{form.formState.errors.slideshows?.[index]?.image?.message}</FormMessage>
                             </div>
                             <div className="w-full sm:w-2/3 space-y-2">
                                 <FormField

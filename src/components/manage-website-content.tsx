@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
-import { websiteData } from '@/lib/website-data';
 import EditBusinessProfileDialog from './edit-business-profile-dialog';
 import EditSlideshowDialog from './edit-slideshow-dialog';
 import EditContactDetailsDialog from './edit-contact-details-dialog';
@@ -20,12 +19,15 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { getWebsiteData } from '@/app/manage-website/actions';
+import type { WebsiteData } from '@/types';
+import { Skeleton } from './ui/skeleton';
 
 // A simple row component to display info
 const InfoRow: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div className={`flex flex-col items-start sm:flex-row sm:items-center justify-between py-4 border-b last:border-b-0`}>
     <p className="text-sm font-medium w-full sm:w-1/3">{label}</p>
-    <div className={`w-full sm:w-2/3 text-sm text-muted-foreground text-left sm:text-right mt-1 sm:mt-0`}>
+    <div className={`w-full sm:w-2/3 text-sm text-muted-foreground text-left sm:text-right mt-1 sm:mt-0 break-words`}>
         {children}
     </div>
   </div>
@@ -42,7 +44,36 @@ const EditableCard: React.FC<{ title: string; children: React.ReactNode; editCom
     </Card>
 );
 
+const ContentSkeleton = () => (
+    <div className="space-y-6 max-w-7xl mx-auto">
+        <Skeleton className="h-[125px] w-full" />
+        <Skeleton className="h-[400px] w-full" />
+        <Skeleton className="h-[250px] w-full" />
+        <Skeleton className="h-[300px] w-full" />
+        <Skeleton className="h-[300px] w-full" />
+    </div>
+);
+
+
 export default function ManageWebsiteContent() {
+  const [websiteData, setWebsiteData] = React.useState<WebsiteData | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  const fetchAndSetWebsiteData = React.useCallback(async () => {
+    const data = await getWebsiteData();
+    setWebsiteData(data);
+    setLoading(false);
+  }, []);
+
+  React.useEffect(() => {
+    setLoading(true);
+    fetchAndSetWebsiteData();
+  }, [fetchAndSetWebsiteData]);
+
+  if (loading || !websiteData) {
+    return <ContentSkeleton />;
+  }
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
         <Card>
@@ -57,7 +88,7 @@ export default function ManageWebsiteContent() {
                         <p className="text-muted-foreground">{websiteData.businessInfo.tagline}</p>
                     </div>
                 </div>
-                <EditBusinessProfileDialog>
+                <EditBusinessProfileDialog businessInfo={websiteData.businessInfo} onUpdate={fetchAndSetWebsiteData}>
                     <Button variant="ghost" size="icon">
                         <Pencil className="h-5 w-5" />
                     </Button>
@@ -68,56 +99,62 @@ export default function ManageWebsiteContent() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-semibold">Slideshow</CardTitle>
-                 <EditSlideshowDialog>
+                 <EditSlideshowDialog slideshows={websiteData.slideshows} onUpdate={fetchAndSetWebsiteData}>
                     <Button variant="ghost" size="icon">
                         <Pencil className="h-4 w-4" />
                     </Button>
                 </EditSlideshowDialog>
             </CardHeader>
             <CardContent>
-                <Carousel
-                    opts={{
-                        align: 'start',
-                        loop: true,
-                    }}
-                    className="w-full"
-                >
-                    <CarouselContent>
-                        {websiteData.slideshows.map((slide) => (
-                            <CarouselItem key={slide.id}>
-                                <a
-                                    href={slide.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="block"
-                                >
-                                    <div className="relative h-56 sm:h-80 w-full overflow-hidden rounded-lg">
-                                        <Image
-                                            src={slide.image}
-                                            alt={slide.title}
-                                            fill
-                                            className="object-cover"
-                                            data-ai-hint="presentation slide"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                        <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 text-white">
-                                            <h3 className="text-lg sm:text-2xl font-bold">{slide.title}</h3>
+                {websiteData.slideshows.length > 0 ? (
+                    <Carousel
+                        opts={{
+                            align: 'start',
+                            loop: true,
+                        }}
+                        className="w-full"
+                    >
+                        <CarouselContent>
+                            {websiteData.slideshows.map((slide) => (
+                                <CarouselItem key={slide.id}>
+                                    <a
+                                        href={slide.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block"
+                                    >
+                                        <div className="relative h-56 sm:h-80 w-full overflow-hidden rounded-lg">
+                                            <Image
+                                                src={slide.image}
+                                                alt={slide.title}
+                                                fill
+                                                className="object-cover"
+                                                data-ai-hint="presentation slide"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                            <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 text-white">
+                                                <h3 className="text-lg sm:text-2xl font-bold">{slide.title}</h3>
+                                            </div>
                                         </div>
-                                    </div>
-                                </a>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10" />
-                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10" />
-                </Carousel>
+                                    </a>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10" />
+                        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10" />
+                    </Carousel>
+                ) : (
+                    <div className="text-center py-16 border-2 border-dashed rounded-lg">
+                        <p className="text-muted-foreground">No slideshow images have been added yet.</p>
+                    </div>
+                )}
             </CardContent>
         </Card>
 
         <EditableCard
             title="Contact Details"
             editComponent={
-                <EditContactDetailsDialog>
+                <EditContactDetailsDialog contactDetails={websiteData.contactDetails} onUpdate={fetchAndSetWebsiteData}>
                     <Button variant="ghost" size="icon">
                         <Pencil className="h-4 w-4" />
                     </Button>
@@ -135,7 +172,7 @@ export default function ManageWebsiteContent() {
         <EditableCard
             title="Website About &amp; Legal Link"
             editComponent={
-                <EditLegalInfoDialog>
+                <EditLegalInfoDialog legalInfo={websiteData.legalInfo} onUpdate={fetchAndSetWebsiteData}>
                     <Button variant="ghost" size="icon">
                         <Pencil className="h-4 w-4" />
                     </Button>
@@ -172,7 +209,7 @@ export default function ManageWebsiteContent() {
         <EditableCard
             title="Your Link Details"
             editComponent={
-                <EditLinkDetailsDialog>
+                <EditLinkDetailsDialog links={websiteData.links} onUpdate={fetchAndSetWebsiteData}>
                     <Button variant="ghost" size="icon">
                         <Pencil className="h-4 w-4" />
                     </Button>
@@ -181,7 +218,7 @@ export default function ManageWebsiteContent() {
         >
             <div className="divide-y">
                 <InfoRow label="Website">
-                    <a href={`//${websiteData.links.website}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
+                    <a href={websiteData.links.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
                         {websiteData.links.website}
                     </a>
                 </InfoRow>

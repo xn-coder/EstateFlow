@@ -19,7 +19,9 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { websiteData } from '@/lib/website-data';
+import type { WebsiteData } from '@/types';
+import { updateContactDetails } from '@/app/manage-website/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const contactDetailsSchema = z.object({
   name: z.string().min(1, 'Person name is required'),
@@ -30,24 +32,34 @@ const contactDetailsSchema = z.object({
 
 interface EditContactDetailsDialogProps {
   children: React.ReactNode;
+  contactDetails: WebsiteData['contactDetails'];
+  onUpdate: () => void;
 }
 
-export default function EditContactDetailsDialog({ children }: EditContactDetailsDialogProps) {
+export default function EditContactDetailsDialog({ children, contactDetails, onUpdate }: EditContactDetailsDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof contactDetailsSchema>>({
     resolver: zodResolver(contactDetailsSchema),
-    defaultValues: {
-      name: websiteData.contactDetails.name,
-      phone: websiteData.contactDetails.phone,
-      email: websiteData.contactDetails.email,
-      address: websiteData.contactDetails.address,
-    },
+    defaultValues: contactDetails,
   });
 
-  const onSubmit = (values: z.infer<typeof contactDetailsSchema>) => {
-    console.log('Contact details updated:', values);
-    setOpen(false);
+  React.useEffect(() => {
+    if (open) {
+      form.reset(contactDetails);
+    }
+  }, [open, contactDetails, form]);
+
+  const onSubmit = async (values: z.infer<typeof contactDetailsSchema>) => {
+    const result = await updateContactDetails(values);
+    if (result.success) {
+      toast({ title: 'Success', description: 'Contact details updated successfully.' });
+      onUpdate();
+      setOpen(false);
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
   };
 
   return (

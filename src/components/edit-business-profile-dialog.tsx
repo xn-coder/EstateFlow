@@ -21,47 +21,75 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload } from 'lucide-react';
-import { websiteData } from '@/lib/website-data';
+import { updateBusinessInfo } from '@/app/manage-website/actions';
+import { useToast } from '@/hooks/use-toast';
+import type { WebsiteData } from '@/types';
 
 const businessProfileSchema = z.object({
   name: z.string().min(1, 'Website title is required'),
   tagline: z.string().optional(),
   metaKeywords: z.string().optional(),
   metaDescription: z.string().optional(),
+  avatar: z.string(),
 });
 
 interface EditBusinessProfileDialogProps {
   children: React.ReactNode;
+  businessInfo: WebsiteData['businessInfo'];
+  onUpdate: () => void;
 }
 
-export default function EditBusinessProfileDialog({ children }: EditBusinessProfileDialogProps) {
+export default function EditBusinessProfileDialog({ children, businessInfo, onUpdate }: EditBusinessProfileDialogProps) {
   const [open, setOpen] = React.useState(false);
-  const [logoPreview, setLogoPreview] = React.useState<string | null>(websiteData.businessInfo.avatar);
+  const [logoPreview, setLogoPreview] = React.useState<string | null>(businessInfo.avatar);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof businessProfileSchema>>({
     resolver: zodResolver(businessProfileSchema),
     defaultValues: {
-      name: websiteData.businessInfo.name,
-      tagline: websiteData.businessInfo.tagline,
-      metaKeywords: websiteData.businessInfo.metaKeywords || '',
-      metaDescription: websiteData.businessInfo.metaDescription || '',
+      name: businessInfo.name,
+      tagline: businessInfo.tagline,
+      metaKeywords: businessInfo.metaKeywords || '',
+      metaDescription: businessInfo.metaDescription || '',
+      avatar: businessInfo.avatar,
     },
   });
+
+  React.useEffect(() => {
+    if (open) {
+      form.reset({
+        name: businessInfo.name,
+        tagline: businessInfo.tagline,
+        metaKeywords: businessInfo.metaKeywords || '',
+        metaDescription: businessInfo.metaDescription || '',
+        avatar: businessInfo.avatar,
+      });
+      setLogoPreview(businessInfo.avatar);
+    }
+  }, [open, businessInfo, form]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const reader = new FileReader();
       reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
+        const result = reader.result as string;
+        setLogoPreview(result);
+        form.setValue('avatar', result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const onSubmit = (values: z.infer<typeof businessProfileSchema>) => {
-    console.log('Business profile updated:', values);
-    setOpen(false);
+  const onSubmit = async (values: z.infer<typeof businessProfileSchema>) => {
+    const result = await updateBusinessInfo(values);
+    if (result.success) {
+      toast({ title: 'Success', description: 'Business profile updated successfully.' });
+      onUpdate();
+      setOpen(false);
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
   };
 
   return (
@@ -76,8 +104,8 @@ export default function EditBusinessProfileDialog({ children }: EditBusinessProf
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
               <Avatar className="h-24 w-24 border">
-                <AvatarImage src={logoPreview || websiteData.businessInfo.avatar} alt="Business Logo" />
-                <AvatarFallback>{websiteData.businessInfo.name.substring(0, 2)}</AvatarFallback>
+                <AvatarImage src={logoPreview || ''} alt="Business Logo" />
+                <AvatarFallback>{businessInfo.name.substring(0, 2)}</AvatarFallback>
               </Avatar>
               <div className="relative">
                 <Button type="button" variant="outline">

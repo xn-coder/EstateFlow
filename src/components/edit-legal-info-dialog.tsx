@@ -19,7 +19,9 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { websiteData } from '@/lib/website-data';
+import type { WebsiteData } from '@/types';
+import { updateLegalInfo } from '@/app/manage-website/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const legalInfoSchema = z.object({
   about: z.string().min(1, 'About text is required'),
@@ -31,25 +33,34 @@ const legalInfoSchema = z.object({
 
 interface EditLegalInfoDialogProps {
   children: React.ReactNode;
+  legalInfo: WebsiteData['legalInfo'];
+  onUpdate: () => void;
 }
 
-export default function EditLegalInfoDialog({ children }: EditLegalInfoDialogProps) {
+export default function EditLegalInfoDialog({ children, legalInfo, onUpdate }: EditLegalInfoDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof legalInfoSchema>>({
     resolver: zodResolver(legalInfoSchema),
-    defaultValues: {
-      about: websiteData.legalInfo.about,
-      terms: websiteData.legalInfo.terms,
-      privacy: websiteData.legalInfo.privacy,
-      refund: websiteData.legalInfo.refund,
-      disclaimer: websiteData.legalInfo.disclaimer,
-    },
+    defaultValues: legalInfo,
   });
 
-  const onSubmit = (values: z.infer<typeof legalInfoSchema>) => {
-    console.log('Legal info updated:', values);
-    setOpen(false);
+  React.useEffect(() => {
+    if (open) {
+      form.reset(legalInfo);
+    }
+  }, [open, legalInfo, form]);
+
+  const onSubmit = async (values: z.infer<typeof legalInfoSchema>) => {
+    const result = await updateLegalInfo(values);
+    if (result.success) {
+      toast({ title: 'Success', description: 'Legal info updated successfully.' });
+      onUpdate();
+      setOpen(false);
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
   };
 
   return (
