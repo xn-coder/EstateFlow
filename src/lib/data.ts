@@ -1,7 +1,6 @@
-
 import type { Property, User, Lead, PropertyType, Contact, UpdateMessage, Enquiry } from '@/types';
 
-export const users: User[] = [
+export const initialUsersForSeed: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@estateflow.com', role: 'Admin', avatar: 'https://placehold.co/40x40.png' },
   { id: '2', name: 'Seller User', email: 'seller@estateflow.com', role: 'Seller', avatar: 'https://placehold.co/40x40.png' },
   { id: '3', name: 'Partner User', email: 'partner@estateflow.com', role: 'Partner', avatar: 'https://placehold.co/40x40.png' },
@@ -144,4 +143,14 @@ export const enquiries: Enquiry[] = [
   { id: '3', enquiryId: 'ENQ-003', date: '2024-05-18', name: 'Sam Wilson', phone: '+1-202-555-0168', partnerId: 'PRT-125', catalogName: 'Downtown Lofts', catalogCode: 'CAT-003' },
   { id: '4', enquiryId: 'ENQ-004', date: '2024-05-17', name: 'Lisa Ray', phone: '+1-202-555-0199', partnerId: 'PRT-123', catalogName: 'Sunrise Apartments', catalogCode: 'CAT-001' },
   { id: '5', enquiryId: 'ENQ-005', date: '2024-05-16', name: 'Peter Jones', phone: '+1-202-555-0145', partnerId: 'PRT-126', catalogName: 'Green Meadows', catalogCode: 'CAT-004' },
+];
+
+// Mock user data is now in initialUsersForSeed and will be removed from general export
+// export const users: User[] = [ ... ];
+export const users: User[] = [
+  { id: '1', name: 'Admin User', email: 'admin@estateflow.com', role: 'Admin', avatar: 'https://placehold.co/40x40.png' },
+  { id: '2', name: 'Seller User', email: 'seller@estateflow.com', role: 'Seller', avatar: 'https://placehold.co/40x40.png' },
+  { id: '3', name: 'Partner User', email: 'partner@estateflow.com', role: 'Partner', avatar: 'https://placehold.co/40x40.png' },
+  { id: '4', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Seller', avatar: 'https://placehold.co/40x40.png' },
+  { id: '5', name: 'Mike Johnson', email: 'mike.j@example.com', role: 'Partner', avatar: 'https://placehold.co/40x40.png' },
 ];

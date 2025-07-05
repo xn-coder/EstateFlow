@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -21,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AppHeaderProps {
   role: Role;
@@ -34,6 +34,7 @@ export default function AppHeader({
   currentUser,
 }: AppHeaderProps) {
   const sidebar = useSidebar();
+  const { logout } = useAuth();
   const isAdmin = role === 'Admin';
 
   const showHeaderLogo =
@@ -104,7 +105,7 @@ export default function AppHeader({
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
+            <DropdownMenuItem onClick={() => logout()} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>

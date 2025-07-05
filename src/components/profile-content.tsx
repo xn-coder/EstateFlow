@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -10,17 +9,29 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pencil, KeyRound, Plus, Search, Trash2, ArrowUpDown } from 'lucide-react';
-import { users } from '@/lib/data';
 import ProfileEditDialog from './profile-edit-dialog';
 import SecurityUpdateDialog from './security-update-dialog';
 import AddUserDialog from './add-user-dialog';
+import { getUsers } from '@/app/login/actions';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProfileContentProps {
   currentUser: User;
 }
 
 export default function ProfileContent({ currentUser }: ProfileContentProps) {
-  const teamMembers = users.filter(u => u.id !== currentUser.id);
+  const [teamMembers, setTeamMembers] = React.useState<User[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      const allUsers = await getUsers();
+      setTeamMembers(allUsers.filter(u => u.id !== currentUser.id));
+      setLoading(false);
+    };
+    fetchUsers();
+  }, [currentUser.id]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -112,23 +123,35 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {teamMembers.slice(0, 4).map((user, index) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>+91 9988776655</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{index % 2 === 0 ? 'Manager' : 'Team'}</TableCell>
-                    <TableCell className="flex gap-1">
-                      <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  teamMembers.slice(0, 4).map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell>+91 9988776655</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.role}</TableCell>
+                      <TableCell className="flex gap-1">
+                        <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
           <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-            <div>Showing 1 to {teamMembers.slice(0, 4).length} of {teamMembers.slice(0, 4).length} entries</div>
+            <div>Showing 1 to {teamMembers.slice(0, 4).length} of {teamMembers.length} entries</div>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="sm" disabled>«</Button>
               <Button variant="outline" size="sm" disabled>‹</Button>
