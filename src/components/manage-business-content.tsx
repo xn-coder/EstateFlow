@@ -8,6 +8,12 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AddMarketingKitDialog from './add-marketing-kit-dialog';
+import AddCategoryDialog from './add-category-dialog';
+import AddContentDialog from './add-content-dialog';
+import AddUserDialog from './add-user-dialog';
+import { getCategories } from '@/app/manage-category/actions';
+import type { Category } from '@/types';
+
 
 const StatCard = ({ title, value, description }: { title: string; value: string; description: string; }) => (
   <Card className="bg-card">
@@ -68,23 +74,36 @@ const WhatsAppIcon = () => (
 
 export default function ManageBusinessContent() {
     const router = useRouter();
+    const [categories, setCategories] = React.useState<Category[]>([]);
+
+    const fetchCategories = React.useCallback(async () => {
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+    }, []);
+
+    React.useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
+
 
     const partnerItems = [
         { label: 'Manage Partner', href: '/manage-partner' },
         { label: 'Partner Activation', href: '/partner-activation' },
         { label: 'Deactivated Partner', href: '/deactivated-partner' },
         { label: 'Manage Customer', href: '#' },
-        { label: 'Manage Access', href: '#' },
-        { label: 'Give Access', href: '#' },
+        { label: 'Manage Access', href: '/profile' },
+        { label: 'Give Access', isDialog: true, Dialog: <AddUserDialog onUserAdded={() => {}} /> },
     ];
 
     const catalogItems = [
         { label: 'Add a Catalog', href: '/add-catalog' },
         { label: 'Manage Catalog', href: '/manage-catalog' },
+        { label: 'Add a Category', isDialog: true, Dialog: <AddCategoryDialog onCategoryAdded={fetchCategories} /> },
+        { label: 'Manage Categories', href: '/manage-category' },
+        { label: 'Add Content', isDialog: true, Dialog: <AddContentDialog categories={categories} onContentAdded={() => {}} /> },
+        { label: 'Manage Content', href: '/manage-content' },
         { label: 'Add a Marketing Kit', isDialog: true, Dialog: <AddMarketingKitDialog onKitAdded={() => {}} /> },
         { label: 'Manage Marketing Kits', href: '/manage-marketing-kits' },
-        { label: 'Manage Categories', href: '/manage-category' },
-        { label: 'Manage Content', href: '/manage-content' },
     ];
     
     const accountItems = [
@@ -106,7 +125,7 @@ export default function ManageBusinessContent() {
             <Card>
                 <CardContent className="p-0">
                     <div className="divide-y">
-                        {partnerItems.map((item) => <ListItem key={item.label} href={item.href}>{item.label}</ListItem>)}
+                        {partnerItems.map((item) => <ListItem key={item.label} href={item.href} isDialog={item.isDialog} DialogComponent={item.Dialog}>{item.label}</ListItem>)}
                     </div>
                 </CardContent>
             </Card>
