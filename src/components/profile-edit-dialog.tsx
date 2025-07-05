@@ -67,7 +67,7 @@ export default function ProfileEditDialog({ children, currentUser }: ProfileEdit
 
   const onSubmit = async (values: z.infer<typeof profileSchema>) => {
     const fullName = `${values.firstName} ${values.lastName}`;
-    const result = await updateUserProfile(currentUser.id, fullName, values.phone);
+    const result = await updateUserProfile(currentUser.id, fullName, values.phone, avatarPreview || undefined);
 
     if (result.success && result.user) {
       updateUser(result.user);
@@ -77,6 +77,19 @@ export default function ProfileEditDialog({ children, currentUser }: ProfileEdit
       toast({ title: 'Error', description: result.error, variant: 'destructive' });
     }
   };
+  
+  React.useEffect(() => {
+    if (open) {
+      const nameParts = currentUser.name.split(' ');
+      form.reset({
+        firstName: nameParts[0] || '',
+        lastName: nameParts.slice(1).join(' ') || '',
+        email: currentUser.email,
+        phone: currentUser.phone || '',
+      });
+      setAvatarPreview(currentUser.avatar);
+    }
+  }, [open, currentUser, form]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -90,7 +103,7 @@ export default function ProfileEditDialog({ children, currentUser }: ProfileEdit
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex items-center justify-center space-x-4">
               <Avatar className="h-24 w-24 border">
-                <AvatarImage src={avatarPreview || currentUser.avatar} alt={currentUser.name} />
+                <AvatarImage src={avatarPreview || ''} alt={currentUser.name} />
                 <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="relative">
@@ -141,7 +154,7 @@ export default function ProfileEditDialog({ children, currentUser }: ProfileEdit
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} readOnly />
+                    <Input type="email" {...field} readOnly disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

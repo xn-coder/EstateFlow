@@ -12,17 +12,26 @@ const profileUpdateSchema = z.object({
   userId: z.string(),
   name: z.string().min(1, 'Name is required'),
   phone: z.string().optional(),
+  avatar: z.string().optional(),
 });
 
-export async function updateUserProfile(userId: string, name: string, phone?: string) {
-  const validation = profileUpdateSchema.safeParse({ userId, name, phone });
+export async function updateUserProfile(userId: string, name: string, phone?: string, avatar?: string) {
+  const validation = profileUpdateSchema.safeParse({ userId, name, phone, avatar });
   if (!validation.success) {
     return { success: false, error: 'Invalid input.' };
   }
 
   try {
     const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, { name, phone: phone || null });
+    const updateData: { name: string; phone: string | null; avatar?: string } = {
+        name,
+        phone: phone || null,
+    };
+    if (avatar) {
+        updateData.avatar = avatar;
+    }
+    
+    await updateDoc(userRef, updateData);
 
     const updatedDoc = await getDoc(userRef);
     if (!updatedDoc.exists()) {
@@ -89,6 +98,7 @@ const addUserSchema = z.object({
   phone: z.string().optional(),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
   role: z.enum(ADMIN_ROLES as [string, ...string[]]),
+  avatar: z.string().optional(),
 });
 
 
@@ -113,7 +123,7 @@ export async function addUser(userData: z.infer<typeof addUserSchema>) {
             phone: userData.phone || null,
             role: userData.role,
             passwordHash: passwordHash,
-            avatar: `https://placehold.co/40x40.png`,
+            avatar: userData.avatar || `https://placehold.co/40x40.png`,
         });
 
         return { success: true, message: 'User added successfully.' };
@@ -142,4 +152,39 @@ export async function deleteUser(userId: string) {
         console.error('Error deleting user:', error);
         return { success: false, error: 'Failed to delete user.' };
     }
+}
+
+// --- Edit User by Admin Action ---
+const editUserSchema = z.object({
+  userId: z.string(),
+  name: z.string().min(1, 'Name is required'),
+  phone: z.string().optional(),
+  role: z.enum(ADMIN_ROLES as [string, ...string[]]),
+  avatar: z.string().optional(),
+});
+
+export async function editUser(userData: z.infer<typeof editUserSchema>) {
+  const validation = editUserSchema.safeParse(userData);
+  if (!validation.success) {
+    return { success: false, error: 'Invalid user data.' };
+  }
+
+  try {
+    const userRef = doc(db, 'users', userData.userId);
+    const updateData: { name: string; phone: string | null; role: Role; avatar?: string } = {
+      name: userData.name,
+      phone: userData.phone || null,
+      role: userData.role,
+    };
+
+    if (userData.avatar) {
+      updateData.avatar = userData.avatar;
+    }
+
+    await updateDoc(userRef, updateData);
+    return { success: true, message: 'User updated successfully.' };
+  } catch (error) {
+    console.error('Error updating user:', error);
+    return { success: false, error: 'Failed to update user.' };
+  }
 }

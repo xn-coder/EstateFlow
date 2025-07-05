@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -20,44 +19,43 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Upload, Plus } from 'lucide-react';
-import type { Role } from '@/types';
-import { addUser } from '@/app/profile/actions';
+import { Upload } from 'lucide-react';
+import type { Role, User } from '@/types';
+import { editUser } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ADMIN_ROLES } from '@/lib/roles';
 
 const userRoles = ADMIN_ROLES;
 
-const addUserSchema = z.object({
+const editUserSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
-  password: z.string().min(8, 'Password must be at least 8 characters.'),
   role: z.enum(userRoles as [string, ...string[]]),
 });
 
-interface AddUserDialogProps {
+interface EditUserDialogProps {
   children: React.ReactNode;
-  onUserAdded: () => void;
+  user: User;
+  onUserUpdated: () => void;
 }
 
-export default function AddUserDialog({ children, onUserAdded }: AddUserDialogProps) {
+export default function EditUserDialog({ children, user, onUserUpdated }: EditUserDialogProps) {
   const [open, setOpen] = React.useState(false);
-  const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = React.useState<string | null>(user.avatar);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  
+  const nameParts = user.name.split(' ');
 
-  const form = useForm<z.infer<typeof addUserSchema>>({
-    resolver: zodResolver(addUserSchema),
+  const form = useForm<z.infer<typeof editUserSchema>>({
+    resolver: zodResolver(editUserSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      password: '',
-      role: 'Support Team',
+      firstName: nameParts[0] || '',
+      lastName: nameParts.slice(1).join(' ') || '',
+      phone: user.phone || '',
+      role: user.role,
     },
   });
 
@@ -72,36 +70,46 @@ export default function AddUserDialog({ children, onUserAdded }: AddUserDialogPr
     }
   };
 
-  const onSubmit = async (values: z.infer<typeof addUserSchema>) => {
+  const onSubmit = async (values: z.infer<typeof editUserSchema>) => {
     setIsSubmitting(true);
-    const result = await addUser({
+    const result = await editUser({
+      userId: user.id,
       name: `${values.firstName} ${values.lastName}`,
-      email: values.email,
       phone: values.phone,
-      password: values.password,
       role: values.role,
       avatar: avatarPreview || undefined,
     });
 
     if (result.success) {
       toast({ title: 'Success', description: result.message });
-      onUserAdded();
+      onUserUpdated();
       setOpen(false);
-      form.reset();
-      setAvatarPreview(null);
     } else {
       toast({ title: 'Error', description: result.error, variant: 'destructive' });
     }
     setIsSubmitting(false);
   };
+  
+  React.useEffect(() => {
+    if (open) {
+      const nameParts = user.name.split(' ');
+      form.reset({
+        firstName: nameParts[0] || '',
+        lastName: nameParts.slice(1).join(' ') || '',
+        phone: user.phone || '',
+        role: user.role,
+      });
+      setAvatarPreview(user.avatar);
+    }
+  }, [open, user, form]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
-          <DialogDescription>Fill in the details to add a new user to the team.</DialogDescription>
+          <DialogTitle>Edit User</DialogTitle>
+          <DialogDescription>Make changes to {user.name}'s profile.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -109,21 +117,15 @@ export default function AddUserDialog({ children, onUserAdded }: AddUserDialogPr
                 <div className="space-y-4">
                     <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                     <Avatar className="h-24 w-24 border">
-                        {avatarPreview ? (
-                        <AvatarImage src={avatarPreview} alt="New user avatar" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-muted">
-                                <Upload className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                        )}
+                        <AvatarImage src={avatarPreview || ''} alt={user.name} />
                         <AvatarFallback>
-                            <Plus/>
+                            {user.name.substring(0,2).toUpperCase()}
                         </AvatarFallback>
                     </Avatar>
                     <div className="relative">
                         <Button type="button" variant="outline">
                         <Upload className="mr-2 h-4 w-4" />
-                        Upload Image
+                        Change Image
                         </Button>
                         <Input
                         type="file"
@@ -161,19 +163,13 @@ export default function AddUserDialog({ children, onUserAdded }: AddUserDialogPr
                         )}
                     />
                     </div>
-                    <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
+                    <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                            <Input type="email" {...field} />
+                            <Input type="email" value={user.email} readOnly disabled />
                         </FormControl>
                         <FormMessage />
-                        </FormItem>
-                    )}
-                    />
+                    </FormItem>
                     <FormField
                     control={form.control}
                     name="phone"
@@ -182,19 +178,6 @@ export default function AddUserDialog({ children, onUserAdded }: AddUserDialogPr
                         <FormLabel>Phone Number</FormLabel>
                         <FormControl>
                             <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Set Password</FormLabel>
-                        <FormControl>
-                            <Input type="password" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -229,7 +212,7 @@ export default function AddUserDialog({ children, onUserAdded }: AddUserDialogPr
                 <Button type="button" variant="secondary">Cancel</Button>
               </DialogClose>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Adding...' : 'Add User'}
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
               </Button>
             </DialogFooter>
           </form>

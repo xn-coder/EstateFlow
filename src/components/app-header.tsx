@@ -2,13 +2,6 @@
 
 import Link from 'next/link';
 import type { Role, User } from '@/types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { Building2, User as UserIcon, Globe, BookUser, LogOut } from 'lucide-react';
@@ -24,13 +17,11 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface AppHeaderProps {
   role: Role;
-  setRole: (role: Role) => void;
   currentUser: User;
 }
 
 export default function AppHeader({
   role,
-  setRole,
   currentUser,
 }: AppHeaderProps) {
   const sidebar = useSidebar();
@@ -55,18 +46,6 @@ export default function AppHeader({
       </div>
 
       <div className="flex flex-1 items-center justify-end space-x-2 sm:space-x-4">
-        <div className="w-[130px] sm:w-[180px]">
-          <Select value={role} onValueChange={(value: Role) => setRole(value)}>
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Select a role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Admin">Admin</SelectItem>
-              <SelectItem value="Seller">Seller</SelectItem>
-              <SelectItem value="Partner">Partner</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar className="cursor-pointer">

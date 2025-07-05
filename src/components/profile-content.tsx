@@ -28,6 +28,7 @@ import { getUsers } from '@/app/login/actions';
 import { deleteUser } from '@/app/profile/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import EditUserDialog from './edit-user-dialog';
 
 interface ProfileContentProps {
   currentUser: User;
@@ -170,7 +171,11 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.role}</TableCell>
                       <TableCell className="flex gap-1">
-                        <Button variant="ghost" size="icon" disabled><Pencil className="h-4 w-4" /></Button>
+                        <EditUserDialog user={user} onUserUpdated={fetchUsers}>
+                            <Button variant="ghost" size="icon">
+                                <Pencil className="h-4 w-4" />
+                            </Button>
+                        </EditUserDialog>
                          <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
