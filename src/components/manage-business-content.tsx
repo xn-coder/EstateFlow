@@ -81,12 +81,10 @@ export default function ManageBusinessContent() {
     const catalogItems = [
         { label: 'Add a Catalog', href: '/add-catalog' },
         { label: 'Manage Catalog', href: '/manage-catalog' },
-        { label: 'Add a Marketing Kits', isDialog: true, Dialog: <AddMarketingKitDialog onKitAdded={() => {}} /> },
+        { label: 'Add a Marketing Kit', isDialog: true, Dialog: <AddMarketingKitDialog onKitAdded={() => {}} /> },
         { label: 'Manage Marketing Kits', href: '/manage-marketing-kits' },
-        { label: 'Add a New Category', href: '/manage-category' },
-        { label: 'Manage Category', href: '/manage-category' },
-        { label: 'Manage a Content', href: '/manage-content' },
-        { label: 'Post a Content', href: '/manage-content' },
+        { label: 'Manage Categories', href: '/manage-category' },
+        { label: 'Manage Content', href: '/manage-content' },
     ];
     
     const accountItems = [
