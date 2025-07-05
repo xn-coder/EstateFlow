@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -134,42 +134,37 @@ export default function SendMessageContent() {
                   control={form.control}
                   name="type"
                   render={({ field }) => (
-                    <FormItem className="space-y-3">
+                    <FormItem>
                       <FormLabel>Message Type</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={(value) => {
-                            const newType = value as 'announcement' | 'partner' | 'seller';
-                            field.onChange(newType);
-                             switch (newType) {
-                                case 'announcement':
-                                    form.reset({ type: 'announcement', subject: '', details: '', announcementFor: 'partner' });
-                                    break;
-                                case 'partner':
-                                    form.reset({ type: 'partner', subject: '', details: '', recipientId: '' });
-                                    break;
-                                case 'seller':
-                                    form.reset({ type: 'seller', subject: '', details: '', recipientId: '' });
-                                    break;
-                            }
-                          }}
-                          value={field.value}
-                          className="flex flex-col sm:flex-row gap-4"
-                        >
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl><RadioGroupItem value="announcement" /></FormControl>
-                            <FormLabel className="font-normal">Announcement</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl><RadioGroupItem value="partner" /></FormControl>
-                            <FormLabel className="font-normal">Message to Partner</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl><RadioGroupItem value="seller" /></FormControl>
-                            <FormLabel className="font-normal">Message to Seller</FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
+                       <Select
+                        onValueChange={(value) => {
+                          const newType = value as 'announcement' | 'partner' | 'seller';
+                          field.onChange(newType);
+                           switch (newType) {
+                              case 'announcement':
+                                  form.reset({ type: 'announcement', subject: '', details: '', announcementFor: 'partner' });
+                                  break;
+                              case 'partner':
+                                  form.reset({ type: 'partner', subject: '', details: '', recipientId: '' });
+                                  break;
+                              case 'seller':
+                                  form.reset({ type: 'seller', subject: '', details: '', recipientId: '' });
+                                  break;
+                          }
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a message type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="announcement">Announcement</SelectItem>
+                          <SelectItem value="partner">Message to Partner</SelectItem>
+                          <SelectItem value="seller">Message to Seller</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -181,28 +176,20 @@ export default function SendMessageContent() {
                     control={form.control}
                     name="announcementFor"
                     render={({ field }) => (
-                      <FormItem className="space-y-3">
+                      <FormItem>
                         <FormLabel>Type of Announcement</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-col sm:flex-row gap-4"
-                          >
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl><RadioGroupItem value="partner" /></FormControl>
-                              <FormLabel className="font-normal">For Partner</FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl><RadioGroupItem value="seller" /></FormControl>
-                              <FormLabel className="font-normal">For Seller</FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl><RadioGroupItem value="both" /></FormControl>
-                              <FormLabel className="font-normal">For Both</FormLabel>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select announcement type" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="partner">For Partner</SelectItem>
+                                <SelectItem value="seller">For Seller</SelectItem>
+                                <SelectItem value="both">For Both</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
