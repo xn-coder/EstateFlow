@@ -10,6 +10,13 @@ import { Pencil } from 'lucide-react';
 import { websiteData } from '@/lib/website-data';
 import EditBusinessProfileDialog from './edit-business-profile-dialog';
 import EditSlideshowDialog from './edit-slideshow-dialog';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 // A simple row component to display info
 const InfoRow: React.FC<{ label: string; children: React.ReactNode, isLongText?: boolean }> = ({ label, children, isLongText }) => (
@@ -67,19 +74,43 @@ export default function ManageWebsiteContent() {
                 </EditSlideshowDialog>
             </CardHeader>
             <CardContent>
-                <div className="space-y-4">
-                    {websiteData.slideshows.map((slide) => (
-                        <div key={slide.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                            <div className="flex items-center gap-4">
-                                <Image src={slide.image} alt={slide.title} width={120} height={50} className="rounded-md object-cover" data-ai-hint="presentation slide" />
-                                <div>
-                                    <p className="font-medium">{slide.title}</p>
-                                    <a href={slide.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline break-all">{slide.link}</a>
+                <Carousel
+                    opts={{
+                        align: 'start',
+                        loop: true,
+                    }}
+                    className="w-full"
+                >
+                    <CarouselContent>
+                        {websiteData.slideshows.map((slide) => (
+                            <CarouselItem key={slide.id}>
+                                <div className="relative h-80 w-full overflow-hidden rounded-lg">
+                                    <Image
+                                        src={slide.image}
+                                        alt={slide.title}
+                                        fill
+                                        className="object-cover"
+                                        data-ai-hint="presentation slide"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                    <div className="absolute bottom-6 left-6 text-white">
+                                        <h3 className="text-2xl font-bold">{slide.title}</h3>
+                                        <a
+                                            href={slide.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="mt-1 inline-block text-sm hover:underline break-all"
+                                        >
+                                           {slide.link}
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10" />
+                    <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10" />
+                </Carousel>
             </CardContent>
         </Card>
 
