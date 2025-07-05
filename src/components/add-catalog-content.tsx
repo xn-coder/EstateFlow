@@ -57,7 +57,9 @@ const step5Schema = z.object({
 });
 
 const step6Schema = z.object({
-  galleryImages: z.array(z.string().min(1)).min(1, 'At least one gallery image is required'),
+  galleryImages: z.array(z.object({
+    value: z.string().min(1, 'An image is required.')
+  })).min(1, 'At least one gallery image is required'),
 });
 
 const step7Schema = z.object({
@@ -217,7 +219,11 @@ export default function AddCatalogContent() {
   };
 
   const onSubmit = async (data: FormValues) => {
-    const result = await addCatalog(data);
+    const finalData = {
+      ...data,
+      galleryImages: data.galleryImages.map(img => img.value),
+    };
+    const result = await addCatalog(finalData);
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       router.push('/manage-business');
@@ -323,7 +329,7 @@ export default function AddCatalogContent() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             {galleryFields.map((field, index) => (
                                 <div key={field.id} className="relative group">
-                                    <FormField control={control} name={`galleryImages.${index}`} render={({ field }) => (
+                                    <FormField control={control} name={`galleryImages.${index}.value`} render={({ field }) => (
                                         <div className="w-full aspect-square border rounded-md flex items-center justify-center bg-muted overflow-hidden">
                                             {field.value ? (
                                                 <img src={field.value} alt={`Gallery image ${index + 1}`} className="w-full h-full object-cover" data-ai-hint="product gallery" />
@@ -344,7 +350,7 @@ export default function AddCatalogContent() {
                                     if (file) {
                                         const reader = new FileReader();
                                         reader.onloadend = () => {
-                                            appendGallery(reader.result as string);
+                                            appendGallery({ value: reader.result as string });
                                         };
                                         reader.readAsDataURL(file);
                                     }
@@ -354,7 +360,7 @@ export default function AddCatalogContent() {
                                 <Plus className="h-6 w-6" />
                             </Button>
                         </div>
-                        <FormMessage>{methods.formState.errors.galleryImages?.message}</FormMessage>
+                        <FormMessage>{(methods.formState.errors.galleryImages as any)?.message}</FormMessage>
                     </div>
                   )}
                   
