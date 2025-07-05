@@ -87,26 +87,26 @@ interface MessageDetailProps {
 
 const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
   <Card>
-    <CardHeader>
-      <Button variant="ghost" onClick={onBack} className="justify-start p-0 mb-4 h-auto text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to messages
-      </Button>
-      <CardTitle className="text-xl mb-4">{message.subject}</CardTitle>
-      <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-10 w-10 border">
-              <AvatarImage src={'https://placehold.co/40x40.png'} alt={message.from} data-ai-hint="person abstract" />
-              <AvatarFallback>{message.from.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-                <p className="font-semibold">{message.from}</p>
+    <CardHeader className="space-y-4">
+        <Button variant="ghost" onClick={onBack} className="self-start justify-start p-0 h-auto text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to messages
+        </Button>
+        <div className="flex items-center justify-between border-b pb-4">
+            <div className="flex items-center gap-4">
+                <Avatar className="h-10 w-10 border">
+                    <AvatarImage src={'https://placehold.co/40x40.png'} alt={message.from} data-ai-hint="person abstract" />
+                    <AvatarFallback>{message.from.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                    <p className="font-semibold">{message.from}</p>
+                </div>
             </div>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {message.date}
-          </div>
-      </div>
+            <div className="text-sm text-muted-foreground">
+                {message.date}
+            </div>
+        </div>
+        <CardTitle className="text-2xl !mt-2">{message.subject}</CardTitle>
     </CardHeader>
     <CardContent>
       <div className="prose dark:prose-invert max-w-none prose-p:my-2">
