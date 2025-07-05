@@ -3,30 +3,43 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { updateMessages } from '@/lib/data';
 import { cn } from '@/lib/utils';
-import SendUpdateDialog from './send-update-dialog';
-import { PlusCircle } from 'lucide-react';
 
 
-const AnnouncementsTab = () => (
+const announcementSchema = z.object({
+  type: z.literal('announcement'),
+  announcementFor: z.enum(['partner', 'seller', 'both'], { required_error: 'Please select an audience.' }),
+  subject: z.string().min(1, 'Subject is required.'),
+  details: z.string().min(1, 'Details are required.'),
+});
+
+const directMessageSchema = z.object({
+  type: z.enum(['partner', 'seller']),
+  recipientId: z.string().min(1, 'Recipient ID is required.'),
+  subject: z.string().min(1, 'Subject is required.'),
+  details: z.string().min(1, 'Details are required.'),
+});
+
+const formSchema = z.discriminatedUnion('type', [announcementSchema, directMessageSchema]);
+
+const MessageList = () => (
     <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-                <CardTitle>Announcements</CardTitle>
-                <CardDescription>You have {updateMessages.filter(m => !m.read).length} unread messages.</CardDescription>
-            </div>
-            <SendUpdateDialog>
-                 <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Send Message
-                </Button>
-            </SendUpdateDialog>
+        <CardHeader>
+            <CardTitle>Updates</CardTitle>
+            <CardDescription>You have {updateMessages.filter(m => !m.read).length} unread messages.</CardDescription>
         </CardHeader>
         <CardContent>
             <ScrollArea className="h-[500px]">
@@ -57,45 +70,199 @@ const AnnouncementsTab = () => (
             </ScrollArea>
         </CardContent>
     </Card>
-)
-
-const ContactsRedirectPlaceholder = () => (
-    <Card>
-        <CardHeader>
-            <CardTitle>Contacts</CardTitle>
-            <CardDescription>Your contact list.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <p className="text-center text-muted-foreground py-20">Redirecting to Contact Book...</p>
-        </CardContent>
-    </Card>
-)
+);
 
 export default function SendMessageContent() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [view, setView] = React.useState<'list' | 'form'>('list');
 
-  const handleTabChange = (value: string) => {
-    if (value === 'contacts') {
-      router.push('/contact-book');
-    }
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      type: 'announcement',
+      announcementFor: 'partner',
+      subject: '',
+      details: '',
+    },
+  });
+
+  const messageType = form.watch('type');
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log('Sending message:', values);
+    toast({
+        title: 'Message Sent!',
+        description: 'Your message has been successfully sent.',
+    });
+    form.reset({
+      type: 'announcement',
+      announcementFor: 'partner',
+      subject: '',
+      details: '',
+    });
+    setView('list');
+  };
+
+  const handleContactClick = () => {
+    router.push('/contact-book');
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-        <Tabs defaultValue="announcements" onValueChange={handleTabChange}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="announcements">Announcements</TabsTrigger>
-                <TabsTrigger value="contacts">Contacts</TabsTrigger>
-            </TabsList>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex gap-4">
+        <Button onClick={() => setView('form')} className="flex-1">
+          Announcements
+        </Button>
+        <Button onClick={handleContactClick} className="flex-1" variant="outline">
+          Contacts
+        </Button>
+      </div>
 
-            <TabsContent value="announcements">
-                <AnnouncementsTab />
-            </TabsContent>
+      {view === 'list' && <MessageList />}
 
-            <TabsContent value="contacts">
-                <ContactsRedirectPlaceholder />
-            </TabsContent>
-        </Tabs>
+      {view === 'form' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Send a Message</CardTitle>
+            <CardDescription>Compose and send your message. Or, go back to the <Button variant="link" className="p-0 h-auto" onClick={() => setView('list')}>message list</Button>.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Message Type</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={(value) => {
+                            const newType = value as 'announcement' | 'partner' | 'seller';
+                            field.onChange(newType);
+                             switch (newType) {
+                                case 'announcement':
+                                    form.reset({ type: 'announcement', subject: '', details: '', announcementFor: 'partner' });
+                                    break;
+                                case 'partner':
+                                    form.reset({ type: 'partner', subject: '', details: '', recipientId: '' });
+                                    break;
+                                case 'seller':
+                                    form.reset({ type: 'seller', subject: '', details: '', recipientId: '' });
+                                    break;
+                            }
+                          }}
+                          value={field.value}
+                          className="flex flex-col sm:flex-row gap-4"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl><RadioGroupItem value="announcement" /></FormControl>
+                            <FormLabel className="font-normal">Announcement</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl><RadioGroupItem value="partner" /></FormControl>
+                            <FormLabel className="font-normal">Message to Partner</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl><RadioGroupItem value="seller" /></FormControl>
+                            <FormLabel className="font-normal">Message to Seller</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {messageType === 'announcement' && (
+                  <FormField
+                    // @ts-ignore - discriminated union makes this safe
+                    control={form.control}
+                    name="announcementFor"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Type of Announcement</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col sm:flex-row gap-4"
+                          >
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl><RadioGroupItem value="partner" /></FormControl>
+                              <FormLabel className="font-normal">For Partner</FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl><RadioGroupItem value="seller" /></FormControl>
+                              <FormLabel className="font-normal">For Seller</FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl><RadioGroupItem value="both" /></FormControl>
+                              <FormLabel className="font-normal">For Both</FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {(messageType === 'partner' || messageType === 'seller') && (
+                  <FormField
+                    // @ts-ignore - discriminated union makes this safe
+                    control={form.control}
+                    name="recipientId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{messageType === 'partner' ? 'Partner ID' : 'Seller ID'}</FormLabel>
+                        <FormControl>
+                          <Input placeholder={`Enter the ${messageType} ID`} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                
+                <FormField
+                  control={form.control}
+                  name="subject"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subject</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter message subject" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  // @ts-ignore - discriminated union makes this safe
+                  control={form.control}
+                  name="details"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Details</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Type your message here." className="min-h-[150px]" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end">
+                    <Button type="submit">Send Message</Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
