@@ -75,7 +75,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
           )}
           {(isAdmin || isWalletManager) && (
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Wallet & Billing">
+              <SidebarMenuButton href="/wallet-billing" tooltip="Wallet & Billing">
                 <Wallet />
                 Wallet & Billing
               </SidebarMenuButton>
