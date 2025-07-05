@@ -18,12 +18,46 @@ export default function PaymentHistoryContent() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleActionClick = (action: string) => {
-    toast({
-      title: 'Action Triggered',
-      description: `${action} functionality is not yet implemented.`,
-    })
-  }
+  const handleCopy = () => {
+    const header = ['Date', 'Name', 'Transaction ID', 'Amount', 'Payment Method', 'Type'];
+    const rows = paymentHistory.map(item => 
+        [item.date, item.name, item.transactionId, item.amount.toString(), item.paymentMethod, item.type]
+    );
+    const tsv = [header.join('\t'), ...rows.map(row => row.join('\t'))].join('\n');
+    navigator.clipboard.writeText(tsv).then(() => {
+        toast({ title: 'Success', description: 'Payment history copied to clipboard.' });
+    }, (err) => {
+        toast({ title: 'Error', description: 'Failed to copy to clipboard.', variant: 'destructive'});
+        console.error('Could not copy text: ', err);
+    });
+  };
+
+  const handleDownloadCSV = () => {
+    const header = ['Date', 'Name', 'Transaction ID', 'Amount', 'Payment Method', 'Type'];
+    const rows = paymentHistory.map(item => 
+        [item.date, item.name, item.transactionId, item.amount, item.paymentMethod, item.type]
+    );
+    let csvContent = "data:text/csv;charset=utf-8," 
+        + header.join(",") + "\n" 
+        + rows.map(e => e.join(",")).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "payment_history.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: 'Success', description: 'Downloading payment history as CSV.' });
+  };
+  
+  const handlePrint = () => {
+    toast({ title: 'Info', description: 'Preparing document for printing...' });
+    // A timeout can give the user a moment to see the toast before the print dialog appears
+    setTimeout(() => {
+      window.print();
+    }, 500);
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -40,19 +74,19 @@ export default function PaymentHistoryContent() {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-2 pt-4 border-t">
-              <Button variant="outline" size="sm" onClick={() => handleActionClick('Copy')}>
+              <Button variant="outline" size="sm" onClick={handleCopy}>
                 <Copy className="mr-2 h-4 w-4"/>
                 Copy
               </Button>
-              <Button variant="outline" size="sm" onClick={() => handleActionClick('Download CSV')}>
+              <Button variant="outline" size="sm" onClick={handleDownloadCSV}>
                 <FileDown className="mr-2 h-4 w-4"/>
                 CSV
               </Button>
-              <Button variant="outline" size="sm" onClick={() => handleActionClick('Download Excel')}>
+              <Button variant="outline" size="sm" onClick={handleDownloadCSV}>
                 <FileDown className="mr-2 h-4 w-4"/>
                 Excel
               </Button>
-              <Button variant="outline" size="sm" onClick={() => handleActionClick('Print')}>
+              <Button variant="outline" size="sm" onClick={handlePrint}>
                 <Printer className="mr-2 h-4 w-4"/>
                 Print
               </Button>

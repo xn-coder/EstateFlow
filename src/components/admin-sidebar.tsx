@@ -19,9 +19,6 @@ import {
   Wallet,
   Bell,
   Building2,
-  TrendingUp,
-  TrendingDown,
-  History,
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -79,32 +76,12 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
             </SidebarMenuItem>
           )}
           {(isAdmin || isWalletManager) && (
-            <>
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/wallet-billing" isActive={pathname === '/wallet-billing'} tooltip="Wallet & Billing">
-                  <Wallet />
-                  Wallet & Billing
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/receivable-cash-list" isActive={pathname === '/receivable-cash-list'} tooltip="Receivable List">
-                  <TrendingUp />
-                  Receivable List
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/payable-list" isActive={pathname === '/payable-list'} tooltip="Payable List">
-                  <TrendingDown />
-                  Payable List
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/payment-history" isActive={pathname === '/payment-history'} tooltip="Payment History">
-                  <History />
-                  Payment History
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </>
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/wallet-billing" isActive={pathname === '/wallet-billing' || pathname.startsWith('/receivable') || pathname.startsWith('/payable') || pathname.startsWith('/payment-history')} tooltip="Wallet & Billing">
+                <Wallet />
+                Wallet & Billing
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           )}
           {(isAdmin || isManager || isBusinessManager || isSupportTeam || isWalletManager) && (
             <SidebarMenuItem>
