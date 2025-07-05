@@ -39,9 +39,9 @@ const step2Schema = z.object({
 const step3Schema = z.object({
   slideshows: z.array(z.object({
     id: z.string(),
-    image: z.string().min(1, 'Image is required'),
-    title: z.string().min(1, 'Title is required'),
-  })),
+    image: z.string().optional(),
+    title: z.string().optional(),
+  })).optional(),
 });
 
 const step4Schema = z.object({
@@ -51,15 +51,15 @@ const step4Schema = z.object({
 const step5Schema = z.object({
   faqs: z.array(z.object({
     id: z.string(),
-    question: z.string().min(1, 'Question is required'),
-    answer: z.string().min(1, 'Answer is required'),
-  })),
+    question: z.string().optional(),
+    answer: z.string().optional(),
+  })).optional(),
 });
 
 const step6Schema = z.object({
   galleryImages: z.array(z.object({
     value: z.string().min(1, 'An image is required.')
-  })),
+  })).optional(),
 });
 
 const step7Schema = z.object({
@@ -70,10 +70,10 @@ const step8Schema = z.object({
   marketingKits: z.array(z.object({
     id: z.string(),
     kitType: z.enum(['poster', 'brochure']),
-    featuredImage: z.string().min(1, 'Image is required'),
-    nameOrTitle: z.string().min(1, 'Name or title is required'),
-    uploadedFile: z.string().min(1, 'File is required'),
-  })),
+    featuredImage: z.string().optional(),
+    nameOrTitle: z.string().optional(),
+    uploadedFile: z.string().optional(),
+  })).optional(),
 });
 
 const step9Schema = z.object({
@@ -221,7 +221,7 @@ export default function AddCatalogContent() {
   const onSubmit = async (data: FormValues) => {
     const finalData = {
       ...data,
-      galleryImages: data.galleryImages.map(img => img.value),
+      galleryImages: (data.galleryImages || []).map(img => img.value),
     };
     const result = await addCatalog(finalData);
     if (result.success) {
@@ -259,8 +259,8 @@ export default function AddCatalogContent() {
                       <FormField control={control} name="description" render={({ field }) => ( <FormItem><FormLabel>Description*</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
                       <FormField control={control} name="metaKeyword" render={({ field }) => ( <FormItem><FormLabel>Meta Keyword</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                       <div className="grid md:grid-cols-2 gap-4">
-                        <FormField control={control} name="mainCategory" render={({ field }) => ( <FormItem><FormLabel>Select Category*</FormLabel><FormControl><Input placeholder="Main Category" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        <FormField control={control} name="categoryName" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input placeholder="Category Name" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={control} name="mainCategory" render={({ field }) => ( <FormItem><FormLabel>Main Category*</FormLabel><FormControl><Input placeholder="e.g., Residential" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={control} name="categoryName" render={({ field }) => ( <FormItem><FormLabel>Category Name*</FormLabel><FormControl><Input placeholder="e.g., Apartments" {...field} /></FormControl><FormMessage /></FormItem> )} />
                       </div>
                       <FormField control={control} name="featuredImage" render={({ field }) => ( <FileUploadButton label="Featured Image*" onFileSelect={field.onChange} previewUrl={field.value} hint="product image" /> )} />
                     </div>
@@ -381,7 +381,7 @@ export default function AddCatalogContent() {
                               )} />
                             <FormField control={control} name={`marketingKits.${index}.featuredImage`} render={({ field }) => ( <FileUploadButton label="Featured Image*" onFileSelect={field.onChange} previewUrl={field.value} hint="marketing poster" /> )} />
                             <FormField control={control} name={`marketingKits.${index}.nameOrTitle`} render={({ field }) => ( <FormItem><FormLabel>Name or Title*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={control} name={`marketingKits.${index}.uploadedFile`} render={({ field }) => ( <FileUploadButton label="Upload File*" onFileSelect={field.onChange} previewUrl={field.value.startsWith('data:image') ? field.value : undefined} hint="document" accept="image/*,application/pdf" /> )} />
+                            <FormField control={control} name={`marketingKits.${index}.uploadedFile`} render={({ field }) => ( <FileUploadButton label="Upload File*" onFileSelect={field.onChange} previewUrl={field.value && field.value.startsWith('data:image') ? field.value : undefined} hint="document" accept="image/*,application/pdf" /> )} />
                           </div>
                           <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={() => removeMarketingKit(index)}><Trash2 className="h-4 w-4" /></Button>
                         </Card>
@@ -409,7 +409,7 @@ export default function AddCatalogContent() {
                 {step < steps.length ? (
                   <Button type="button" onClick={nextStep}>Next</Button>
                 ) : (
-                  <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Submitting...' : 'Submit Catalog'}</Button>
+                  <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish Catalog'}</Button>
                 )}
               </div>
             </CardContent>

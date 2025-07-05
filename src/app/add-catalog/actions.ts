@@ -59,14 +59,33 @@ const catalogSchema: z.ZodType<Omit<Catalog, 'id'>> = z.object({
 
 
 export async function addCatalog(data: Omit<Catalog, 'id'>) {
+  const placeholderImage = 'https://placehold.co/600x400.png';
+  const placeholderFile = 'placeholder.pdf';
+  const isBase64 = (str: string | undefined): boolean => !!str && str.startsWith('data:');
+
+  const dataForFirestore: Omit<Catalog, 'id'> = {
+    ...data,
+    featuredImage: isBase64(data.featuredImage) ? placeholderImage : data.featuredImage,
+    slideshows: (data.slideshows || []).map(s => ({
+      ...s,
+      image: isBase64(s.image) ? placeholderImage : s.image,
+    })),
+    galleryImages: (data.galleryImages || []).map(img => isBase64(img) ? placeholderImage : img),
+    marketingKits: (data.marketingKits || []).map(kit => ({
+      ...kit,
+      featuredImage: isBase64(kit.featuredImage) ? placeholderImage : kit.featuredImage,
+      uploadedFile: isBase64(kit.uploadedFile) ? (kit.uploadedFile.startsWith('data:image') ? placeholderImage : placeholderFile) : kit.uploadedFile,
+    })),
+  };
+
   // Clean up data before validation.
   const cleanedData = {
-    ...data,
-    slideshows: (data.slideshows || []).filter(s => s.image && s.title),
-    faqs: (data.faqs || []).filter(f => f.question && f.answer),
-    marketingKits: (data.marketingKits || []).filter(k => k.featuredImage && k.nameOrTitle && k.uploadedFile),
-    galleryImages: (data.galleryImages || []).filter(g => g),
-    videoLink: data.videoLink || '',
+    ...dataForFirestore,
+    slideshows: (dataForFirestore.slideshows || []).filter(s => s.image && s.title),
+    faqs: (dataForFirestore.faqs || []).filter(f => f.question && f.answer),
+    marketingKits: (dataForFirestore.marketingKits || []).filter(k => k.featuredImage && k.nameOrTitle && k.uploadedFile),
+    galleryImages: (dataForFirestore.galleryImages || []).filter(g => g),
+    videoLink: dataForFirestore.videoLink || '',
   };
 
   const validation = catalogSchema.safeParse(cleanedData);
