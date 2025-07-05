@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -23,6 +24,7 @@ import { Upload, Plus } from 'lucide-react';
 import type { Role } from '@/types';
 import { addUser } from '@/app/profile/actions';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const userRoles: Role[] = ['Admin', 'Manager', 'Business Manager', 'Support Team', 'Wallet Manager', 'Seller', 'Partner'];
 
@@ -100,123 +102,127 @@ export default function AddUserDialog({ children, onUserAdded }: AddUserDialogPr
           <DialogDescription>Fill in the details to add a new user to the team.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Avatar className="h-24 w-24 border">
-                {avatarPreview ? (
-                   <AvatarImage src={avatarPreview} alt="New user avatar" />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-muted">
-                        <Upload className="h-8 w-8 text-muted-foreground" />
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <ScrollArea className="max-h-[60vh] pr-6">
+                <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <Avatar className="h-24 w-24 border">
+                        {avatarPreview ? (
+                        <AvatarImage src={avatarPreview} alt="New user avatar" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-muted">
+                                <Upload className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                        )}
+                        <AvatarFallback>
+                            <Plus/>
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="relative">
+                        <Button type="button" variant="outline">
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Image
+                        </Button>
+                        <Input
+                        type="file"
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                        onChange={handleAvatarChange}
+                        accept="image/*"
+                        />
                     </div>
-                )}
-                <AvatarFallback>
-                    <Plus/>
-                </AvatarFallback>
-              </Avatar>
-              <div className="relative">
-                <Button type="button" variant="outline">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Image
-                </Button>
-                <Input
-                  type="file"
-                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                  onChange={handleAvatarChange}
-                  accept="image/*"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Set Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                            <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                            <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    </div>
+                    <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Email</FormLabel>
                         <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select access level" />
-                        </SelectTrigger>
+                            <Input type="email" {...field} />
                         </FormControl>
-                        <SelectContent>
-                            {userRoles.map(role => (
-                                <SelectItem key={role} value={role}>{role}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-            <DialogFooter>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                            <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Set Password</FormLabel>
+                        <FormControl>
+                            <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="role"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Role</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select access level" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {userRoles.map(role => (
+                                        <SelectItem key={role} value={role}>{role}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            </ScrollArea>
+            <DialogFooter className="pt-4">
               <DialogClose asChild>
                 <Button type="button" variant="secondary">Cancel</Button>
               </DialogClose>
