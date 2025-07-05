@@ -69,10 +69,10 @@ export default function ManageBusinessContent() {
         { label: 'Manage Catalog', href: '/manage-catalog' },
         { label: 'Add a Marketing Kits', href: '#' },
         { label: 'Manage Marketing Kits', href: '/manage-marketing-kits' },
-        { label: 'Add a New Category', href: '#' },
-        { label: 'Manage Category', href: '#' },
-        { label: 'Manage a Content', href: '#' },
-        { label: 'Post a Content', href: '#' },
+        { label: 'Add a New Category', href: '/manage-category' },
+        { label: 'Manage Category', href: '/manage-category' },
+        { label: 'Manage a Content', href: '/manage-content' },
+        { label: 'Post a Content', href: '/manage-content' },
     ];
     
     const accountItems = [

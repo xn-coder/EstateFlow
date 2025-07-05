@@ -231,3 +231,20 @@ export interface MarketingKitInfo extends CatalogMarketingKit {
   catalogTitle: string;
   catalogCode: string;
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  imageUrl: string;
+  url: string;
+}
+
+export interface ContentItem {
+  id: string;
+  title: string;
+  categoryId: string;
+  categoryName: string;
+  featuredImage: string;
+  catalogCode?: string;
+  contentType: 'Article' | 'Video' | 'FAQs';
+}
