@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { PartnerActivationInfo } from '@/types';
@@ -65,15 +66,12 @@ export default function ViewPartnerProfileContent({ partnerInfo }: { partnerInfo
   const { user, profile } = partnerInfo;
   
   const listItems = [
-      { label: 'Order Details' },
-      { label: 'Manage Customer' },
-      { label: 'Withdrawal Request' },
-      { label: 'Receivable Cash List' },
-      { label: 'Send Rewards Point' },
-      { label: 'Billing and Invoice' },
-      { label: 'Payment History' },
-      { label: 'Deactivated Account' },
-      { label: 'Change Password' }
+    { label: 'View Enquiry' },
+    { label: 'Manage Customer' },
+    { label: 'Send Reward Point' },
+    { label: 'Quotation and Invoice' },
+    { label: 'Deactivated Account' },
+    { label: 'Change Password' },
   ];
 
   return (
