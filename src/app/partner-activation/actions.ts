@@ -1,8 +1,7 @@
-
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, getDoc, writeBatch } from 'firebase/firestore';
 import type { User, PartnerData, PartnerActivationInfo } from '@/types';
 
 export async function getPendingPartners(): Promise<PartnerActivationInfo[]> {
@@ -61,5 +60,23 @@ export async function activatePartner(userId: string): Promise<{ success: boolea
   } catch (error) {
     console.error("Error activating partner:", error);
     return { success: false, error: 'Failed to activate partner.' };
+  }
+}
+
+export async function deletePendingPartner(userId: string, partnerProfileId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const batch = writeBatch(db);
+
+    const userRef = doc(db, 'users', userId);
+    const profileRef = doc(db, 'partnerProfiles', partnerProfileId);
+
+    batch.delete(userRef);
+    batch.delete(profileRef);
+
+    await batch.commit();
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting pending partner:", error);
+    return { success: false, error: 'Failed to delete partner registration.' };
   }
 }

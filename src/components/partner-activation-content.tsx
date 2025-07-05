@@ -1,17 +1,28 @@
-
 'use client';
 
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import type { PartnerActivationInfo } from '@/types';
-import { getPendingPartners, activatePartner } from '@/app/partner-activation/actions';
+import type { PartnerActivationInfo, User } from '@/types';
+import { getPendingPartners, activatePartner, deletePendingPartner } from '@/app/partner-activation/actions';
 import PartnerDetailsDialog from './partner-details-dialog';
 import { Badge } from './ui/badge';
-import { CheckCircle, Clock } from 'lucide-react';
+import { CheckCircle, Clock, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 
 export default function PartnerActivationContent() {
   const [partners, setPartners] = React.useState<PartnerActivationInfo[]>([]);
@@ -38,6 +49,25 @@ export default function PartnerActivationContent() {
       toast({ title: 'Error', description: result.error, variant: 'destructive' });
     }
   };
+
+  const handleDelete = async (user: User) => {
+    if (!user.partnerProfileId) {
+      toast({
+        title: 'Error',
+        description: 'Cannot delete partner, profile ID is missing.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const result = await deletePendingPartner(user.id, user.partnerProfileId);
+    if (result.success) {
+      toast({ title: 'Success', description: 'Partner registration deleted.' });
+      fetchPartners();
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
+  };
+
 
   if (loading) {
     return (
@@ -98,13 +128,37 @@ export default function PartnerActivationContent() {
                 </Badge>
               </CardContent>
               <CardFooter className="flex justify-end gap-2">
-                <PartnerDetailsDialog partnerInfo={{ user, profile }}>
-                    <Button variant="outline">View Details</Button>
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the registration for {user.name}.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className={cn(buttonVariants({ variant: "destructive" }))}
+                            onClick={() => handleDelete(user)}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <PartnerDetailsDialog partnerInfo={{ user, profile }} onActivate={handleActivate}>
+                    <Button>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Activate
+                    </Button>
                 </PartnerDetailsDialog>
-                <Button onClick={() => handleActivate(user.id)}>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Activate
-                </Button>
               </CardFooter>
             </Card>
           ))}

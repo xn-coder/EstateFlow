@@ -17,10 +17,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { PartnerActivationInfo } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { CheckCircle } from 'lucide-react';
 
 interface PartnerDetailsDialogProps {
   children: React.ReactNode;
   partnerInfo: PartnerActivationInfo;
+  onActivate?: (userId: string) => void;
 }
 
 const DetailRow = ({ label, value }: { label: string; value?: React.ReactNode }) => (
@@ -45,8 +47,14 @@ const ImageViewer = ({ label, base64Image, hint }: { label: string; base64Image?
   </Card>
 );
 
-export default function PartnerDetailsDialog({ children, partnerInfo }: PartnerDetailsDialogProps) {
+export default function PartnerDetailsDialog({ children, partnerInfo, onActivate }: PartnerDetailsDialogProps) {
   const { user, profile } = partnerInfo;
+  
+  const handleActivateClick = () => {
+    if (onActivate) {
+      onActivate(user.id);
+    }
+  };
 
   return (
     <Dialog>
@@ -125,9 +133,19 @@ export default function PartnerDetailsDialog({ children, partnerInfo }: PartnerD
         </ScrollArea>
         
         <DialogFooter className="p-6 pt-4 border-t bg-background">
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">Close</Button>
-          </DialogClose>
+            <DialogClose asChild>
+                <Button type="button" variant="secondary">
+                    {onActivate ? 'Cancel' : 'Close'}
+                </Button>
+            </DialogClose>
+            {onActivate && (
+                <DialogClose asChild>
+                    <Button onClick={handleActivateClick}>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Activate Partner
+                    </Button>
+                </DialogClose>
+            )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
