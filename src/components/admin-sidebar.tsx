@@ -1,6 +1,7 @@
 
 'use client';
 
+import { usePathname } from 'next/navigation';
 import type { Role } from '@/types';
 import {
   Sidebar,
@@ -9,6 +10,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -18,18 +22,27 @@ import {
   Wallet,
   Bell,
   Building2,
+  ChevronDown,
 } from 'lucide-react';
+import * as React from 'react';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 interface AdminSidebarProps {
   role: Role;
 }
 
 export default function AdminSidebar({ role }: AdminSidebarProps) {
+  const pathname = usePathname();
   const isAdmin = role === 'Admin';
   const isManager = role === 'Manager';
   const isBusinessManager = role === 'Business Manager';
   const isSupportTeam = role === 'Support Team';
   const isWalletManager = role === 'Wallet Manager';
+  
+  const walletPages = ['/wallet-billing', '/receivable-cash-list', '/payable-list', '/payment-history'];
+  const [isWalletMenuOpen, setIsWalletMenuOpen] = React.useState(walletPages.some(p => pathname.startsWith(p)));
+
 
   return (
     <Sidebar collapsible="icon" variant="sidebar" side="left">
@@ -44,14 +57,14 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton href="/" isActive tooltip="Dashboard">
+            <SidebarMenuButton href="/" isActive={pathname === '/'} tooltip="Dashboard">
               <LayoutDashboard />
               Dashboard
             </SidebarMenuButton>
           </SidebarMenuItem>
           {(isAdmin || isManager) && (
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Manage Orders">
+              <SidebarMenuButton href="#" isActive={pathname.startsWith('/orders')} tooltip="Manage Orders">
                 <ShoppingCart />
                 Manage Orders
               </SidebarMenuButton>
@@ -59,7 +72,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
           )}
           {(isAdmin || isManager || isBusinessManager) && (
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Manage Business">
+              <SidebarMenuButton href="#" isActive={pathname.startsWith('/business')} tooltip="Manage Business">
                 <Briefcase />
                 Manage Business
               </SidebarMenuButton>
@@ -67,23 +80,62 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
           )}
           {(isAdmin || isSupportTeam) && (
             <SidebarMenuItem>
-              <SidebarMenuButton href="/updates" tooltip="Support Ticket">
+              <SidebarMenuButton href="/updates" isActive={pathname === '/updates'} tooltip="Support Ticket">
                 <LifeBuoy />
                 Support Ticket
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
           {(isAdmin || isWalletManager) && (
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/wallet-billing" tooltip="Wallet & Billing">
-                <Wallet />
-                Wallet & Billing
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <Collapsible asChild open={isWalletMenuOpen} onOpenChange={setIsWalletMenuOpen}>
+              <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                     <SidebarMenuButton
+                        isActive={walletPages.some(p => pathname.startsWith(p))}
+                        className="w-full justify-between group-data-[collapsible=icon]:justify-center"
+                      >
+                       <div className="flex items-center gap-2">
+                          <Wallet />
+                          <span className="group-data-[collapsible=icon]:hidden">Wallet & Billing</span>
+                       </div>
+                        <ChevronDown
+                          className={cn(
+                            "transition-transform duration-200 group-data-[collapsible=icon]:hidden",
+                            isWalletMenuOpen && "rotate-180"
+                          )}
+                        />
+                      </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent asChild>
+                      <SidebarMenuSub>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton href="/wallet-billing" isActive={pathname === '/wallet-billing'}>
+                            Overview
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton href="/receivable-cash-list" isActive={pathname === '/receivable-cash-list'}>
+                            Receivable List
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton href="/payable-list" isActive={pathname === '/payable-list'}>
+                            Payable List
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton href="/payment-history" isActive={pathname === '/payment-history'}>
+                            Payment History
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      </SidebarMenuSub>
+                  </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
           )}
           {(isAdmin || isManager || isBusinessManager || isSupportTeam || isWalletManager) && (
             <SidebarMenuItem>
-              <SidebarMenuButton href="/updates" tooltip="Updates">
+              <SidebarMenuButton href="/updates" isActive={pathname === '/updates'} tooltip="Updates">
                 <Bell />
                 Updates
               </SidebarMenuButton>

@@ -2,6 +2,7 @@
 
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -114,4 +115,24 @@ export interface Receivable {
   partnerName: string;
   partnerId: string;
   pendingAmount: number;
+  status: 'Pending' | 'Received';
+}
+
+export interface Payable {
+  id: string;
+  date: string;
+  recipientName: string;
+  recipientId: string;
+  payableAmount: number;
+  status: 'Pending' | 'Paid';
+}
+
+export interface PaymentHistory {
+    id: string;
+    date: string;
+    name: string;
+    transactionId: string;
+    amount: number;
+    paymentMethod: string;
+    type: 'Credit' | 'Debit';
 }

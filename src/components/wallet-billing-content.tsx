@@ -21,8 +21,8 @@ const StatCard = ({ title, value, description }: { title: string; value: string;
 const managementItems = [
   { label: 'Manage Wallet', href: '#', isDialog: true },
   { label: 'Receivable Cash List', href: '/receivable-cash-list', isDialog: false },
-  { label: 'Payable List', href: '#', isDialog: false },
-  { label: 'Payment History', href: '#', isDialog: false },
+  { label: 'Payable List', href: '/payable-list', isDialog: false },
+  { label: 'Payment History', href: '/payment-history', isDialog: false },
 ];
 
 const ManagementListItem = ({ label, href, isDialog }: { label: string; href: string; isDialog: boolean }) => {

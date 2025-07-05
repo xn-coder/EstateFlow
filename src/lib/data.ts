@@ -1,4 +1,4 @@
-import type { Property, User, Lead, PropertyType, Contact, UpdateMessage, Enquiry, Receivable } from '@/types';
+import type { Property, User, Lead, PropertyType, Contact, UpdateMessage, Enquiry, Receivable, Payable, PaymentHistory } from '@/types';
 
 export const initialUsersForSeed: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@estateflow.com', role: 'Admin', avatar: 'https://placehold.co/40x40.png' },
@@ -146,11 +146,26 @@ export const enquiries: Enquiry[] = [
 ];
 
 export const receivables: Receivable[] = [
-  { id: 'rec1', date: '2024-05-20', partnerName: 'Mike Johnson', partnerId: 'PRT-123', pendingAmount: 15000 },
-  { id: 'rec2', date: '2024-05-18', partnerName: 'Partner User', partnerId: 'PRT-124', pendingAmount: 2500 },
-  { id: 'rec3', date: '2024-05-15', partnerName: 'Mike Johnson', partnerId: 'PRT-123', pendingAmount: 8000 },
-  { id: 'rec4', date: '2024-05-12', partnerName: 'Partner User', partnerId: 'PRT-124', pendingAmount: 32000 },
-  { id: 'rec5', date: '2024-05-10', partnerName: 'Mike Johnson', partnerId: 'PRT-123', pendingAmount: 500 },
+  { id: 'rec1', date: '2024-05-20', partnerName: 'Mike Johnson', partnerId: 'PRT-123', pendingAmount: 15000, status: 'Pending' },
+  { id: 'rec2', date: '2024-05-18', partnerName: 'Partner User', partnerId: 'PRT-124', pendingAmount: 2500, status: 'Pending' },
+  { id: 'rec3', date: '2024-05-15', partnerName: 'Mike Johnson', partnerId: 'PRT-123', pendingAmount: 8000, status: 'Received' },
+  { id: 'rec4', date: '2024-05-12', partnerName: 'Partner User', partnerId: 'PRT-124', pendingAmount: 32000, status: 'Pending' },
+  { id: 'rec5', date: '2024-05-10', partnerName: 'Mike Johnson', partnerId: 'PRT-123', pendingAmount: 500, status: 'Received' },
+];
+
+export const payables: Payable[] = [
+  { id: 'pay1', date: '2024-05-21', recipientName: 'Office Supplies Inc.', recipientId: 'SUP-001', payableAmount: 5000, status: 'Pending' },
+  { id: 'pay2', date: '2024-05-20', recipientName: 'Marketing Agency', recipientId: 'SP-002', payableAmount: 7500, status: 'Paid' },
+  { id: 'pay3', date: '2024-05-19', recipientName: 'Utilities Co.', recipientId: 'UTIL-003', payableAmount: 2200, status: 'Pending' },
+  { id: 'pay4', date: '2024-05-17', recipientName: 'Freelance Developer', recipientId: 'FREEL-004', payableAmount: 12000, status: 'Paid' },
+];
+
+export const paymentHistory: PaymentHistory[] = [
+    { id: 'ph1', date: '2024-05-21', name: 'Wallet Top-up', transactionId: 'TXN123456', amount: 10000, paymentMethod: 'Credit Card', type: 'Credit' },
+    { id: 'ph2', date: '2024-05-20', name: 'Payment from Mike Johnson', transactionId: 'TXN123457', amount: 8000, paymentMethod: 'Bank Transfer', type: 'Credit' },
+    { id: 'ph3', date: '2024-05-20', name: 'Payment to Marketing Agency', transactionId: 'TXN123458', amount: 7500, paymentMethod: 'Wallet', type: 'Debit' },
+    { id: 'ph4', date: '2024-05-18', name: 'Payment from Partner User', transactionId: 'TXN123459', amount: 2500, paymentMethod: 'Bank Transfer', type: 'Credit' },
+    { id: 'ph5', date: '2024-05-17', name: 'Payment to Freelance Developer', transactionId: 'TXN123460', amount: 12000, paymentMethod: 'Wallet', type: 'Debit' },
 ];
 
 // Mock user data is now in initialUsersForSeed and will be removed from general export

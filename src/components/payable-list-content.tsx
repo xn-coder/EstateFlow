@@ -9,15 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Eye, Printer, CheckCircle, ArrowUpDown, ArrowLeft } from 'lucide-react';
-import { receivables } from '@/lib/data';
+import { payables } from '@/lib/data';
 import { Badge } from './ui/badge';
-import type { Receivable } from '@/types';
+import type { Payable } from '@/types';
 
-export default function ReceivableCashListContent() {
+export default function PayableListContent() {
   const router = useRouter();
 
-  const getStatusBadgeVariant = (status: Receivable['status']) => {
-    return status === 'Received' ? 'secondary' : 'destructive';
+  const getStatusBadgeVariant = (status: Payable['status']) => {
+    return status === 'Paid' ? 'secondary' : 'destructive';
   }
 
   return (
@@ -30,8 +30,8 @@ export default function ReceivableCashListContent() {
                 <span className="sr-only">Back</span>
             </Button>
             <div>
-              <CardTitle>Receivable Cash List</CardTitle>
-              <CardDescription>A list of pending payments from partners.</CardDescription>
+              <CardTitle>Payable List</CardTitle>
+              <CardDescription>A list of outstanding payments to be made.</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -52,7 +52,7 @@ export default function ReceivableCashListContent() {
             </div>
             <div className="relative w-full sm:w-auto sm:max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search by partner..." className="pl-10 bg-white dark:bg-background" />
+              <Input placeholder="Search by recipient..." className="pl-10 bg-white dark:bg-background" />
             </div>
           </div>
           <div className="border rounded-md">
@@ -60,21 +60,21 @@ export default function ReceivableCashListContent() {
               <TableHeader>
                 <TableRow>
                   <TableHead><button className="flex items-center gap-1">Date <ArrowUpDown className="h-3 w-3" /></button></TableHead>
-                  <TableHead><button className="flex items-center gap-1">Partner Name <ArrowUpDown className="h-3 w-3" /></button></TableHead>
-                  <TableHead className="hidden md:table-cell"><button className="flex items-center gap-1">Partner ID <ArrowUpDown className="h-3 w-3" /></button></TableHead>
-                  <TableHead><button className="flex items-center gap-1">Pending Amount <ArrowUpDown className="h-3 w-3" /></button></TableHead>
+                  <TableHead><button className="flex items-center gap-1">Recipient Name <ArrowUpDown className="h-3 w-3" /></button></TableHead>
+                  <TableHead className="hidden md:table-cell"><button className="flex items-center gap-1">Recipient ID <ArrowUpDown className="h-3 w-3" /></button></TableHead>
+                  <TableHead><button className="flex items-center gap-1">Payable Amount <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {receivables.map((item) => (
+                {payables.map((item) => (
                     <TableRow key={item.id}>
                         <TableCell>{item.date}</TableCell>
-                        <TableCell className="font-medium">{item.partnerName}</TableCell>
-                        <TableCell className="hidden md:table-cell">{item.partnerId}</TableCell>
+                        <TableCell className="font-medium">{item.recipientName}</TableCell>
+                        <TableCell className="hidden md:table-cell">{item.recipientId}</TableCell>
                         <TableCell>
-                           {item.pendingAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                           {item.payableAmount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                         </TableCell>
                         <TableCell>
                           <Badge variant={getStatusBadgeVariant(item.status)}>{item.status}</Badge>
@@ -96,7 +96,7 @@ export default function ReceivableCashListContent() {
             </Table>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between mt-4 text-sm text-muted-foreground gap-4 sm:gap-0">
-            <div>Showing 1 to {receivables.length} of {receivables.length} entries</div>
+            <div>Showing 1 to {payables.length} of {payables.length} entries</div>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="sm" disabled>«</Button>
               <Button variant="outline" size="sm" disabled>‹</Button>
