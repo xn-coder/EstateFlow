@@ -61,7 +61,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
           )}
           {(isAdmin || isManager || isBusinessManager) && (
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" isActive={pathname.startsWith('/business')} tooltip="Manage Business">
+              <SidebarMenuButton href="/manage-business" isActive={pathname.startsWith('/manage-business')} tooltip="Manage Business">
                 <Briefcase />
                 Manage Business
               </SidebarMenuButton>
