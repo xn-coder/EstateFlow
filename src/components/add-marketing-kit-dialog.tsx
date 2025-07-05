@@ -22,7 +22,6 @@ import { Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { addMarketingKit } from '@/app/add-catalog/actions';
-import { ScrollArea } from './ui/scroll-area';
 
 const marketingKitSchema = z.object({
   catalogCode: z.string().min(1, 'Catalog code is required'),
@@ -106,13 +105,13 @@ export default function AddMarketingKitDialog({ children, onKitAdded }: AddMarke
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md p-0 max-h-[90vh] flex flex-col">
-        <DialogHeader className="p-6 pb-4">
+        <DialogHeader className="p-6 pb-4 border-b">
           <DialogTitle>Add New Marketing Kit</DialogTitle>
           <DialogDescription>Add a new poster or brochure to an existing catalog.</DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-1 px-6">
+        <div className="flex-1 overflow-y-auto">
           <Form {...form}>
-            <form id="add-kit-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-6">
+            <form id="add-kit-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
               <FormField control={form.control} name="catalogCode" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Catalog Code</FormLabel>
@@ -148,7 +147,7 @@ export default function AddMarketingKitDialog({ children, onKitAdded }: AddMarke
               )} />
             </form>
           </Form>
-        </ScrollArea>
+        </div>
         <DialogFooter className="p-6 pt-4 border-t bg-background">
           <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
           <Button type="submit" form="add-kit-form" disabled={form.formState.isSubmitting}>
