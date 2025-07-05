@@ -1,5 +1,5 @@
 
-import type { Property, User, Lead, PropertyType, Contact, UpdateMessage, Enquiry, BusinessReportDataPoint } from '@/types';
+import type { Property, User, Lead, PropertyType, Contact, UpdateMessage } from '@/types';
 
 export const users: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@estateflow.com', role: 'Admin', avatar: 'https://placehold.co/40x40.png' },
@@ -126,28 +126,4 @@ export const updateMessages: UpdateMessage[] = [
     date: '1 Week ago',
     read: true,
   },
-];
-
-export const enquiries: Enquiry[] = [
-  {
-    id: 'enq1',
-    enquiryId: 'EN 000 000 001',
-    date: '04/11/2024',
-    name: 'Name Name',
-    phone: '+91 9988776655',
-    partnerId: 'DSA 000 000 001',
-    catalogName: 'Legal Services',
-    catalogCode: 'CS000001',
-  }
-];
-
-export const businessReportData: BusinessReportDataPoint[] = [
-  { day: 'Day 0', enquiry: 0, property: 0, booking: 0 },
-  { day: 'Day 1', enquiry: 20, property: 10, booking: 5 },
-  { day: 'Day 2', enquiry: 30, property: 50, booking: 20 },
-  { day: 'Day 3', enquiry: 40, property: 30, booking: 25 },
-  { day: 'Day 4', enquiry: 35, property: 35, booking: 30 },
-  { day: 'Day 5', enquiry: 50, property: 20, booking: 15 },
-  { day: 'Day 6', enquiry: 70, property: 40, booking: 45 },
-  { day: 'Day 7', enquiry: 60, property: 30, booking: 40 },
 ];

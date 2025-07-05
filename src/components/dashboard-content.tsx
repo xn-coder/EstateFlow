@@ -7,15 +7,10 @@ import UserManagement from '@/components/user-management';
 import LeadManagement from '@/components/lead-management';
 import type { Role } from '@/types';
 import * as React from 'react';
-import PartnerDashboard from './partner-dashboard';
 
 export default function DashboardContent({ role }: { role: Role }) {
-  if (role === 'Partner') {
-    return <PartnerDashboard />;
-  }
-
   const tabs = [
-    { value: 'properties', label: 'Properties', icon: Building2, component: <PropertyListings role={role} />, roles: ['Admin', 'Seller'] },
+    { value: 'properties', label: 'Properties', icon: Building2, component: <PropertyListings role={role} />, roles: ['Admin', 'Seller', 'Partner'] },
     { value: 'users', label: 'Users', icon: Users, component: <UserManagement />, roles: ['Admin'] },
     { value: 'leads', label: 'Leads', icon: Handshake, component: <LeadManagement role={role} />, roles: ['Admin'] },
   ];
