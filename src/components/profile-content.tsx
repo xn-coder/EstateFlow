@@ -11,6 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pencil, KeyRound, Plus, Search, Trash2, ArrowUpDown } from 'lucide-react';
 import { users } from '@/lib/data';
+import ProfileEditDialog from './profile-edit-dialog';
+import SecurityUpdateDialog from './security-update-dialog';
+import AddUserDialog from './add-user-dialog';
 
 interface ProfileContentProps {
   currentUser: User;
@@ -33,18 +36,22 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
               <p className="text-muted-foreground">{currentUser.role}</p>
             </div>
           </div>
-          <Button variant="outline" size="icon">
-            <Pencil className="h-4 w-4" />
-          </Button>
+          <ProfileEditDialog currentUser={currentUser}>
+            <Button variant="outline" size="icon">
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </ProfileEditDialog>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <CardTitle className="text-lg">Security Update</CardTitle>
-          <Button variant="ghost" size="icon">
-            <KeyRound className="h-5 w-5 text-muted-foreground" />
-          </Button>
+          <SecurityUpdateDialog>
+            <Button variant="ghost" size="icon">
+              <KeyRound className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </SecurityUpdateDialog>
         </CardHeader>
         <CardContent>
           <div className="divide-y">
@@ -63,9 +70,11 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Manage Access</CardTitle>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Add User
-          </Button>
+          <AddUserDialog>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Add User
+            </Button>
+          </AddUserDialog>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between mb-4 gap-2">
