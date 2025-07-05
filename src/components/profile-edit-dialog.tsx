@@ -20,6 +20,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload } from 'lucide-react';
+import { updateUserProfile } from '@/app/profile/actions';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -36,6 +40,8 @@ interface ProfileEditDialogProps {
 export default function ProfileEditDialog({ children, currentUser }: ProfileEditDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [avatarPreview, setAvatarPreview] = React.useState<string | null>(currentUser.avatar);
+  const { updateUser } = useAuth();
+  const { toast } = useToast();
   const nameParts = currentUser.name.split(' ');
 
   const form = useForm<z.infer<typeof profileSchema>>({
@@ -44,7 +50,7 @@ export default function ProfileEditDialog({ children, currentUser }: ProfileEdit
       firstName: nameParts[0] || '',
       lastName: nameParts.slice(1).join(' ') || '',
       email: currentUser.email,
-      phone: '+91 9988776655', // static for now
+      phone: currentUser.phone || '',
     },
   });
 
@@ -59,9 +65,17 @@ export default function ProfileEditDialog({ children, currentUser }: ProfileEdit
     }
   };
 
-  const onSubmit = (values: z.infer<typeof profileSchema>) => {
-    console.log('Profile updated:', values);
-    setOpen(false);
+  const onSubmit = async (values: z.infer<typeof profileSchema>) => {
+    const fullName = `${values.firstName} ${values.lastName}`;
+    const result = await updateUserProfile(currentUser.id, fullName, values.phone);
+
+    if (result.success && result.user) {
+      updateUser(result.user);
+      toast({ title: 'Success', description: 'Profile updated successfully.' });
+      setOpen(false);
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
   };
 
   return (
@@ -127,7 +141,7 @@ export default function ProfileEditDialog({ children, currentUser }: ProfileEdit
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} />
+                    <Input type="email" {...field} readOnly />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

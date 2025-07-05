@@ -39,6 +39,12 @@ export function useAuth() {
     setUser(null);
     router.push('/login');
   }, [router]);
+  
+  const updateUser = useCallback((newUser: User) => {
+    const updatedUser = { ...user, ...newUser };
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  }, [user]);
 
-  return { user, loading, login, logout };
+  return { user, loading, login, logout, updateUser };
 }

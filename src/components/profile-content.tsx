@@ -10,11 +10,24 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pencil, KeyRound, Plus, Search, Trash2, ArrowUpDown } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import ProfileEditDialog from './profile-edit-dialog';
 import SecurityUpdateDialog from './security-update-dialog';
 import AddUserDialog from './add-user-dialog';
 import { getUsers } from '@/app/login/actions';
+import { deleteUser } from '@/app/profile/actions';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileContentProps {
   currentUser: User;
@@ -23,16 +36,28 @@ interface ProfileContentProps {
 export default function ProfileContent({ currentUser }: ProfileContentProps) {
   const [teamMembers, setTeamMembers] = React.useState<User[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const { toast } = useToast();
+
+  const fetchUsers = React.useCallback(async () => {
+    setLoading(true);
+    const allUsers = await getUsers();
+    setTeamMembers(allUsers.filter(u => u.id !== currentUser.id));
+    setLoading(false);
+  }, [currentUser.id]);
 
   React.useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      const allUsers = await getUsers();
-      setTeamMembers(allUsers.filter(u => u.id !== currentUser.id));
-      setLoading(false);
-    };
     fetchUsers();
-  }, [currentUser.id]);
+  }, [fetchUsers]);
+
+  const handleDeleteUser = async (userId: string) => {
+    const result = await deleteUser(userId);
+    if (result.success) {
+      toast({ title: 'Success', description: result.message });
+      fetchUsers();
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -59,7 +84,7 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <CardTitle className="text-lg">Security Update</CardTitle>
-          <SecurityUpdateDialog>
+          <SecurityUpdateDialog currentUser={currentUser}>
             <Button variant="ghost" size="icon">
               <KeyRound className="h-5 w-5 text-muted-foreground" />
             </Button>
@@ -82,7 +107,7 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Manage Access</CardTitle>
-          <AddUserDialog>
+          <AddUserDialog onUserAdded={fetchUsers}>
             <Button>
               <Plus className="mr-2 h-4 w-4" /> Add User
             </Button>
@@ -138,12 +163,29 @@ export default function ProfileContent({ currentUser }: ProfileContentProps) {
                   teamMembers.slice(0, 4).map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
-                      <TableCell className="hidden md:table-cell">+91 9988776655</TableCell>
+                      <TableCell className="hidden md:table-cell">{user.phone || 'N/A'}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.role}</TableCell>
                       <TableCell className="flex gap-1">
-                        <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        <Button variant="ghost" size="icon" disabled><Pencil className="h-4 w-4" /></Button>
+                         <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the user account
+                                for {user.name}.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>Continue</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))

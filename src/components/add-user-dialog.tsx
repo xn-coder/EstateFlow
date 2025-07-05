@@ -20,6 +20,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, Plus } from 'lucide-react';
+import type { Role } from '@/types';
+import { addUser } from '@/app/profile/actions';
+import { useToast } from '@/hooks/use-toast';
+
+const userRoles: Role[] = ['Admin', 'Seller', 'Partner'];
 
 const addUserSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -27,16 +32,19 @@ const addUserSchema = z.object({
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
-  access: z.enum(['Admin', 'Manager', 'Business Manager', 'Wallet Manager', 'Support Team']),
+  role: z.enum(userRoles),
 });
 
 interface AddUserDialogProps {
   children: React.ReactNode;
+  onUserAdded: () => void;
 }
 
-export default function AddUserDialog({ children }: AddUserDialogProps) {
+export default function AddUserDialog({ children, onUserAdded }: AddUserDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<z.infer<typeof addUserSchema>>({
     resolver: zodResolver(addUserSchema),
@@ -46,7 +54,7 @@ export default function AddUserDialog({ children }: AddUserDialogProps) {
       email: '',
       phone: '',
       password: '',
-      access: 'Support Team',
+      role: 'Seller',
     },
   });
 
@@ -61,11 +69,26 @@ export default function AddUserDialog({ children }: AddUserDialogProps) {
     }
   };
 
-  const onSubmit = (values: z.infer<typeof addUserSchema>) => {
-    console.log('New user added:', values);
-    setOpen(false);
-    form.reset();
-    setAvatarPreview(null);
+  const onSubmit = async (values: z.infer<typeof addUserSchema>) => {
+    setIsSubmitting(true);
+    const result = await addUser({
+      name: `${values.firstName} ${values.lastName}`,
+      email: values.email,
+      phone: values.phone,
+      password: values.password,
+      role: values.role,
+    });
+
+    if (result.success) {
+      toast({ title: 'Success', description: result.message });
+      onUserAdded();
+      setOpen(false);
+      form.reset();
+      setAvatarPreview(null);
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
+    setIsSubmitting(false);
   };
 
   return (
@@ -173,10 +196,10 @@ export default function AddUserDialog({ children }: AddUserDialogProps) {
             />
             <FormField
                 control={form.control}
-                name="access"
+                name="role"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Access Level</FormLabel>
+                    <FormLabel>Role</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                         <SelectTrigger>
@@ -184,7 +207,7 @@ export default function AddUserDialog({ children }: AddUserDialogProps) {
                         </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            {['Admin', 'Manager', 'Business Manager', 'Wallet Manager', 'Support Team'].map(role => (
+                            {userRoles.map(role => (
                                 <SelectItem key={role} value={role}>{role}</SelectItem>
                             ))}
                         </SelectContent>
@@ -197,7 +220,9 @@ export default function AddUserDialog({ children }: AddUserDialogProps) {
               <DialogClose asChild>
                 <Button type="button" variant="secondary">Cancel</Button>
               </DialogClose>
-              <Button type="submit">Add User</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Adding...' : 'Add User'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

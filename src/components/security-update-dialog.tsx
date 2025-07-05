@@ -19,6 +19,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import type { User } from '@/types';
+import { useToast } from '@/hooks/use-toast';
+import { updateUserPassword } from '@/app/profile/actions';
 
 const securitySchema = z.object({
     currentPassword: z.string().min(1, "Current password is required."),
@@ -33,10 +36,12 @@ const securitySchema = z.object({
 
 interface SecurityUpdateDialogProps {
   children: React.ReactNode;
+  currentUser: User;
 }
 
-export default function SecurityUpdateDialog({ children }: SecurityUpdateDialogProps) {
+export default function SecurityUpdateDialog({ children, currentUser }: SecurityUpdateDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof securitySchema>>({
     resolver: zodResolver(securitySchema),
@@ -49,9 +54,15 @@ export default function SecurityUpdateDialog({ children }: SecurityUpdateDialogP
     },
   });
 
-  const onSubmit = (values: z.infer<typeof securitySchema>) => {
-    console.log('Security settings updated:', values);
-    setOpen(false);
+  const onSubmit = async (values: z.infer<typeof securitySchema>) => {
+    const result = await updateUserPassword(currentUser.id, values.currentPassword, values.newPassword);
+    if (result.success) {
+        toast({ title: 'Success', description: result.message });
+        setOpen(false);
+        form.reset();
+    } else {
+        toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
   };
   
   const addonKeyEnabled = form.watch('enableAddonKey');
