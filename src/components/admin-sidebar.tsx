@@ -10,9 +10,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -22,11 +19,10 @@ import {
   Wallet,
   Bell,
   Building2,
-  ChevronDown,
+  TrendingUp,
+  TrendingDown,
+  History,
 } from 'lucide-react';
-import * as React from 'react';
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
 
 interface AdminSidebarProps {
   role: Role;
@@ -39,10 +35,6 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
   const isBusinessManager = role === 'Business Manager';
   const isSupportTeam = role === 'Support Team';
   const isWalletManager = role === 'Wallet Manager';
-  
-  const walletPages = ['/wallet-billing', '/receivable-cash-list', '/payable-list', '/payment-history'];
-  const [isWalletMenuOpen, setIsWalletMenuOpen] = React.useState(walletPages.some(p => pathname.startsWith(p)));
-
 
   return (
     <Sidebar collapsible="icon" variant="sidebar" side="left">
@@ -87,51 +79,32 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
             </SidebarMenuItem>
           )}
           {(isAdmin || isWalletManager) && (
-            <Collapsible asChild open={isWalletMenuOpen} onOpenChange={setIsWalletMenuOpen}>
+            <>
               <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                     <SidebarMenuButton
-                        isActive={walletPages.some(p => pathname.startsWith(p))}
-                        className="w-full justify-between group-data-[collapsible=icon]:justify-center"
-                      >
-                       <div className="flex items-center gap-2">
-                          <Wallet />
-                          <span className="group-data-[collapsible=icon]:hidden">Wallet & Billing</span>
-                       </div>
-                        <ChevronDown
-                          className={cn(
-                            "transition-transform duration-200 group-data-[collapsible=icon]:hidden",
-                            isWalletMenuOpen && "rotate-180"
-                          )}
-                        />
-                      </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent asChild>
-                      <SidebarMenuSub>
-                        <SidebarMenuSubItem>
-                          <SidebarMenuSubButton href="/wallet-billing" isActive={pathname === '/wallet-billing'}>
-                            Overview
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                        <SidebarMenuSubItem>
-                          <SidebarMenuSubButton href="/receivable-cash-list" isActive={pathname === '/receivable-cash-list'}>
-                            Receivable List
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                        <SidebarMenuSubItem>
-                          <SidebarMenuSubButton href="/payable-list" isActive={pathname === '/payable-list'}>
-                            Payable List
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                        <SidebarMenuSubItem>
-                          <SidebarMenuSubButton href="/payment-history" isActive={pathname === '/payment-history'}>
-                            Payment History
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      </SidebarMenuSub>
-                  </CollapsibleContent>
+                <SidebarMenuButton href="/wallet-billing" isActive={pathname === '/wallet-billing'} tooltip="Wallet & Billing">
+                  <Wallet />
+                  Wallet & Billing
+                </SidebarMenuButton>
               </SidebarMenuItem>
-            </Collapsible>
+              <SidebarMenuItem>
+                <SidebarMenuButton href="/receivable-cash-list" isActive={pathname === '/receivable-cash-list'} tooltip="Receivable List">
+                  <TrendingUp />
+                  Receivable List
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton href="/payable-list" isActive={pathname === '/payable-list'} tooltip="Payable List">
+                  <TrendingDown />
+                  Payable List
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton href="/payment-history" isActive={pathname === '/payment-history'} tooltip="Payment History">
+                  <History />
+                  Payment History
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </>
           )}
           {(isAdmin || isManager || isBusinessManager || isSupportTeam || isWalletManager) && (
             <SidebarMenuItem>
