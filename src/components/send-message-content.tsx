@@ -17,6 +17,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { updateMessages } from '@/lib/data';
 import { cn } from '@/lib/utils';
+import { ArrowLeft } from 'lucide-react';
+import type { UpdateMessage } from '@/types';
 
 
 const announcementSchema = z.object({
@@ -35,7 +37,12 @@ const directMessageSchema = z.object({
 
 const formSchema = z.discriminatedUnion('type', [announcementSchema, directMessageSchema]);
 
-const MessageList = () => (
+
+interface MessageListProps {
+  onMessageSelect: (message: UpdateMessage) => void;
+}
+
+const MessageList = ({ onMessageSelect }: MessageListProps) => (
     <Card>
         <CardHeader>
             <CardTitle>Updates</CardTitle>
@@ -47,6 +54,7 @@ const MessageList = () => (
                     {updateMessages.map((message) => (
                     <button
                         key={message.id}
+                        onClick={() => onMessageSelect(message)}
                         className={cn(
                         'w-full text-left flex items-start gap-4 p-4 rounded-lg border transition-colors hover:bg-muted/50',
                         !message.read && 'bg-primary/5'
@@ -72,10 +80,48 @@ const MessageList = () => (
     </Card>
 );
 
+interface MessageDetailProps {
+  message: UpdateMessage;
+  onBack: () => void;
+}
+
+const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
+  <Card>
+    <CardHeader>
+      <Button variant="ghost" onClick={onBack} className="justify-start p-0 mb-4 h-auto">
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to messages
+      </Button>
+      <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-12 w-12 border">
+              <AvatarImage src={'https://placehold.co/40x40.png'} alt={message.from} data-ai-hint="person abstract" />
+              <AvatarFallback>{message.from.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div>
+              <CardTitle className="text-lg">{message.from}</CardTitle>
+              <p className="text-sm text-muted-foreground">Subject: {message.subject}</p>
+            </div>
+          </div>
+          <div className="text-right text-xs text-muted-foreground pt-1">
+            {message.date}
+          </div>
+      </div>
+    </CardHeader>
+    <CardContent>
+      <div className="prose dark:prose-invert max-w-none prose-p:my-2">
+        <p>{message.body}</p>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+
 export default function SendMessageContent() {
   const router = useRouter();
   const { toast } = useToast();
   const [view, setView] = React.useState<'list' | 'form'>('list');
+  const [selectedMessage, setSelectedMessage] = React.useState<UpdateMessage | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -102,30 +148,52 @@ export default function SendMessageContent() {
       details: '',
     });
     setView('list');
+    setSelectedMessage(null);
   };
 
   const handleContactClick = () => {
     router.push('/contact-book');
   };
 
+  const handleMessageSelect = (message: UpdateMessage) => {
+    const targetMessage = updateMessages.find(m => m.id === message.id);
+    if(targetMessage) {
+        targetMessage.read = true;
+    }
+    setSelectedMessage(message);
+  };
+
+  const handleBackToList = () => {
+    setSelectedMessage(null);
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex gap-4">
-        <Button onClick={() => setView('form')} className="flex-1">
+        <Button onClick={() => { setView('list'); setSelectedMessage(null); }} className="flex-1" variant={view === 'list' ? 'default' : 'outline'}>
           Announcements
+        </Button>
+        <Button onClick={() => setView('form')} className="flex-1" variant={view === 'form' ? 'default' : 'outline'}>
+          Send Message
         </Button>
         <Button onClick={handleContactClick} className="flex-1" variant="outline">
           Contacts
         </Button>
       </div>
 
-      {view === 'list' && <MessageList />}
+      {view === 'list' && (
+        selectedMessage ? (
+          <MessageDetail message={selectedMessage} onBack={handleBackToList} />
+        ) : (
+          <MessageList onMessageSelect={handleMessageSelect} />
+        )
+      )}
 
       {view === 'form' && (
         <Card>
           <CardHeader>
             <CardTitle>Send a Message</CardTitle>
-            <CardDescription>Compose and send your message. Or, go back to the <Button variant="link" className="p-0 h-auto" onClick={() => setView('list')}>message list</Button>.</CardDescription>
+            <CardDescription>Compose and send your message. Or, go back to the <Button variant="link" className="p-0 h-auto" onClick={() => { setView('list'); setSelectedMessage(null); }}>message list</Button>.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
