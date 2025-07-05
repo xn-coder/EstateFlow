@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -572,7 +573,7 @@ const SidebarMenuButton = React.forwardRef<
     )
 
     const content = isLink ? (
-      <Link href={href} passHref legacyBehavior>
+      <Link href={href} asChild>
         {button}
       </Link>
     ) : (
