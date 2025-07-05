@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import PropertyCard from '@/components/property-card';
 import PropertyForm from '@/components/property-form';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function PropertyListings({ role }: { role: Role }) {
   const [searchTerm, setSearchTerm] = React.useState('');
