@@ -18,14 +18,15 @@ import { ArrowLeft, Upload, Plus, Trash2 } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { addCatalog } from '@/app/add-catalog/actions';
 import { Checkbox } from './ui/checkbox';
+import { getCategories } from '@/app/manage-category/actions';
+import type { Category } from '@/types';
 
 // Schemas for each step
 const step1Schema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
   metaKeyword: z.string().optional(),
-  mainCategory: z.string().min(1, 'Main category is required'),
-  categoryName: z.string().min(1, 'Category name is required'),
+  categoryId: z.string().min(1, 'Category is required'),
   featuredImage: z.string().min(1, 'Featured image is required'),
 });
 
@@ -163,6 +164,18 @@ export default function AddCatalogContent() {
   const [step, setStep] = React.useState(1);
   const router = useRouter();
   const { toast } = useToast();
+  const [categories, setCategories] = React.useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = React.useState(true);
+
+  React.useEffect(() => {
+    async function fetchCategoriesData() {
+        setLoadingCategories(true);
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+        setLoadingCategories(false);
+    }
+    fetchCategoriesData();
+  }, []);
 
   const methods = useForm<FormValues>({
     resolver: zodResolver(combinedSchema),
@@ -170,8 +183,7 @@ export default function AddCatalogContent() {
       title: '',
       description: '',
       metaKeyword: '',
-      mainCategory: '',
-      categoryName: '',
+      categoryId: '',
       featuredImage: '',
       pricingType: 'INR',
       sellingPrice: 0,
@@ -219,10 +231,18 @@ export default function AddCatalogContent() {
   };
 
   const onSubmit = async (data: FormValues) => {
+    const selectedCategory = categories.find(c => c.id === data.categoryId);
+    if (!selectedCategory) {
+        toast({ title: 'Error', description: 'Please select a valid category.', variant: 'destructive' });
+        return;
+    }
+    
     const finalData = {
       ...data,
+      categoryName: selectedCategory.name,
       galleryImages: (data.galleryImages || []).map(img => img.value),
     };
+    
     const result = await addCatalog(finalData);
     if (result.success) {
       toast({ title: 'Success', description: result.message });
@@ -258,10 +278,30 @@ export default function AddCatalogContent() {
                       <FormField control={control} name="title" render={({ field }) => ( <FormItem><FormLabel>Title*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                       <FormField control={control} name="description" render={({ field }) => ( <FormItem><FormLabel>Description*</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
                       <FormField control={control} name="metaKeyword" render={({ field }) => ( <FormItem><FormLabel>Meta Keyword</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <FormField control={control} name="mainCategory" render={({ field }) => ( <FormItem><FormLabel>Main Category*</FormLabel><FormControl><Input placeholder="e.g., Residential" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        <FormField control={control} name="categoryName" render={({ field }) => ( <FormItem><FormLabel>Category Name*</FormLabel><FormControl><Input placeholder="e.g., Apartments" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                      </div>
+                      <FormField
+                        control={control}
+                        name="categoryId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category*</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingCategories}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={loadingCategories ? "Loading categories..." : "Select a category"} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {categories.map((cat) => (
+                                  <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <FormField control={control} name="featuredImage" render={({ field }) => ( <FileUploadButton label="Featured Image*" onFileSelect={field.onChange} previewUrl={field.value} hint="product image" /> )} />
                     </div>
                   )}

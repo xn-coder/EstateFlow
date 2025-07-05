@@ -7,6 +7,7 @@ import { ChevronRight, Book, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import AddMarketingKitDialog from './add-marketing-kit-dialog';
 
 const StatCard = ({ title, value, description }: { title: string; value: string; description: string; }) => (
   <Card className="bg-card">
@@ -20,12 +21,25 @@ const StatCard = ({ title, value, description }: { title: string; value: string;
   </Card>
 );
 
-const ListItem = ({ children, href = "#" }: { children: React.ReactNode; href?: string; }) => (
-    <Link href={href} className="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-colors">
-        <span className="font-medium">{children}</span>
-        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-    </Link>
-);
+const ListItem = ({ children, href = "#", isDialog = false, DialogComponent }: { children: React.ReactNode; href?: string; isDialog?: boolean; DialogComponent?: React.ReactElement; }) => {
+    const content = (
+        <div className="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-colors w-full text-left">
+            <span className="font-medium">{children}</span>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </div>
+    );
+
+    if (isDialog && DialogComponent) {
+        return React.cloneElement(DialogComponent, {}, <button className="w-full">{content}</button>);
+    }
+    
+    return (
+        <Link href={href} className="flex">
+            {content}
+        </Link>
+    );
+};
+
 
 const ActionButton = ({ children, icon, onClick }: { children: React.ReactNode; icon: React.ReactNode; onClick?: () => void; }) => (
     <Button variant="outline" className="w-full justify-between h-14 text-base" onClick={onClick}>
@@ -67,7 +81,7 @@ export default function ManageBusinessContent() {
     const catalogItems = [
         { label: 'Add a Catalog', href: '/add-catalog' },
         { label: 'Manage Catalog', href: '/manage-catalog' },
-        { label: 'Add a Marketing Kits', href: '#' },
+        { label: 'Add a Marketing Kits', isDialog: true, Dialog: <AddMarketingKitDialog onKitAdded={() => {}} /> },
         { label: 'Manage Marketing Kits', href: '/manage-marketing-kits' },
         { label: 'Add a New Category', href: '/manage-category' },
         { label: 'Manage Category', href: '/manage-category' },
@@ -108,7 +122,7 @@ export default function ManageBusinessContent() {
              <Card>
                 <CardContent className="p-0">
                     <div className="divide-y">
-                        {catalogItems.map((item) => <ListItem key={item.label} href={item.href}>{item.label}</ListItem>)}
+                        {catalogItems.map((item) => <ListItem key={item.label} href={item.href} isDialog={item.isDialog} DialogComponent={item.Dialog}>{item.label}</ListItem>)}
                     </div>
                 </CardContent>
             </Card>

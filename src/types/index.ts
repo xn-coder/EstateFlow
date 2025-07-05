@@ -200,7 +200,7 @@ export interface Catalog {
   title: string;
   description: string;
   metaKeyword?: string;
-  mainCategory: string;
+  categoryId: string;
   categoryName: string;
   featuredImage: string;
   // Step 2
