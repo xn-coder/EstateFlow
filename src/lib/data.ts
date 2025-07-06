@@ -128,13 +128,14 @@ export const updateMessages: UpdateMessage[] = [
 ];
 
 export const businessReportData = [
-  { day: 'Mon', enquiry: 40, property: 24, booking: 24 },
-  { day: 'Tue', enquiry: 30, property: 13, booking: 22 },
-  { day: 'Wed', enquiry: 20, property: 58, booking: 29 },
-  { day: 'Thu', enquiry: 27, property: 39, booking: 20 },
-  { day: 'Fri', enquiry: 18, property: 48, booking: 21 },
-  { day: 'Sat', enquiry: 23, property: 38, booking: 25 },
-  { day: 'Sun', enquiry: 34, property: 43, booking: 31 },
+  { day: 'Day 0', leads: 5, sales: 2, customers: 3 },
+  { day: 'Day 1', leads: 20, sales: 10, customers: 8 },
+  { day: 'Day 2', leads: 35, sales: 52, customers: 20 },
+  { day: 'Day 3', leads: 40, sales: 38, customers: 22 },
+  { day: 'Day 4', leads: 35, sales: 30, customers: 25 },
+  { day: 'Day 5', leads: 50, sales: 60, customers: 22 },
+  { day: 'Day 6', leads: 68, sales: 40, customers: 30 },
+  { day: 'Day 7', leads: 60, sales: 45, customers: 28 },
 ];
 
 export const enquiries: Enquiry[] = [
