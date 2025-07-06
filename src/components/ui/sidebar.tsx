@@ -569,8 +569,11 @@ const SidebarMenuButton = React.forwardRef<
       ...props,
     }
 
-    const Comp = isLink ? Link : "button"
-    const content = <Comp {...commonProps} href={href || ""} ref={ref as any} />
+    const content = isLink ? (
+      <Link {...commonProps} href={href!} ref={ref as any} />
+    ) : (
+      <button type="button" {...commonProps} ref={ref as any} />
+    )
 
     if (!tooltip) {
       return content
