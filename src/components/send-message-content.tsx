@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -17,7 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { updateMessages } from '@/lib/data';
 import { cn } from '@/lib/utils';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import type { UpdateMessage } from '@/types';
 
 
@@ -40,13 +39,20 @@ const formSchema = z.discriminatedUnion('type', [announcementSchema, directMessa
 
 interface MessageListProps {
   onMessageSelect: (message: UpdateMessage) => void;
+  onCompose: () => void;
 }
 
-const MessageList = ({ onMessageSelect }: MessageListProps) => (
+const MessageList = ({ onMessageSelect, onCompose }: MessageListProps) => (
     <Card>
-        <CardHeader>
-            <CardTitle>Updates</CardTitle>
-            <CardDescription>You have {updateMessages.filter(m => !m.read).length} unread messages.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>Updates</CardTitle>
+                <CardDescription>You have {updateMessages.filter(m => !m.read).length} unread messages.</CardDescription>
+            </div>
+            <Button onClick={onCompose}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Compose
+            </Button>
         </CardHeader>
         <CardContent>
             <ScrollArea className="h-[500px]">
@@ -90,7 +96,7 @@ const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
     <CardHeader className="space-y-4">
         <Button variant="ghost" onClick={onBack} className="self-start justify-start p-0 h-auto text-muted-foreground hover:text-foreground">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to messages
+            Back to Inbox
         </Button>
         <div className="flex flex-col gap-2 sm:flex-row items-start sm:items-center justify-between border-b pb-4">
             <div className="flex items-center gap-4">
@@ -118,9 +124,8 @@ const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
 
 
 export default function SendMessageContent() {
-  const router = useRouter();
   const { toast } = useToast();
-  const [view, setView] = React.useState<'list' | 'form'>('list');
+  const [view, setView] = React.useState<'list' | 'detail' | 'form'>('list');
   const [selectedMessage, setSelectedMessage] = React.useState<UpdateMessage | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -148,52 +153,27 @@ export default function SendMessageContent() {
       details: '',
     });
     setView('list');
-    setSelectedMessage(null);
   };
-
-  const handleContactClick = () => {
-    router.push('/contact-book');
-  };
-
+  
   const handleMessageSelect = (message: UpdateMessage) => {
     const targetMessage = updateMessages.find(m => m.id === message.id);
     if(targetMessage) {
         targetMessage.read = true;
     }
     setSelectedMessage(message);
+    setView('detail');
   };
 
-  const handleBackToList = () => {
-    setSelectedMessage(null);
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row gap-2">
-        <Button onClick={() => { setView('list'); setSelectedMessage(null); }} className="flex-1" variant={view === 'list' ? 'default' : 'outline'}>
-          Announcements
-        </Button>
-        <Button onClick={() => setView('form')} className="flex-1" variant={view === 'form' ? 'default' : 'outline'}>
-          Send Message
-        </Button>
-        <Button onClick={handleContactClick} className="flex-1" variant="outline">
-          Contacts
-        </Button>
-      </div>
-
-      {view === 'list' && (
-        selectedMessage ? (
-          <MessageDetail message={selectedMessage} onBack={handleBackToList} />
-        ) : (
-          <MessageList onMessageSelect={handleMessageSelect} />
-        )
-      )}
-
-      {view === 'form' && (
+  if (view === 'form') {
+    return (
         <Card>
           <CardHeader>
-            <CardTitle>Send a Message</CardTitle>
-            <CardDescription>Compose and send your message. Or, go back to the <Button variant="link" className="p-0 h-auto" onClick={() => { setView('list'); setSelectedMessage(null); }}>message list</Button>.</CardDescription>
+            <Button variant="ghost" onClick={() => setView('list')} className="self-start justify-start p-0 h-auto text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Inbox
+            </Button>
+            <CardTitle className="pt-2">Send a Message</CardTitle>
+            <CardDescription>Compose and send your message.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -317,7 +297,13 @@ export default function SendMessageContent() {
             </Form>
           </CardContent>
         </Card>
-      )}
-    </div>
-  );
+    );
+  }
+
+  if (view === 'detail' && selectedMessage) {
+    return <MessageDetail message={selectedMessage} onBack={() => setView('list')} />
+  }
+
+  return <MessageList onMessageSelect={handleMessageSelect} onCompose={() => setView('form')} />
 }
+
