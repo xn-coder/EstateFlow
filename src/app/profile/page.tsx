@@ -11,6 +11,8 @@ import AppHeader from '@/components/app-header';
 import ProfileContent from '@/components/profile-content';
 import DashboardFooter from '@/components/dashboard-footer';
 import { ADMIN_ROLES } from '@/lib/roles';
+import PartnerSidebar from '@/components/partner-sidebar';
+import PartnerProfileContent from '@/components/partner-profile-content';
 
 function ProfileSkeleton() {
   return (
@@ -59,14 +61,16 @@ export default function ProfilePage() {
   if (loading || !user) {
     return <ProfileSkeleton />;
   }
+  
+  const isPartner = user.role === 'Partner';
 
   return (
     <SidebarProvider>
-      {ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />}
+      {isPartner ? <PartnerSidebar /> : (ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />)}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          <ProfileContent currentUser={user} />
+          {isPartner ? <PartnerProfileContent currentUser={user} /> : <ProfileContent currentUser={user} />}
         </main>
         <DashboardFooter />
       </SidebarInset>
