@@ -3,31 +3,25 @@
 
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, Book, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import type { PartnerActivationInfo, WebsiteData, Category } from '@/types';
+import { getPartnerById } from '@/app/manage-partner/actions';
+import { getWebsiteData } from '@/app/manage-website/actions';
+import { Skeleton } from './ui/skeleton';
+import { Settings, Share2, ChevronRight, Book, Mail } from 'lucide-react';
+import Image from 'next/image';
 import AddMarketingKitDialog from './add-marketing-kit-dialog';
 import AddCategoryDialog from './add-category-dialog';
 import AddContentDialog from './add-content-dialog';
 import AddUserDialog from './add-user-dialog';
 import { getCategories } from '@/app/manage-category/actions';
-import type { Category } from '@/types';
 
 
-const StatCard = ({ title, value, description }: { title: string; value: string; description: string; }) => (
-  <Card className="bg-card">
-    <CardHeader className="pb-2">
-      <CardTitle className="text-sm font-normal text-muted-foreground">{title}</CardTitle>
-      <p className="text-3xl font-bold">{value}</p>
-    </CardHeader>
-    <CardContent>
-      <p className="text-xs text-muted-foreground">{description}</p>
-    </CardContent>
-  </Card>
-);
-
-const ListItem = ({ children, href = "#", isDialog = false, DialogComponent }: { children: React.ReactNode; href?: string; isDialog?: boolean; DialogComponent?: React.ReactElement; }) => {
+// Components for Admin View
+const AdminListItem = ({ children, href = "#", isDialog = false, DialogComponent }: { children: React.ReactNode; href?: string; isDialog?: boolean; DialogComponent?: React.ReactElement; }) => {
     const content = (
         <div className="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-colors w-full text-left">
             <span className="font-medium">{children}</span>
@@ -45,15 +39,12 @@ const ListItem = ({ children, href = "#", isDialog = false, DialogComponent }: {
         </Link>
     );
 };
-
-
-const ActionButton = ({ children, icon, onClick }: { children: React.ReactNode; icon: React.ReactNode; onClick?: () => void; }) => (
+const AdminActionButton = ({ children, icon, onClick }: { children: React.ReactNode; icon: React.ReactNode; onClick?: () => void; }) => (
     <Button variant="outline" className="w-full justify-between h-14 text-base" onClick={onClick}>
       {children}
       {icon}
     </Button>
 );
-
 const WhatsAppIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -72,7 +63,7 @@ const WhatsAppIcon = () => (
 );
 
 
-export default function ManageBusinessContent() {
+const AdminBusinessView = () => {
     const router = useRouter();
     const [categories, setCategories] = React.useState<Category[]>([]);
 
@@ -85,6 +76,17 @@ export default function ManageBusinessContent() {
         fetchCategories();
     }, [fetchCategories]);
 
+    const AdminStatCard = ({ title, value, description }: { title: string; value: string; description: string; }) => (
+      <Card className="bg-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-normal text-muted-foreground">{title}</CardTitle>
+          <p className="text-3xl font-bold">{value}</p>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </CardContent>
+      </Card>
+    );
 
     const partnerItems = [
         { label: 'Manage Partner', href: '/manage-partner' },
@@ -116,30 +118,30 @@ export default function ManageBusinessContent() {
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard title="Sales" value="1000" description="Order" />
-                <StatCard title="Partner" value="1000" description="Members" />
-                <StatCard title="Customer" value="100" description="User" />
-                <StatCard title="Associate" value="10" description="Team" />
+                <AdminStatCard title="Sales" value="1000" description="Order" />
+                <AdminStatCard title="Partner" value="1000" description="Members" />
+                <AdminStatCard title="Customer" value="100" description="User" />
+                <AdminStatCard title="Associate" value="10" description="Team" />
             </div>
 
             <Card>
                 <CardContent className="p-0">
                     <div className="divide-y">
-                        {partnerItems.map((item) => <ListItem key={item.label} href={item.href} isDialog={item.isDialog} DialogComponent={item.Dialog}>{item.label}</ListItem>)}
+                        {partnerItems.map((item) => <AdminListItem key={item.label} href={item.href} isDialog={item.isDialog} DialogComponent={item.Dialog}>{item.label}</AdminListItem>)}
                     </div>
                 </CardContent>
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <ActionButton icon={<Book />} onClick={() => router.push('/contact-book')}>Contact Book</ActionButton>
-                <ActionButton icon={<WhatsAppIcon />}>WhatsApp</ActionButton>
-                <ActionButton icon={<Mail />} onClick={() => router.push('/updates')}>Send Message</ActionButton>
+                <AdminActionButton icon={<Book />} onClick={() => router.push('/contact-book')}>Contact Book</AdminActionButton>
+                <AdminActionButton icon={<WhatsAppIcon />}>WhatsApp</AdminActionButton>
+                <AdminActionButton icon={<Mail />} onClick={() => router.push('/updates')}>Send Message</AdminActionButton>
             </div>
             
              <Card>
                 <CardContent className="p-0">
                     <div className="divide-y">
-                        {catalogItems.map((item) => <ListItem key={item.label} href={item.href} isDialog={item.isDialog} DialogComponent={item.Dialog}>{item.label}</ListItem>)}
+                        {catalogItems.map((item) => <AdminListItem key={item.label} href={item.href} isDialog={item.isDialog} DialogComponent={item.Dialog}>{item.label}</AdminListItem>)}
                     </div>
                 </CardContent>
             </Card>
@@ -147,11 +149,153 @@ export default function ManageBusinessContent() {
             <Card>
                 <CardContent className="p-0">
                     <div className="divide-y">
-                        {accountItems.map((item) => <ListItem key={item.label} href={item.href}>{item.label}</ListItem>)}
+                        {accountItems.map((item) => <AdminListItem key={item.label} href={item.href}>{item.label}</AdminListItem>)}
                     </div>
                 </CardContent>
             </Card>
-
         </div>
     );
+}
+
+// --- Partner-facing components for the new layout ---
+const PartnerStatCard = ({ title, value, description }: { title: string, value: string, description: string }) => (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-3xl font-bold">{value}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+);
+
+const EditableCard = ({ title, children, editAction, shareAction }: { title: string; children: React.ReactNode; editAction?: boolean; shareAction?: boolean; }) => (
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between py-3">
+            <CardTitle className="text-base font-semibold">{title}</CardTitle>
+            <div className="flex items-center gap-1">
+                {shareAction && <Button variant="ghost" size="icon"><Share2 className="h-4 w-4" /></Button>}
+                {editAction && <Button variant="ghost" size="icon"><Settings className="h-4 w-4" /></Button>}
+            </div>
+        </CardHeader>
+        <CardContent className="pt-0">{children}</CardContent>
+    </Card>
+);
+
+const DetailRow = ({ label, value }: { label: string; value?: React.ReactNode }) => (
+    <div className="flex justify-between py-2 border-b last:border-b-0 text-sm">
+      <p className="text-muted-foreground">{label}</p>
+      <p className="font-medium text-right">{value || 'N/A'}</p>
+    </div>
+);
+
+const PartnerBusinessView = ({ partnerInfo, websiteData }: { partnerInfo: PartnerActivationInfo, websiteData: WebsiteData }) => {
+    const { profile } = partnerInfo;
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <PartnerStatCard title="Enquiry" value="100" description="Leads" />
+                <PartnerStatCard title="Associate" value="100" description="Team" />
+                <PartnerStatCard title="Revenue" value="1000 INR" description="Weekly Earning" />
+                <PartnerStatCard title="Leaderboard" value="10001" description="Current Rank" />
+            </div>
+
+            <EditableCard title="Business Details" editAction>
+                <DetailRow label="Business Type" value={profile.businessType} />
+                <DetailRow label="Business Name" value={profile.name} />
+                <DetailRow label="GSTN" value={profile.gstn} />
+                <DetailRow label="Age Of Business" value={`${profile.businessAge} Month`} />
+                <DetailRow label="Area Covered" value={profile.areaCovered} />
+            </EditableCard>
+            
+            <EditableCard title="Business Logo" editAction>
+                <div className="flex justify-center p-4">
+                    <Image src={profile.businessLogo || "https://placehold.co/128x128.png"} alt="Business Logo" width={128} height={128} className="rounded-lg" data-ai-hint="company logo" />
+                </div>
+            </EditableCard>
+
+            <EditableCard title="Digital Card" editAction shareAction>
+                 <DetailRow label="Your Name" value={profile.name} />
+                 <DetailRow label="Position" value="Director" />
+                 <DetailRow label="Display Phone Number" value={profile.phone} />
+                 <DetailRow label="Display Email" value={profile.email} />
+                 <DetailRow label="Address" value={`${profile.address}, ${profile.city}, ${profile.state}, India`} />
+                 <div className="pt-2"><Button variant="link" className="p-0 h-auto">View Card</Button></div>
+            </EditableCard>
+
+            <EditableCard title="Website Setting" editAction shareAction>
+                 <DetailRow label="About Page" value={<p className="line-clamp-3 text-right">{websiteData.legalInfo.about}</p>} />
+                 <DetailRow label="Terms Of Services" value={<a href={websiteData.legalInfo.terms} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.terms}</a>} />
+                 <DetailRow label="Privacy policy" value={<a href={websiteData.legalInfo.privacy} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.privacy}</a>} />
+                 <DetailRow label="Refund policy" value={<a href={websiteData.legalInfo.refund} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.refund}</a>} />
+                 <DetailRow label="Disclaimer" value={<a href={websiteData.legalInfo.disclaimer} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.disclaimer}</a>} />
+                 <div className="pt-2"><Button variant="link" className="p-0 h-auto">View Website</Button></div>
+            </EditableCard>
+
+            <EditableCard title="Your Link Details" editAction shareAction>
+                 <DetailRow label="Website" value={<a href={websiteData.links.website} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.links.website}</a>} />
+                 <DetailRow label="Facebook" value={<a href={websiteData.links.facebook} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.links.facebook}</a>} />
+                 <DetailRow label="Instagram" value={<a href={websiteData.links.instagram} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.links.instagram}</a>} />
+                 <DetailRow label="LinkedIn" value={<a href={websiteData.links.linkedin} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.links.linkedin}</a>} />
+                 <DetailRow label="YouTube" value={<a href={websiteData.links.youtube} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.links.youtube}</a>} />
+            </EditableCard>
+        </div>
+    );
+};
+
+const ManageBusinessContentSkeleton = () => (
+    <div className="space-y-6">
+       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Skeleton className="h-[100px] w-full" />
+        <Skeleton className="h-[100px] w-full" />
+        <Skeleton className="h-[100px] w-full" />
+        <Skeleton className="h-[100px] w-full" />
+      </div>
+      <Skeleton className="h-[250px] w-full" />
+      <Skeleton className="h-[180px] w-full" />
+      <Skeleton className="h-[200px] w-full" />
+      <Skeleton className="h-[280px] w-full" />
+      <Skeleton className="h-[280px] w-full" />
+    </div>
+);
+
+
+export default function ManageBusinessContent() {
+    const { user, loading: authLoading } = useAuth();
+    const [partnerInfo, setPartnerInfo] = React.useState<PartnerActivationInfo | null>(null);
+    const [websiteData, setWebsiteData] = React.useState<WebsiteData | null>(null);
+    const [dataLoading, setDataLoading] = React.useState(true);
+
+    const isPartner = user?.role === 'Partner';
+
+    React.useEffect(() => {
+        if (isPartner && user) {
+            const fetchData = async () => {
+                setDataLoading(true);
+                const [pInfo, wData] = await Promise.all([
+                    getPartnerById(user.id),
+                    getWebsiteData(),
+                ]);
+                setPartnerInfo(pInfo);
+                setWebsiteData(wData);
+                setDataLoading(false);
+            };
+            fetchData();
+        } else {
+            setDataLoading(false);
+        }
+    }, [isPartner, user]);
+    
+    if (authLoading || (isPartner && dataLoading)) {
+        return <ManageBusinessContentSkeleton />;
+    }
+    
+    if (isPartner && partnerInfo && websiteData) {
+        return <PartnerBusinessView partnerInfo={partnerInfo} websiteData={websiteData} />;
+    }
+
+    // Default to admin view for non-partners
+    return <AdminBusinessView />;
 }

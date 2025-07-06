@@ -11,6 +11,7 @@ import AppHeader from '@/components/app-header';
 import ManageBusinessContent from '@/components/manage-business-content';
 import DashboardFooter from '@/components/dashboard-footer';
 import { ADMIN_ROLES } from '@/lib/roles';
+import PartnerSidebar from '@/components/partner-sidebar';
 
 function ManageBusinessSkeleton() {
   return (
@@ -58,7 +59,7 @@ export default function ManageBusinessPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const authorizedRoles = ['Admin', 'Manager', 'Business Manager'];
+  const authorizedRoles = ['Admin', 'Manager', 'Business Manager', 'Partner'];
 
   useEffect(() => {
     if (!loading && !user) {
@@ -67,15 +68,17 @@ export default function ManageBusinessPage() {
     if (!loading && user && !authorizedRoles.includes(user.role)) {
       router.push('/'); // Redirect if not authorized
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, authorizedRoles]);
 
   if (loading || !user || !authorizedRoles.includes(user.role)) {
     return <ManageBusinessSkeleton />;
   }
 
+  const isPartner = user.role === 'Partner';
+
   return (
     <SidebarProvider>
-      {ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />}
+      {isPartner ? <PartnerSidebar /> : (ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />)}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">

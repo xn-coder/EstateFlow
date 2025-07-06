@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { Role, User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Building2, User as UserIcon, Globe, BookUser, LogOut } from 'lucide-react';
+import { Building2, User as UserIcon, LogOut, Briefcase, Wallet } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,16 +68,16 @@ export default function AppHeader({
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/manage-website">
-                <Globe className="mr-2 h-4 w-4" />
-                <span>Manage Website</span>
+              <Link href="/manage-business">
+                <Briefcase className="mr-2 h-4 w-4" />
+                <span>Manage Business</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/contact-book">
-                <BookUser className="mr-2 h-4 w-4" />
-                <span>Contact Book</span>
-              </Link>
+                <Link href="/wallet-billing">
+                    <Wallet className="mr-2 h-4 w-4" />
+                    <span>Earning & Wallet</span>
+                </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => logout()} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
