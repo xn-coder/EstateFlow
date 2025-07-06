@@ -194,8 +194,6 @@ export default function ViewCatalogContent({ catalog }: { catalog: Catalog }) {
                     </SectionCard>
                 )}
 
-                <EnquiryForm catalogCode={catalog.catalogCode} title="Enquiry Now" />
-
                 <div className="flex justify-between items-center">
                     <Button variant="outline">&lt; Previous</Button>
                     <Button variant="outline">Next &gt;</Button>
