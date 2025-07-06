@@ -1,10 +1,9 @@
+
 "use client"
 
-import { Building2, Handshake, Users } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PropertyListings from '@/components/property-listings';
-import UserManagement from '@/components/user-management';
-import LeadManagement from '@/components/lead-management';
 import AdminDashboard from '@/components/admin-dashboard';
 import type { Role } from '@/types';
 import * as React from 'react';
@@ -13,11 +12,6 @@ import { ADMIN_ROLES } from '@/lib/roles';
 export default function DashboardContent({ role }: { role: Role }) {
   if (ADMIN_ROLES.includes(role)) {
     return <AdminDashboard />;
-  }
-
-  // The 'Partner' role is now handled directly in `src/app/page.tsx`
-  if (role === 'Partner') {
-    return null;
   }
 
   const tabs = [

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -10,7 +11,8 @@ import AdminSidebar from '@/components/admin-sidebar';
 import AppHeader from '@/components/app-header';
 import DashboardFooter from '@/components/dashboard-footer';
 import { ADMIN_ROLES } from '@/lib/roles';
-import PartnerDashboard from '@/components/partner-dashboard';
+import PartnerSidebar from '@/components/partner-sidebar';
+import PartnerDashboardContent from '@/components/partner-dashboard-content';
 
 function DashboardSkeleton() {
   return (
@@ -65,18 +67,22 @@ export default function Home() {
   if (loading || !user) {
     return <DashboardSkeleton />;
   }
-  
-  if (user.role === 'Partner') {
-    return <PartnerDashboard currentUser={user} />;
-  }
+
+  const isAdminRole = ADMIN_ROLES.includes(user.role);
   
   return (
     <SidebarProvider>
-      {ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />}
+      {isAdminRole && <AdminSidebar role={user.role} />}
+      {user.role === 'Partner' && <PartnerSidebar />}
+      
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          <DashboardContent role={user.role} />
+          {user.role === 'Partner' ? (
+            <PartnerDashboardContent />
+          ) : (
+            <DashboardContent role={user.role} />
+          )}
         </main>
         <DashboardFooter />
       </SidebarInset>
