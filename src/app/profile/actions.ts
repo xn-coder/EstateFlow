@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -290,6 +291,64 @@ export async function updatePartnerKycDetails(partnerProfileId: string, data: z.
         return { success: true, message: 'KYC documents updated.' };
     } catch (error) {
         console.error('Error updating KYC details:', error);
+        return { success: false, error: 'Failed to update details.' };
+    }
+}
+
+const partnerBusinessDetailsSchema = z.object({
+  businessType: z.string().min(1),
+  gstn: z.string().optional(),
+  businessAge: z.coerce.number().min(0),
+  areaCovered: z.string().min(1),
+});
+export async function updatePartnerBusinessDetails(partnerProfileId: string, data: z.infer<typeof partnerBusinessDetailsSchema>) {
+  const validation = partnerBusinessDetailsSchema.safeParse(data);
+  if (!validation.success) return { success: false, error: 'Invalid data.' };
+
+  try {
+    const profileRef = doc(db, 'partnerProfiles', partnerProfileId);
+    await updateDoc(profileRef, data);
+    return { success: true, message: 'Business details updated.' };
+  } catch (error) {
+    console.error('Error updating business details:', error);
+    return { success: false, error: 'Failed to update details.' };
+  }
+}
+
+const partnerBusinessLogoSchema = z.object({
+  businessLogo: z.string().optional(),
+});
+export async function updatePartnerBusinessLogo(partnerProfileId: string, data: z.infer<typeof partnerBusinessLogoSchema>) {
+  const validation = partnerBusinessLogoSchema.safeParse(data);
+  if (!validation.success) return { success: false, error: 'Invalid data.' };
+
+  try {
+    const profileRef = doc(db, 'partnerProfiles', partnerProfileId);
+    await updateDoc(profileRef, {
+        businessLogo: data.businessLogo,
+    });
+    return { success: true, message: 'Business logo updated.' };
+  } catch (error) {
+    console.error('Error updating business logo:', error);
+    return { success: false, error: 'Failed to update logo.' };
+  }
+}
+
+const partnerDigitalCardSchema = z.object({
+    position: z.string().optional(),
+});
+export async function updatePartnerDigitalCard(partnerProfileId: string, data: z.infer<typeof partnerDigitalCardSchema>) {
+    const validation = partnerDigitalCardSchema.safeParse(data);
+    if (!validation.success) return { success: false, error: 'Invalid data.' };
+
+    try {
+        const profileRef = doc(db, 'partnerProfiles', partnerProfileId);
+        await updateDoc(profileRef, {
+            position: data.position,
+        });
+        return { success: true, message: 'Digital card updated.' };
+    } catch (error) {
+        console.error('Error updating digital card:', error);
         return { success: false, error: 'Failed to update details.' };
     }
 }

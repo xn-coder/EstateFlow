@@ -37,6 +37,7 @@ export interface PartnerData {
   areaCovered: string;
   aadhaarCard: string;
   panCard: string;
+  position?: string;
 }
 
 export interface PartnerActivationInfo {
