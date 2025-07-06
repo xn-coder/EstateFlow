@@ -12,9 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 import type { Catalog, Role } from '@/types';
 import { getCatalogs } from '@/app/add-catalog/actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { ArrowUpDown, Edit, Trash2, PlusCircle, ArrowLeft } from 'lucide-react';
+import { ArrowUpDown, Edit, Trash2, PlusCircle, ArrowLeft, Search } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { ADMIN_ROLES } from '@/lib/roles';
+import { Input } from './ui/input';
 
 
 const CatalogCard = ({ catalog }: { catalog: Catalog }) => {
@@ -58,6 +59,7 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
   const router = useRouter();
+  const [searchTerm, setSearchTerm] = React.useState('');
 
   const fetchCatalogs = React.useCallback(async () => {
     setLoading(true);
@@ -69,6 +71,15 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
   React.useEffect(() => {
     fetchCatalogs();
   }, [fetchCatalogs]);
+
+  const filteredCatalogs = React.useMemo(() => {
+    return catalogs.filter(catalog =>
+        catalog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        catalog.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        catalog.categoryName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        catalog.catalogCode.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [catalogs, searchTerm]);
 
   const handleEdit = (id: string) => {
     toast({ title: 'Info', description: `Edit functionality for catalog ${id} is not implemented yet.` });
@@ -92,7 +103,7 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
        <div className="space-y-6">
            <div className="flex justify-between items-center">
                <Skeleton className="h-10 w-64" />
-               {isAdminRole && <Skeleton className="h-10 w-32" />}
+               <Skeleton className="h-10 w-32" />
            </div>
            <div className={`grid grid-cols-1 ${isAdminRole ? '' : 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-6`}>
              {isAdminRole ? (
@@ -110,20 +121,31 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
   if (role === 'Partner') {
     return (
         <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold">Browse Catalogs</h1>
-              <p className="text-muted-foreground">Explore all available catalogs.</p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold">Browse Catalogs</h1>
+                <p className="text-muted-foreground">Explore all available catalogs.</p>
+              </div>
+              <div className="relative w-full sm:max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Search catalogs..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-            {catalogs.length > 0 ? (
+            {filteredCatalogs.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {catalogs.map((catalog) => (
+                    {filteredCatalogs.map((catalog) => (
                         <CatalogCard key={catalog.id} catalog={catalog} />
                     ))}
                 </div>
             ) : (
                 <div className="text-center py-16 border-2 border-dashed rounded-lg">
-                    <h3 className="text-lg font-medium">No Catalogs Available</h3>
-                    <p className="text-muted-foreground">There are currently no catalogs to display.</p>
+                    <h3 className="text-lg font-medium">No Catalogs Found</h3>
+                    <p className="text-muted-foreground">Your search for "{searchTerm}" did not match any catalogs.</p>
                 </div>
             )}
         </div>
@@ -151,8 +173,19 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
             </Button>
           </div>
         </CardHeader>
+        <div className="p-4 border-t">
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+                placeholder="Search catalogs..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
         <CardContent className='p-0'>
-             {catalogs.length > 0 ? (
+             {filteredCatalogs.length > 0 ? (
                  <Table>
                      <TableHeader>
                          <TableRow>
@@ -164,7 +197,7 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
                          </TableRow>
                      </TableHeader>
                      <TableBody>
-                         {catalogs.map((catalog) => (
+                         {filteredCatalogs.map((catalog) => (
                              <TableRow key={catalog.id}>
                                  <TableCell className='font-medium'>{catalog.title}</TableCell>
                                  <TableCell className='text-muted-foreground'>{catalog.categoryName}</TableCell>
@@ -187,7 +220,7 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
              ) : (
                 <div className="text-center py-16">
                     <h3 className="text-lg font-medium">No Catalogs Found</h3>
-                    <p className="text-muted-foreground">Get started by adding a new catalog.</p>
+                    <p className="text-muted-foreground">Your search for "{searchTerm}" did not match any catalogs.</p>
                 </div>
              )}
           </CardContent>

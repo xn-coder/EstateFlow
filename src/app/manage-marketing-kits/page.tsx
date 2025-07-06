@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin-sidebar';
+import PartnerSidebar from '@/components/partner-sidebar';
 import AppHeader from '@/components/app-header';
 import ManageMarketingKitsContent from '@/components/manage-marketing-kits-content';
 import DashboardFooter from '@/components/dashboard-footer';
@@ -50,7 +51,7 @@ export default function ManageMarketingKitsPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const authorizedRoles = ['Admin', 'Manager', 'Business Manager'];
+  const authorizedRoles = [...ADMIN_ROLES, 'Partner'];
 
   useEffect(() => {
     if (!loading && !user) {
@@ -64,10 +65,13 @@ export default function ManageMarketingKitsPage() {
   if (loading || !user || !authorizedRoles.includes(user.role)) {
     return <ManageMarketingKitsSkeleton />;
   }
+  
+  const isAdminRole = ADMIN_ROLES.includes(user.role);
 
   return (
     <SidebarProvider>
-      {ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />}
+      {isAdminRole && <AdminSidebar role={user.role} />}
+      {user.role === 'Partner' && <PartnerSidebar />}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
