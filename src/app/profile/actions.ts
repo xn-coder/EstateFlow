@@ -23,10 +23,12 @@ export async function updateUserProfile(userId: string, name: string, phone?: st
 
   try {
     const userRef = doc(db, 'users', userId);
-    const updateData: { name: string; phone: string | null; avatar?: string } = {
+    const updateData: { name: string; phone?: string | null; avatar?: string } = {
         name,
-        phone: phone || null,
     };
+    if (phone) {
+        updateData.phone = phone;
+    }
     if (avatar) {
         updateData.avatar = avatar;
     }
@@ -188,4 +190,105 @@ export async function editUser(userData: z.infer<typeof editUserSchema>) {
     console.error('Error updating user:', error);
     return { success: false, error: 'Failed to update user.' };
   }
+}
+
+
+// --- Partner Profile Update Actions ---
+
+export const partnerPersonalDetailsSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  dob: z.date(),
+  gender: z.enum(['Male', 'Female', 'Other']),
+  qualification: z.string().min(1, 'Qualification is required'),
+  profileImage: z.string().optional(),
+});
+export async function updatePartnerPersonalDetails(partnerProfileId: string, userId: string, data: z.infer<typeof partnerPersonalDetailsSchema>) {
+  const validation = partnerPersonalDetailsSchema.safeParse(data);
+  if (!validation.success) return { success: false, error: 'Invalid data.' };
+
+  try {
+    const profileRef = doc(db, 'partnerProfiles', partnerProfileId);
+    await updateDoc(profileRef, {
+      name: data.name,
+      dob: data.dob.toISOString(),
+      gender: data.gender,
+      qualification: data.qualification,
+      profileImage: data.profileImage,
+    });
+    
+    // Also update name and avatar in user document
+    await updateUserProfile(userId, data.name, undefined, data.profileImage);
+    
+    return { success: true, message: 'Personal details updated.' };
+  } catch (error) {
+    console.error('Error updating personal details:', error);
+    return { success: false, error: 'Failed to update details.' };
+  }
+}
+
+export const partnerContactDetailsSchema = z.object({
+  phone: z.string().min(10, 'A valid phone number is required'),
+  whatsapp: z.string().min(10, 'A valid WhatsApp number is required'),
+});
+export async function updatePartnerContactDetails(partnerProfileId: string, userId: string, data: z.infer<typeof partnerContactDetailsSchema>) {
+  const validation = partnerContactDetailsSchema.safeParse(data);
+  if (!validation.success) return { success: false, error: 'Invalid data.' };
+  
+  try {
+    const profileRef = doc(db, 'partnerProfiles', partnerProfileId);
+    await updateDoc(profileRef, {
+      phone: data.phone,
+      whatsapp: data.whatsapp,
+    });
+
+    // Also update phone in user document
+    await updateUserProfile(userId, '', data.phone);
+
+    return { success: true, message: 'Contact details updated.' };
+  } catch (error) {
+    console.error('Error updating contact details:', error);
+    return { success: false, error: 'Failed to update details.' };
+  }
+}
+
+export const partnerAddressDetailsSchema = z.object({
+  address: z.string().min(1, 'Address is required'),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(1, 'State is required'),
+  pincode: z.string().min(6, 'A valid pin code is required'),
+  country: z.string().min(1, 'Country is required'),
+});
+export async function updatePartnerAddressDetails(partnerProfileId: string, data: z.infer<typeof partnerAddressDetailsSchema>) {
+    const validation = partnerAddressDetailsSchema.safeParse(data);
+    if (!validation.success) return { success: false, error: 'Invalid data.' };
+
+    try {
+        const profileRef = doc(db, 'partnerProfiles', partnerProfileId);
+        await updateDoc(profileRef, data);
+        return { success: true, message: 'Address details updated.' };
+    } catch (error) {
+        console.error('Error updating address details:', error);
+        return { success: false, error: 'Failed to update details.' };
+    }
+}
+
+export const partnerKycSchema = z.object({
+    aadhaarCard: z.string().min(1, 'Aadhaar card is required'),
+    panCard: z.string().min(1, 'PAN card is required'),
+});
+export async function updatePartnerKycDetails(partnerProfileId: string, data: z.infer<typeof partnerKycSchema>) {
+    const validation = partnerKycSchema.safeParse(data);
+    if (!validation.success) return { success: false, error: 'Invalid data.' };
+
+    try {
+        const profileRef = doc(db, 'partnerProfiles', partnerProfileId);
+        await updateDoc(profileRef, {
+            aadhaarCard: data.aadhaarCard,
+            panCard: data.panCard,
+        });
+        return { success: true, message: 'KYC documents updated.' };
+    } catch (error) {
+        console.error('Error updating KYC details:', error);
+        return { success: false, error: 'Failed to update details.' };
+    }
 }

@@ -63,6 +63,7 @@ export default function SecurityUpdateDialog({ children, currentUser }: Security
     } else {
         toast({ title: 'Error', description: result.error, variant: 'destructive' });
     }
+    // Note: Addon key logic is not implemented on the backend yet.
   };
   
   const addonKeyEnabled = form.watch('enableAddonKey');

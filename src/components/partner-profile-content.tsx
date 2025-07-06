@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -11,14 +10,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import EditPartnerPersonalDialog from './edit-partner-personal-dialog';
+import EditPartnerContactDialog from './edit-partner-contact-dialog';
+import EditPartnerAddressDialog from './edit-partner-address-dialog';
+import EditPartnerKycDialog from './edit-partner-kyc-dialog';
+import SecurityUpdateDialog from './security-update-dialog';
 
-const EditableSectionCard = ({ title, children, onEdit }: { title: string; children: React.ReactNode; onEdit: () => void; }) => (
+const EditableSectionCard = ({ title, children, editAction }: { title: string; children: React.ReactNode; editAction?: React.ReactNode; }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between py-4">
       <h3 className="font-semibold text-lg">{title}</h3>
-      <Button variant="ghost" size="icon" onClick={onEdit}>
-        <Settings className="h-5 w-5 text-muted-foreground" />
-      </Button>
+      {editAction}
     </CardHeader>
     <CardContent className="pt-0">
       {children}
@@ -50,23 +52,22 @@ function ProfilePageSkeleton() {
 export default function PartnerProfileContent({ currentUser }: { currentUser: User }) {
   const [partnerInfo, setPartnerInfo] = React.useState<PartnerActivationInfo | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const { toast } = useToast();
 
-  React.useEffect(() => {
+  const fetchPartnerInfo = React.useCallback(async () => {
     if (currentUser) {
-      getPartnerById(currentUser.id).then(data => {
-        if (data) {
-          setPartnerInfo(data);
-        }
-        setLoading(false);
-      });
+      setLoading(true);
+      const data = await getPartnerById(currentUser.id);
+      if (data) {
+        setPartnerInfo(data);
+      }
+      setLoading(false);
     }
   }, [currentUser]);
 
-  const handleEdit = (section: string) => {
-    toast({ title: 'Info', description: `Edit functionality for ${section} is not implemented yet.` });
-  };
-  
+  React.useEffect(() => {
+    fetchPartnerInfo();
+  }, [fetchPartnerInfo]);
+
   if (loading) {
     return <ProfilePageSkeleton />;
   }
@@ -105,20 +106,47 @@ export default function PartnerProfileContent({ currentUser }: { currentUser: Us
         </CardContent>
       </Card>
 
-      <EditableSectionCard title="Personal Details" onEdit={() => handleEdit('Personal Details')}>
+      <EditableSectionCard 
+        title="Personal Details"
+        editAction={
+          <EditPartnerPersonalDialog partnerInfo={partnerInfo} onUpdate={fetchPartnerInfo}>
+            <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </EditPartnerPersonalDialog>
+        }
+      >
         <DetailRow label="Full Name" value={profile.name} />
         <DetailRow label="Date Of Birth" value={format(new Date(profile.dob), 'd MMMM yyyy')} />
         <DetailRow label="Gender" value={profile.gender} />
         <DetailRow label="Education" value={profile.qualification} />
       </EditableSectionCard>
 
-      <EditableSectionCard title="Contact Details" onEdit={() => handleEdit('Contact Details')}>
+      <EditableSectionCard 
+        title="Contact Details"
+        editAction={
+          <EditPartnerContactDialog partnerInfo={partnerInfo} onUpdate={fetchPartnerInfo}>
+             <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </EditPartnerContactDialog>
+        }
+      >
         <DetailRow label="Phone Number" value={profile.phone} />
         <DetailRow label="WhatsApp Number" value={profile.whatsapp} />
         <DetailRow label="Business Email" value={profile.email} />
       </EditableSectionCard>
       
-      <EditableSectionCard title="Address Details" onEdit={() => handleEdit('Address Details')}>
+      <EditableSectionCard 
+        title="Address Details"
+        editAction={
+          <EditPartnerAddressDialog partnerInfo={partnerInfo} onUpdate={fetchPartnerInfo}>
+             <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </EditPartnerAddressDialog>
+        }
+      >
         <DetailRow label="Address" value={profile.address} />
         <DetailRow label="City Pincode" value={profile.pincode} />
         <DetailRow label="City" value={profile.city} />
@@ -126,12 +154,30 @@ export default function PartnerProfileContent({ currentUser }: { currentUser: Us
         <DetailRow label="Country" value="India" />
       </EditableSectionCard>
 
-      <EditableSectionCard title="Security Update" onEdit={() => handleEdit('Security Update')}>
+      <EditableSectionCard 
+        title="Security Update"
+        editAction={
+          <SecurityUpdateDialog currentUser={user}>
+            <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </SecurityUpdateDialog>
+        }
+      >
         <DetailRow label="Password" value="************" />
         <DetailRow label="Addon Key" value="Active" />
       </EditableSectionCard>
       
-       <EditableSectionCard title="KYC Update" onEdit={() => handleEdit('KYC Update')}>
+       <EditableSectionCard 
+        title="KYC Update"
+        editAction={
+          <EditPartnerKycDialog partnerInfo={partnerInfo} onUpdate={fetchPartnerInfo}>
+             <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </EditPartnerKycDialog>
+        }
+       >
         <DetailRow label="Aadhar Number" value="4000 5000 1000" />
         <DetailRow label="PAN Number" value="PANN032783" />
         <DetailRow label="Status" value={user.status === 'Active' ? 'Verified' : user.status} />
