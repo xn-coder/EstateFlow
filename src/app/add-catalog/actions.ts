@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, limit, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, limit, doc, updateDoc, getDoc } from 'firebase/firestore';
 import * as z from 'zod';
 import type { Catalog, MarketingKitInfo, CatalogMarketingKit } from '@/types';
 
@@ -194,5 +194,22 @@ export async function addMarketingKit(data: z.infer<typeof addMarketingKitSchema
     console.error('Error adding marketing kit:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
     return { success: false, error: errorMessage };
+  }
+}
+
+export async function getCatalogById(id: string): Promise<Catalog | null> {
+  try {
+    const docRef = doc(db, 'catalogs', id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as Catalog;
+    } else {
+      console.log("No such document!");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error getting catalog by ID:", error);
+    return null;
   }
 }
