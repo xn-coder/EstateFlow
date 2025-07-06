@@ -226,7 +226,7 @@ const PartnerBusinessView = ({ partnerInfo, websiteData }: { partnerInfo: Partne
             </EditableCard>
 
             <EditableCard title="Website Setting" editAction shareAction>
-                 <DetailRow label="About Page" value={<p className="line-clamp-3 text-right">{websiteData.legalInfo.about}</p>} />
+                 <DetailRow label="About Page" value={<span className="line-clamp-3 text-right">{websiteData.legalInfo.about}</span>} />
                  <DetailRow label="Terms Of Services" value={<a href={websiteData.legalInfo.terms} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.terms}</a>} />
                  <DetailRow label="Privacy policy" value={<a href={websiteData.legalInfo.privacy} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.privacy}</a>} />
                  <DetailRow label="Refund policy" value={<a href={websiteData.legalInfo.refund} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.refund}</a>} />
