@@ -18,8 +18,13 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { updatePartnerContactDetails, partnerContactDetailsSchema } from '@/app/profile/actions';
+import { updatePartnerContactDetails } from '@/app/profile/actions';
 import type { PartnerActivationInfo } from '@/types';
+
+const partnerContactDetailsSchema = z.object({
+  phone: z.string().min(10, 'A valid phone number is required'),
+  whatsapp: z.string().min(10, 'A valid WhatsApp number is required'),
+});
 
 interface EditPartnerContactDialogProps {
   children: React.ReactNode;

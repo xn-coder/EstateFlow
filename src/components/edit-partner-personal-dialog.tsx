@@ -21,13 +21,21 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CalendarIcon, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { updatePartnerPersonalDetails, partnerPersonalDetailsSchema } from '@/app/profile/actions';
+import { updatePartnerPersonalDetails } from '@/app/profile/actions';
 import type { PartnerActivationInfo } from '@/types';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+
+const partnerPersonalDetailsSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  dob: z.date(),
+  gender: z.enum(['Male', 'Female', 'Other']),
+  qualification: z.string().min(1, 'Qualification is required'),
+  profileImage: z.string().optional(),
+});
 
 interface EditPartnerPersonalDialogProps {
   children: React.ReactNode;

@@ -19,8 +19,16 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { updatePartnerAddressDetails, partnerAddressDetailsSchema } from '@/app/profile/actions';
+import { updatePartnerAddressDetails } from '@/app/profile/actions';
 import type { PartnerActivationInfo } from '@/types';
+
+const partnerAddressDetailsSchema = z.object({
+  address: z.string().min(1, 'Address is required'),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(1, 'State is required'),
+  pincode: z.string().min(6, 'A valid pin code is required'),
+  country: z.string().min(1, 'Country is required'),
+});
 
 interface EditPartnerAddressDialogProps {
   children: React.ReactNode;

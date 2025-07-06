@@ -19,9 +19,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { updatePartnerKycDetails, partnerKycSchema } from '@/app/profile/actions';
+import { updatePartnerKycDetails } from '@/app/profile/actions';
 import type { PartnerActivationInfo } from '@/types';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+
+const partnerKycSchema = z.object({
+    aadhaarCard: z.string().min(1, 'Aadhaar card is required'),
+    panCard: z.string().min(1, 'PAN card is required'),
+});
 
 interface EditPartnerKycDialogProps {
   children: React.ReactNode;

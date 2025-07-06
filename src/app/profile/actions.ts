@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -195,7 +196,7 @@ export async function editUser(userData: z.infer<typeof editUserSchema>) {
 
 // --- Partner Profile Update Actions ---
 
-export const partnerPersonalDetailsSchema = z.object({
+const partnerPersonalDetailsSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   dob: z.date(),
   gender: z.enum(['Male', 'Female', 'Other']),
@@ -226,7 +227,7 @@ export async function updatePartnerPersonalDetails(partnerProfileId: string, use
   }
 }
 
-export const partnerContactDetailsSchema = z.object({
+const partnerContactDetailsSchema = z.object({
   phone: z.string().min(10, 'A valid phone number is required'),
   whatsapp: z.string().min(10, 'A valid WhatsApp number is required'),
 });
@@ -251,7 +252,7 @@ export async function updatePartnerContactDetails(partnerProfileId: string, user
   }
 }
 
-export const partnerAddressDetailsSchema = z.object({
+const partnerAddressDetailsSchema = z.object({
   address: z.string().min(1, 'Address is required'),
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
@@ -272,7 +273,7 @@ export async function updatePartnerAddressDetails(partnerProfileId: string, data
     }
 }
 
-export const partnerKycSchema = z.object({
+const partnerKycSchema = z.object({
     aadhaarCard: z.string().min(1, 'Aadhaar card is required'),
     panCard: z.string().min(1, 'PAN card is required'),
 });
