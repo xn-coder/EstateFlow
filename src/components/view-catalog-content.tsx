@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { Catalog, CatalogFAQ, CatalogMarketingKit, CatalogSlideshow } from '@/types';
+import type { Catalog, CatalogFAQ, CatalogMarketingKit, CatalogSlideshow, User } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
@@ -12,6 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { ChevronRight, Download, Phone, Video, Youtube } from 'lucide-react';
 import Link from 'next/link';
+import { useForm, FormProvider } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { submitEnquiry } from '@/app/manage-orders/actions';
+import { useToast } from '@/hooks/use-toast';
+
 
 const SectionCard = ({ title, children, className }: { title: string, children: React.ReactNode, className?: string }) => (
     <Card className={className}>
@@ -57,19 +64,65 @@ const FaqAccordion = ({ faqs }: { faqs: CatalogFAQ[] }) => (
     </Accordion>
 );
 
-const EnquiryForm = ({ catalogCode, title }: { catalogCode: string, title: string }) => {
+const enquirySchema = z.object({
+  customerName: z.string().min(1, 'Name is required'),
+  customerPhone: z.string().min(10, 'A valid phone number is required'),
+  customerEmail: z.string().email('A valid email is required'),
+  customerPincode: z.string().min(1, 'Pincode or City is required'),
+});
+
+const EnquiryForm = ({ catalog, currentUser }: { catalog: Catalog, currentUser: User }) => {
+    const { toast } = useToast();
+
+    const form = useForm<z.infer<typeof enquirySchema>>({
+        resolver: zodResolver(enquirySchema),
+        defaultValues: {
+            customerName: '',
+            customerPhone: '',
+            customerEmail: '',
+            customerPincode: '',
+        },
+    });
+
+    const onSubmit = async (values: z.infer<typeof enquirySchema>) => {
+        const result = await submitEnquiry({
+            ...values,
+            catalogId: catalog.id,
+            catalogCode: catalog.catalogCode,
+            catalogTitle: catalog.title,
+            submittedBy: {
+                id: currentUser.id,
+                name: currentUser.name,
+                role: currentUser.role,
+            }
+        });
+
+        if (result.success) {
+            toast({ title: 'Success', description: result.message });
+            form.reset();
+        } else {
+            toast({ title: 'Error', description: result.error, variant: 'destructive' });
+        }
+    };
+
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="text-base font-semibold">{title}</CardTitle>
+                <CardTitle className="text-base font-semibold">Enquiry Now</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-                <Input defaultValue={catalogCode} readOnly className="bg-muted" />
-                <Input placeholder="Customer Name" />
-                <Input placeholder="Phone Number" />
-                <Input type="email" placeholder="Customer Email Details" />
-                <Input placeholder="Pin Code OR City Name" />
-                <Button className="w-full bg-slate-800 hover:bg-slate-900 text-white">Submit & Processed</Button>
+            <CardContent>
+                <FormProvider {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <Input defaultValue={catalog.catalogCode} readOnly className="bg-muted" />
+                        <FormField control={form.control} name="customerName" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Customer Name" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="customerPhone" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Phone Number" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="customerEmail" render={({ field }) => ( <FormItem><FormControl><Input type="email" placeholder="Customer Email Details" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="customerPincode" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Pin Code OR City Name" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <Button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white" disabled={form.formState.isSubmitting}>
+                            {form.formState.isSubmitting ? 'Submitting...' : 'Submit & Processed'}
+                        </Button>
+                    </form>
+                </FormProvider>
             </CardContent>
         </Card>
     );
@@ -138,7 +191,7 @@ const QuickLinks = () => {
 };
 
 
-export default function ViewCatalogContent({ catalog }: { catalog: Catalog }) {
+export default function ViewCatalogContent({ catalog, currentUser }: { catalog: Catalog, currentUser: User }) {
     const formatCurrency = (amount: number, currency: 'INR' | 'USD') => {
         return amount.toLocaleString(currency === 'INR' ? 'en-IN' : 'en-US', {
             style: 'currency',
@@ -201,7 +254,7 @@ export default function ViewCatalogContent({ catalog }: { catalog: Catalog }) {
             </div>
 
             <aside className="lg:col-span-4 space-y-6">
-                <EnquiryForm catalogCode={catalog.catalogCode} title="Enquiry Now" />
+                <EnquiryForm catalog={catalog} currentUser={currentUser} />
                 <SupportCard />
                 <FindCatalogForm />
                 <QuickLinks />

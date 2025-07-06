@@ -1,5 +1,6 @@
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -137,6 +138,25 @@ export interface Enquiry {
   partnerId: string;
   catalogName: string;
   catalogCode: string;
+}
+
+export interface SubmittedEnquiry {
+  id: string;
+  enquiryId: string;
+  createdAt: string; // ISO String
+  catalogId: string;
+  catalogCode: string;
+  catalogTitle: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  customerPincode: string;
+  status: 'New' | 'Contacted' | 'Closed';
+  submittedBy: {
+    id: string;
+    name: string;
+    role: Role;
+  };
 }
 
 export interface Receivable {
