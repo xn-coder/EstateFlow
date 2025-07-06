@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin-sidebar';
+import PartnerSidebar from '@/components/partner-sidebar';
 import AppHeader from '@/components/app-header';
 import ManageCatalogContent from '@/components/manage-catalog-content';
 import DashboardFooter from '@/components/dashboard-footer';
@@ -39,7 +40,11 @@ function ManageCatalogSkeleton() {
         </header>
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
           <Skeleton className="h-12 w-full max-w-sm" />
-          <Skeleton className="h-[400px] w-full" />
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-72 w-full rounded-lg" />
+            ))}
+          </div>
         </main>
       </div>
     </div>
@@ -50,7 +55,7 @@ export default function ManageCatalogPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const authorizedRoles = ['Admin', 'Manager', 'Business Manager'];
+  const authorizedRoles = [...ADMIN_ROLES, 'Partner'];
 
   useEffect(() => {
     if (!loading && !user) {
@@ -64,14 +69,17 @@ export default function ManageCatalogPage() {
   if (loading || !user || !authorizedRoles.includes(user.role)) {
     return <ManageCatalogSkeleton />;
   }
+  
+  const isAdminRole = ADMIN_ROLES.includes(user.role);
 
   return (
     <SidebarProvider>
-      {ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />}
+      {isAdminRole && <AdminSidebar role={user.role} />}
+      {user.role === 'Partner' && <PartnerSidebar />}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          <ManageCatalogContent />
+          <ManageCatalogContent role={user.role} />
         </main>
         <DashboardFooter />
       </SidebarInset>
