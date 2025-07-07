@@ -121,6 +121,7 @@ export async function addUser(userData: z.infer<typeof addUserSchema>) {
         }
 
         const passwordHash = await bcrypt.hash(userData.password, 10);
+        const userCodePrefix = userData.role === 'Admin' ? 'SLR' : 'US';
         await addDoc(collection(db, 'users'), {
             name: userData.name,
             email: userData.email,
@@ -129,7 +130,7 @@ export async function addUser(userData: z.infer<typeof addUserSchema>) {
             passwordHash: passwordHash,
             avatar: userData.avatar || `https://placehold.co/40x40.png`,
             status: 'Active',
-            userCode: `US${Math.random().toString().slice(2, 12)}`,
+            userCode: `${userCodePrefix}${Math.random().toString().slice(2, 12)}`,
         });
 
         return { success: true, message: 'User added successfully.' };

@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -41,7 +42,7 @@ export async function registerSeller(data: z.infer<typeof sellerSchema>) {
       passwordHash: passwordHash,
       avatar: `https://placehold.co/40x40.png`,
       status: 'Active', // Sellers are active by default
-      userCode: `US${Math.random().toString().slice(2, 12)}`,
+      userCode: `SLR${Math.random().toString().slice(2, 12)}`,
     });
 
     return { success: true, message: 'Seller registered successfully. You can now log in.' };
