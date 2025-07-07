@@ -13,6 +13,8 @@ const sellerSchema = z.object({
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
+  websiteName: z.string().min(1, "Business name is required"),
+  websiteTagline: z.string().optional(),
 });
 
 export async function registerSeller(data: z.infer<typeof sellerSchema>) {
@@ -22,7 +24,7 @@ export async function registerSeller(data: z.infer<typeof sellerSchema>) {
     return { success: false, error: 'Invalid data submitted. Please check the form.' };
   }
 
-  const { email, name, phone, password } = validation.data;
+  const { email, name, phone, password, websiteName, websiteTagline } = validation.data;
 
   try {
     const usersRef = collection(db, 'users');
@@ -34,6 +36,10 @@ export async function registerSeller(data: z.infer<typeof sellerSchema>) {
     }
     
     const { partnerFees, ...userWebsiteData } = initialWebsiteData;
+    
+    // Update business info from form
+    userWebsiteData.businessInfo.name = websiteName;
+    userWebsiteData.businessInfo.tagline = websiteTagline || '';
 
     const passwordHash = await bcrypt.hash(password, 10);
     

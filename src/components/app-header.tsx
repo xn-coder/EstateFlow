@@ -90,12 +90,20 @@ export default function AppHeader({
             )}
             
             {isSeller && (
-               <DropdownMenuItem asChild>
-                  <Link href="/manage-website">
-                    <Globe className="mr-2 h-4 w-4" />
-                    <span>Manage Website</span>
-                  </Link>
-                </DropdownMenuItem>
+               <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/manage-website">
+                      <Globe className="mr-2 h-4 w-4" />
+                      <span>Manage Website</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/contact-book">
+                      <Book className="mr-2 h-4 w-4" />
+                      <span>Contact Book</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </>
             )}
 
             {isPartner && (

@@ -18,6 +18,8 @@ const sellerFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
+  websiteName: z.string().min(1, "Business name is required"),
+  websiteTagline: z.string().optional(),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -36,6 +38,8 @@ export default function SellerSignupPage() {
       name: '',
       email: '',
       phone: '',
+      websiteName: '',
+      websiteTagline: '',
       password: '',
       confirmPassword: '',
     },
@@ -48,6 +52,8 @@ export default function SellerSignupPage() {
       email: values.email,
       phone: values.phone,
       password: values.password,
+      websiteName: values.websiteName,
+      websiteTagline: values.websiteTagline,
     });
     if(result.success) {
         toast({ title: 'Registration Successful', description: result.message });
@@ -108,6 +114,32 @@ export default function SellerSignupPage() {
                     <FormLabel>Phone Number (Optional)</FormLabel>
                     <FormControl>
                       <Input type="tel" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="websiteName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business/Website Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your Business Name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="websiteTagline"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Tagline (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="A catchy tagline for your business" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
