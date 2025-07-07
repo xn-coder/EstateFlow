@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -22,7 +21,7 @@ import { format, subYears } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { registerPartner } from './actions';
-import { qualifications, FeeApplicablePartnerCategory, WebsiteData } from '@/types';
+import { qualifications, FeeApplicablePartnerCategory, WebsiteData, feeApplicablePartnerCategories } from '@/types';
 import { getPartnerFees } from '../manage-website/actions';
 
 // Zod schemas for each step
