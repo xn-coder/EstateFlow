@@ -50,8 +50,7 @@ export async function activatePartner(userId: string): Promise<{ success: boolea
     const userRef = doc(db, 'users', userId);
     
     // Generate the partner ID
-    const randomNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit random number
-    const partnerCode = `DAS${randomNumber}`;
+    const partnerCode = `DAS${crypto.randomUUID().substring(0, 6).toUpperCase()}`;
 
     await updateDoc(userRef, {
       status: 'Active',

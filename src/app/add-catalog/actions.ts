@@ -178,7 +178,7 @@ export async function addMarketingKit(data: z.infer<typeof addMarketingKitSchema
 
     const newKit: CatalogMarketingKit = {
       ...kitData,
-      id: `kit${Date.now()}`,
+      id: `kit_${crypto.randomUUID()}`,
       featuredImage: isBase64(kitData.featuredImage) ? placeholderImage : kitData.featuredImage,
       uploadedFile: isBase64(kitData.uploadedFile) ? (kitData.uploadedFile.startsWith('data:image') ? placeholderImage : placeholderFile) : kitData.uploadedFile,
     };

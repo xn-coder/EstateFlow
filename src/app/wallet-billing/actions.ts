@@ -263,7 +263,7 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
           newHistory = {
             date: new Date().toISOString().split('T')[0],
             name: transactionName,
-            transactionId: `TXN${Date.now()}`,
+            transactionId: `TXN_${crypto.randomUUID()}`,
             amount,
             paymentMethod,
             type: 'Credit',
@@ -281,7 +281,7 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
           newHistory = {
             date: new Date().toISOString().split('T')[0],
             name: transactionName,
-            transactionId: `TXN${Date.now()}`,
+            transactionId: `TXN_${crypto.randomUUID()}`,
             amount,
             paymentMethod,
             type: 'Credit',
@@ -303,7 +303,7 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
           newHistory = {
             date: new Date().toISOString().split('T')[0],
             name: transactionName,
-            transactionId: `TXN${Date.now()}`,
+            transactionId: `TXN_${crypto.randomUUID()}`,
             amount,
             paymentMethod,
             type: 'Debit',

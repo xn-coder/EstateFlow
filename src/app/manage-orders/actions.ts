@@ -29,7 +29,7 @@ export async function submitEnquiry(data: Omit<SubmittedEnquiry, 'id' | 'enquiry
   }
   
   try {
-    const enquiryId = `ENQ${Math.floor(100000 + Math.random() * 900000)}`;
+    const enquiryId = `ENQ-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
     const enquiryToSave = {
       ...validation.data,
       enquiryId,
@@ -67,14 +67,13 @@ export async function confirmEnquiry(enquiryId: string) {
     const enquiryRef = doc(db, 'enquiries', enquiryId);
     
     try {
-        // First, read the enquiry data outside the transaction
         const enquiryDocSnap = await getDoc(enquiryRef);
         if (!enquiryDocSnap.exists()) {
             throw new Error("Enquiry not found.");
         }
 
         const enquiry = { id: enquiryDocSnap.id, ...enquiryDocSnap.data() } as SubmittedEnquiry;
-        if (!enquiry || !enquiry.customerEmail || !enquiry.submittedBy || !enquiry.submittedBy.id) {
+        if (!enquiry || !enquiry.customerEmail || !enquiry.submittedBy || !enquiry.submittedBy.id || !enquiry.id) {
             throw new Error('Invalid or incomplete enquiry data. Cannot proceed.');
         }
 
@@ -82,28 +81,23 @@ export async function confirmEnquiry(enquiryId: string) {
             return { success: true, message: "Enquiry already processed." };
         }
 
-        // Then, perform the customer existence check OUTSIDE the transaction
-        // This is a requirement for the web/client SDK
         const customersRef = collection(db, 'customers');
         const customerQuery = query(customersRef, where("email", "==", enquiry.customerEmail), limit(1));
         const existingCustomers = await getDocs(customerQuery);
         
         await runTransaction(db, async (transaction) => {
-            // Re-read enquiry doc inside transaction to ensure atomicity for the update
             const freshEnquiryDoc = await transaction.get(enquiryRef);
             if (!freshEnquiryDoc.exists()) {
                 throw new Error("Enquiry not found inside transaction.");
             }
             const freshEnquiryData = freshEnquiryDoc.data() as SubmittedEnquiry;
-            // Check status again to prevent race conditions
             if (freshEnquiryData.status !== 'New') {
                 console.log("Enquiry was processed by another request.");
                 return;
             }
 
-            // Use the result from the query we ran before the transaction
             if (existingCustomers.empty) {
-                const customerId = `CUST${Math.floor(100000 + Math.random() * 900000)}`;
+                const customerId = `CUST-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
                 const newCustomer: Omit<Customer, 'id'> = {
                     customerId: customerId,
                     name: enquiry.customerName,
@@ -113,7 +107,7 @@ export async function confirmEnquiry(enquiryId: string) {
                     createdBy: enquiry.submittedBy.id,
                     createdAt: new Date().toISOString(),
                 };
-                const newCustomerRef = doc(customersRef);
+                const newCustomerRef = doc(collection(db, 'customers'));
                 transaction.set(newCustomerRef, newCustomer);
             }
 

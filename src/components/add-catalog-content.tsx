@@ -340,7 +340,7 @@ export default function AddCatalogContent() {
                           <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={() => removeSlideshow(index)}><Trash2 className="h-4 w-4" /></Button>
                         </Card>
                       ))}
-                      <Button type="button" variant="outline" onClick={() => appendSlideshow({ id: `slide${Date.now()}`, image: '', title: '' })}><Plus className="mr-2 h-4 w-4" /> Add More</Button>
+                      <Button type="button" variant="outline" onClick={() => appendSlideshow({ id: `slide_${crypto.randomUUID()}`, image: '', title: '' })}><Plus className="mr-2 h-4 w-4" /> Add More</Button>
                     </div>
                   )}
 
@@ -359,7 +359,7 @@ export default function AddCatalogContent() {
                           <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={() => removeFaq(index)}><Trash2 className="h-4 w-4" /></Button>
                         </Card>
                       ))}
-                      <Button type="button" variant="outline" onClick={() => appendFaq({ id: `faq${Date.now()}`, question: '', answer: '' })}><Plus className="mr-2 h-4 w-4" /> Add More</Button>
+                      <Button type="button" variant="outline" onClick={() => appendFaq({ id: `faq_${crypto.randomUUID()}`, question: '', answer: '' })}><Plus className="mr-2 h-4 w-4" /> Add More</Button>
                     </div>
                   )}
 
@@ -426,7 +426,7 @@ export default function AddCatalogContent() {
                           <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={() => removeMarketingKit(index)}><Trash2 className="h-4 w-4" /></Button>
                         </Card>
                       ))}
-                      <Button type="button" variant="outline" onClick={() => appendMarketingKit({ id: `kit${Date.now()}`, kitType: 'poster', featuredImage: '', nameOrTitle: '', uploadedFile: '' })}><Plus className="mr-2 h-4 w-4" /> Add More</Button>
+                      <Button type="button" variant="outline" onClick={() => appendMarketingKit({ id: `kit_${crypto.randomUUID()}`, kitType: 'poster', featuredImage: '', nameOrTitle: '', uploadedFile: '' })}><Plus className="mr-2 h-4 w-4" /> Add More</Button>
                     </div>
                   )}
 
