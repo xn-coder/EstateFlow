@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -64,10 +65,11 @@ export default function UpdatesPage() {
   }
 
   const isPartner = user.role === 'Partner';
+  const isAdminOrSeller = ADMIN_ROLES.includes(user.role) || user.role === 'Seller';
 
   return (
     <SidebarProvider>
-      {isPartner ? <PartnerSidebar /> : (ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />)}
+      {isPartner ? <PartnerSidebar /> : (isAdminOrSeller && <AdminSidebar role={user.role} />)}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">

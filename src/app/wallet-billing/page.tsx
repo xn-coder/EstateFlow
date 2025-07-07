@@ -55,19 +55,26 @@ export default function WalletBillingPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  const authorizedRoles = [...ADMIN_ROLES, 'Seller'];
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+    if (!loading && user && !authorizedRoles.includes(user.role)) {
+      router.push('/');
+    }
+  }, [user, loading, router, authorizedRoles]);
 
-  if (loading || !user) {
+  if (loading || !user || !authorizedRoles.includes(user.role)) {
     return <WalletBillingSkeleton />;
   }
 
+  const isAdminOrSeller = ADMIN_ROLES.includes(user.role) || user.role === 'Seller';
+
   return (
     <SidebarProvider>
-      {ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />}
+      {isAdminOrSeller && <AdminSidebar role={user.role} />}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
