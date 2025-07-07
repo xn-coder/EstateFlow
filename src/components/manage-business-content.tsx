@@ -2,27 +2,21 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import type { Category, PartnerActivationInfo, WebsiteData, User } from '@/types';
+import type { Category, WebsiteData, User } from '@/types';
 import { Skeleton } from './ui/skeleton';
-import { ChevronRight, Book, Mail, Edit } from 'lucide-react';
+import { ChevronRight, Book, Mail } from 'lucide-react';
 import AddMarketingKitDialog from './add-marketing-kit-dialog';
 import AddCategoryDialog from './add-category-dialog';
 import AddContentDialog from './add-content-dialog';
 import AddUserDialog from './add-user-dialog';
 import { getCategories } from '@/app/manage-category/actions';
-import { getPartnerById } from '@/app/manage-partner/actions';
-import { getWebsiteData } from '@/app/manage-website/actions';
-import Image from 'next/image';
-import EditBusinessDetailsDialog from './edit-partner-business-details-dialog';
-import EditPartnerBusinessLogoDialog from './edit-partner-business-logo-dialog';
-import EditPartnerDigitalCardDialog from './edit-partner-digital-card-dialog';
-import EditLinkDetailsDialog from './edit-link-details-dialog';
-import EditBusinessProfileDialog from './edit-business-profile-dialog';
+import { getPartnerFees } from '@/app/manage-website/actions';
+import { feeApplicablePartnerCategories } from '@/types';
 
 // Components for Admin View
 const AdminListItem = ({ children, href = "#", isDialog = false, DialogComponent }: { children: React.ReactNode; href?: string; isDialog?: boolean; DialogComponent?: React.ReactElement; }) => {
@@ -70,15 +64,20 @@ const WhatsAppIcon = () => (
 const AdminBusinessView = () => {
     const router = useRouter();
     const [categories, setCategories] = React.useState<Category[]>([]);
+    const [partnerFees, setPartnerFees] = React.useState<WebsiteData['partnerFees'] | null>(null);
 
-    const fetchCategories = React.useCallback(async () => {
-        const fetchedCategories = await getCategories();
+    const fetchData = React.useCallback(async () => {
+        const [fetchedCategories, fetchedFees] = await Promise.all([
+            getCategories(),
+            getPartnerFees()
+        ]);
         setCategories(fetchedCategories);
+        setPartnerFees(fetchedFees);
     }, []);
 
     React.useEffect(() => {
-        fetchCategories();
-    }, [fetchCategories]);
+        fetchData();
+    }, [fetchData]);
 
     const AdminStatCard = ({ title, value, description }: { title: string; value: string; description: string; }) => (
       <Card className="bg-card">
@@ -104,7 +103,7 @@ const AdminBusinessView = () => {
     const catalogItems = [
         { label: 'Add a Catalog', href: '/add-catalog' },
         { label: 'Manage Catalog', href: '/manage-catalog' },
-        { label: 'Add a Category', isDialog: true, Dialog: <AddCategoryDialog onCategoryAdded={fetchCategories} /> },
+        { label: 'Add a Category', isDialog: true, Dialog: <AddCategoryDialog onCategoryAdded={fetchData} /> },
         { label: 'Manage Categories', href: '/manage-category' },
         { label: 'Add Content', isDialog: true, Dialog: <AddContentDialog categories={categories} onContentAdded={() => {}} /> },
         { label: 'Manage Content', href: '/manage-content' },
@@ -117,6 +116,36 @@ const AdminBusinessView = () => {
         { label: 'Manage Website', href: '/manage-website' },
         { label: 'My Account', href: '/profile' },
     ];
+    
+    const PartnerFeesCard = () => (
+        <Card>
+            <CardHeader>
+                <CardTitle>Partner Registration Fees</CardTitle>
+                <CardDescription>Fees associated with different partner tiers. Edit these in "Manage Website".</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="divide-y">
+                    {partnerFees ? (
+                        feeApplicablePartnerCategories.map((category) => (
+                            <div key={category} className="flex justify-between items-center py-3">
+                                <span className="text-sm font-medium">{category}</span>
+                                <span className="text-sm font-semibold">
+                                    {partnerFees[category] ? `₹${partnerFees[category]?.toLocaleString()}` : 'Not Set'}
+                                </span>
+                            </div>
+                        ))
+                    ) : (
+                        [...Array(3)].map((_, i) => (
+                           <div key={i} className="flex justify-between items-center py-3">
+                               <Skeleton className="h-5 w-40" />
+                               <Skeleton className="h-5 w-16" />
+                           </div>
+                        ))
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
 
 
     return (
@@ -149,6 +178,8 @@ const AdminBusinessView = () => {
                     </div>
                 </CardContent>
             </Card>
+
+            <PartnerFeesCard />
 
             <Card>
                 <CardContent className="p-0">
