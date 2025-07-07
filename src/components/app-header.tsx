@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { Role, User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Building2, User as UserIcon, LogOut, Briefcase, Wallet } from 'lucide-react';
+import { Building2, User as UserIcon, LogOut, Briefcase, Wallet, Globe, Book } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,8 @@ export default function AppHeader({
 }: AppHeaderProps) {
   const { logout } = useAuth();
   const hasSidebar = ADMIN_ROLES.includes(role) || role === 'Partner';
+  const isAdminRole = ADMIN_ROLES.includes(role);
+  const isPartner = role === 'Partner';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center border-b bg-card px-2 sm:px-4 shadow-sm">
@@ -61,24 +63,48 @@ export default function AppHeader({
                 </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            
             <DropdownMenuItem asChild>
               <Link href="/profile">
                 <UserIcon className="mr-2 h-4 w-4" />
                 <span>Manage Profile</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/manage-business">
-                <Briefcase className="mr-2 h-4 w-4" />
-                <span>Manage Business</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-                <Link href="/wallet-billing">
-                    <Wallet className="mr-2 h-4 w-4" />
-                    <span>Earning & Wallet</span>
-                </Link>
-            </DropdownMenuItem>
+
+            {isAdminRole && (
+              <>
+                <DropdownMenuItem asChild>
+                  <Link href="/manage-website">
+                    <Globe className="mr-2 h-4 w-4" />
+                    <span>Manage Website</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/contact-book">
+                    <Book className="mr-2 h-4 w-4" />
+                    <span>Contact Book</span>
+                  </Link>
+                </DropdownMenuItem>
+              </>
+            )}
+
+            {isPartner && (
+              <>
+                <DropdownMenuItem asChild>
+                  <Link href="/manage-business">
+                    <Briefcase className="mr-2 h-4 w-4" />
+                    <span>Manage Business</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href="/wallet-billing">
+                        <Wallet className="mr-2 h-4 w-4" />
+                        <span>Earning & Wallet</span>
+                    </Link>
+                </DropdownMenuItem>
+              </>
+            )}
+
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => logout()} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
