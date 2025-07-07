@@ -119,10 +119,34 @@ const EnquiryForm = ({ catalog, currentUser }: { catalog: Catalog, currentUser: 
                                 <Input value={currentUser.partnerCode || 'N/A'} readOnly disabled />
                             </FormControl>
                         </FormItem>
-                        <FormField control={form.control} name="customerName" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Customer Name" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        <FormField control={form.control} name="customerPhone" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Phone Number" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        <FormField control={form.control} name="customerEmail" render={({ field }) => ( <FormItem><FormControl><Input type="email" placeholder="Customer Email Details" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        <FormField control={form.control} name="customerPincode" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Pin Code OR City Name" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="customerName" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Customer Name</FormLabel>
+                                <FormControl><Input placeholder="Customer Name" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="customerPhone" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Phone Number</FormLabel>
+                                <FormControl><Input placeholder="Phone Number" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="customerEmail" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Customer Email</FormLabel>
+                                <FormControl><Input type="email" placeholder="Customer Email" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="customerPincode" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Pin Code or City</FormLabel>
+                                <FormControl><Input placeholder="Pin Code OR City Name" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
                         <Button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white" disabled={form.formState.isSubmitting}>
                             {form.formState.isSubmitting ? 'Submitting...' : 'Submit & Processed'}
                         </Button>
