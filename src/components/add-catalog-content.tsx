@@ -16,10 +16,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, Upload, Plus, Trash2 } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
-import { addCatalog } from '@/app/add-catalog/actions';
+import { addCatalog, updateCatalog } from '@/app/add-catalog/actions';
 import { Checkbox } from './ui/checkbox';
 import { getCategories } from '@/app/manage-category/actions';
-import type { Category, User } from '@/types';
+import type { Category, User, Catalog } from '@/types';
 import { partnerCategories } from '@/types';
 import SummernoteEditor from './summernote-editor';
 
@@ -170,7 +170,8 @@ function FileUploadButton({ label, onFileSelect, previewUrl, hint, accept = "ima
   );
 }
 
-export default function AddCatalogContent({ currentUser }: { currentUser: User }) {
+export default function AddCatalogContent({ currentUser, catalogToEdit }: { currentUser: User; catalogToEdit?: Catalog }) {
+  const isEditMode = !!catalogToEdit;
   const [step, setStep] = React.useState(1);
   const router = useRouter();
   const { toast } = useToast();
@@ -216,7 +217,19 @@ export default function AddCatalogContent({ currentUser }: { currentUser: User }
     mode: 'onChange'
   });
 
-  const { trigger, handleSubmit, formState: { isSubmitting }, control, watch, setValue } = methods;
+  const { trigger, handleSubmit, formState: { isSubmitting }, control, watch, setValue, reset } = methods;
+
+  React.useEffect(() => {
+    if (isEditMode && catalogToEdit) {
+      reset({
+        ...catalogToEdit,
+        galleryImages: (catalogToEdit.galleryImages || []).map(img => ({ value: img })),
+        writeNotes: !!catalogToEdit.notesContent,
+        writeTerms: !!catalogToEdit.termsContent,
+        writePolicy: !!catalogToEdit.policyContent,
+      });
+    }
+  }, [isEditMode, catalogToEdit, reset]);
 
   const { fields: slideshowFields, append: appendSlideshow, remove: removeSlideshow } = useFieldArray({ control, name: 'slideshows' });
   const { fields: faqFields, append: appendFaq, remove: removeFaq } = useFieldArray({ control, name: 'faqs' });
@@ -255,10 +268,13 @@ export default function AddCatalogContent({ currentUser }: { currentUser: User }
       sellerId: currentUser.id,
     };
     
-    const result = await addCatalog(finalData as any);
+    const result = isEditMode
+        ? await updateCatalog(catalogToEdit.id, finalData as any)
+        : await addCatalog(finalData as any);
+
     if (result.success) {
       toast({ title: 'Success', description: result.message });
-      router.push('/manage-business');
+      router.push('/manage-catalog');
     } else {
       toast({ title: 'Error', description: result.error, variant: 'destructive' });
     }
@@ -271,12 +287,12 @@ export default function AddCatalogContent({ currentUser }: { currentUser: User }
           <Card>
             <CardHeader>
               <div className="flex items-center gap-4">
-                 <Button type="button" variant="outline" size="icon" className="h-8 w-8" onClick={() => router.push('/manage-business')}>
+                 <Button type="button" variant="outline" size="icon" className="h-8 w-8" onClick={() => router.push(isEditMode ? '/manage-catalog' : '/manage-business')}>
                     <ArrowLeft className="h-4 w-4" />
                     <span className="sr-only">Back</span>
                 </Button>
                 <div>
-                  <CardTitle>Add Catalog</CardTitle>
+                  <CardTitle>{isEditMode ? 'Edit Catalog' : 'Add Catalog'}</CardTitle>
                   <CardDescription>Step {step} of {steps.length}: {steps[step - 1].title}</CardDescription>
                 </div>
               </div>
@@ -296,7 +312,7 @@ export default function AddCatalogContent({ currentUser }: { currentUser: User }
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Category*</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingCategories}>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={loadingCategories}>
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder={loadingCategories ? "Loading categories..." : "Select a category"} />
@@ -516,7 +532,11 @@ export default function AddCatalogContent({ currentUser }: { currentUser: User }
                 {step < steps.length ? (
                   <Button type="button" onClick={nextStep}>Next</Button>
                 ) : (
-                  <Button type="button" onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish Catalog'}</Button>
+                  <Button type="button" onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
+                    {isSubmitting 
+                      ? (isEditMode ? 'Updating...' : 'Publishing...') 
+                      : (isEditMode ? 'Update Catalog' : 'Publish Catalog')}
+                  </Button>
                 )}
               </div>
             </CardContent>

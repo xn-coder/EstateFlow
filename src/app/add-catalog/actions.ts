@@ -100,6 +100,37 @@ export async function addCatalog(data: Omit<Catalog, 'id' | 'catalogCode'>) {
   }
 }
 
+export async function updateCatalog(id: string, data: Omit<Catalog, 'id' | 'catalogCode'>) {
+  // Clean up data before validation. This now uses the raw data with base64 images.
+  const cleanedData = {
+    ...data,
+    slideshows: (data.slideshows || []).filter(s => s.image && s.title),
+    faqs: (data.faqs || []).filter(f => f.question && f.answer),
+    marketingKits: (data.marketingKits || []).filter(k => k.featuredImage && k.nameOrTitle && k.uploadedFile),
+    galleryImages: (data.galleryImages || []).filter(g => g),
+    videoLink: data.videoLink || '',
+  };
+
+  const validation = catalogSchema.safeParse(cleanedData);
+  if (!validation.success) {
+    console.error('Validation errors:', validation.error.flatten());
+    return { success: false, error: 'Invalid data submitted. Please check all form fields.' };
+  }
+  
+  try {
+    const catalogRef = doc(db, 'catalogs', id);
+    await updateDoc(catalogRef, validation.data);
+    return { success: true, message: 'Catalog updated successfully!' };
+  } catch (error) {
+    console.error('Error updating catalog:', error);
+    if (error instanceof Error && (error.message.includes('exceeds the maximum size') || error.message.includes('bytes exceeded'))) {
+        return { success: false, error: 'The catalog data is too large to be saved, likely due to large images. Please use smaller images.' };
+    }
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    return { success: false, error: errorMessage };
+  }
+}
+
 export async function getCatalogs(sellerId?: string): Promise<Catalog[]> {
   try {
     const constraints: QueryConstraint[] = [];

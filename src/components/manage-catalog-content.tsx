@@ -85,7 +85,7 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
   }, [catalogs, searchTerm]);
 
   const handleEdit = (id: string) => {
-    toast({ title: 'Info', description: `Edit functionality for catalog ${id} is not implemented yet.` });
+    router.push(`/edit-catalog/${id}`);
   };
 
   const handleDelete = (id: string) => {
