@@ -17,8 +17,8 @@ import { updateMessages } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import type { UpdateMessage, User } from '@/types';
-import { addSupportTicket } from '@/app/support-ticket/actions';
 
+// New validation schemas for admin form
 const announcementSchema = z.object({
   type: z.literal('announcement'),
   announcementFor: z.enum(['partner', 'seller', 'both'], { required_error: 'Please select an audience.' }),
@@ -27,30 +27,37 @@ const announcementSchema = z.object({
 });
 
 const directMessageSchema = z.object({
-  type: z.enum(['partner', 'seller']),
   recipientId: z.string().min(1, 'Recipient ID is required.'),
   subject: z.string().min(1, 'Subject is required.'),
   details: z.string().min(1, 'Details are required.'),
 });
 
-const formSchema = z.discriminatedUnion('type', [announcementSchema, directMessageSchema]);
+const formSchema = z.discriminatedUnion('type', [
+    announcementSchema,
+    z.object({ type: z.literal('partner') }).merge(directMessageSchema),
+    z.object({ type: z.literal('seller') }).merge(directMessageSchema),
+]);
+
 
 interface MessageListProps {
   onMessageSelect: (message: UpdateMessage) => void;
-  onCompose: () => void;
+  onCompose?: () => void;
+  isPartner: boolean;
 }
 
-const MessageList = ({ onMessageSelect, onCompose }: MessageListProps) => (
+const MessageList = ({ onMessageSelect, onCompose, isPartner }: MessageListProps) => (
     <Card>
         <CardHeader className="flex flex-row items-center justify-between">
             <div>
                 <CardTitle>Updates</CardTitle>
                 <CardDescription>You have {updateMessages.filter(m => !m.read).length} unread messages.</CardDescription>
             </div>
-            <Button onClick={onCompose}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Compose
-            </Button>
+            {!isPartner && onCompose && (
+              <Button onClick={onCompose}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Compose
+              </Button>
+            )}
         </CardHeader>
         <CardContent>
             <ScrollArea className="h-[500px]">
@@ -120,123 +127,6 @@ const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
   </Card>
 );
 
-const supportTicketSchema = z.object({
-  queryCategory: z.string({ required_error: 'Please select a category.' }).min(1, 'Please select a category.'),
-  subject: z.string().min(1, 'Subject is required.'),
-  message: z.string().min(1, 'Message is required.'),
-});
-
-const PartnerSupportForm = ({ user }: { user: User }) => {
-  const { toast } = useToast();
-  const form = useForm<z.infer<typeof supportTicketSchema>>({
-    resolver: zodResolver(supportTicketSchema),
-    defaultValues: {
-      queryCategory: '',
-      subject: '',
-      message: '',
-    },
-  });
-
-  const onSubmit = async (values: z.infer<typeof supportTicketSchema>) => {
-    const result = await addSupportTicket({
-        ...values,
-        user: {
-            id: user.id,
-            name: user.name,
-            role: user.role
-        }
-    });
-
-    if (result.success) {
-        toast({
-            title: 'Ticket Submitted',
-            description: 'Your support ticket has been sent. We will get back to you shortly.',
-        });
-        form.reset();
-    } else {
-        toast({
-            title: 'Submission Failed',
-            description: result.error,
-            variant: 'destructive',
-        });
-    }
-  };
-
-  const queryCategories = [
-    "Billing & Payments",
-    "Technical Support",
-    "Catalog Inquiry",
-    "Account Help",
-    "General Question",
-  ];
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Help & Support</CardTitle>
-        <CardDescription>Have a question or need help? Fill out the form below.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="queryCategory"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Query Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {queryCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="subject"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subject</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter a brief subject" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Message</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Describe your issue or question in detail." className="min-h-[150px]" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end">
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Submitting...' : 'Submit Ticket'}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
-  );
-};
-
 
 export default function SendMessageContent({ currentUser }: { currentUser: User }) {
   const { toast } = useToast();
@@ -279,10 +169,17 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
     setView('detail');
   };
 
-  if (currentUser.role === 'Partner') {
-    return <PartnerSupportForm user={currentUser} />;
+  const isPartner = currentUser.role === 'Partner';
+
+  // Partner view is just an inbox
+  if (isPartner) {
+    if (view === 'detail' && selectedMessage) {
+        return <MessageDetail message={selectedMessage} onBack={() => setView('list')} />
+    }
+    return <MessageList onMessageSelect={handleMessageSelect} isPartner={isPartner} />
   }
 
+  // Admin view logic
   if (view === 'form') {
     return (
         <Card>
@@ -339,7 +236,6 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
 
                 {messageType === 'announcement' && (
                   <FormField
-                    // @ts-ignore - discriminated union makes this safe
                     control={form.control}
                     name="announcementFor"
                     render={({ field }) => (
@@ -365,7 +261,6 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
 
                 {(messageType === 'partner' || messageType === 'seller') && (
                   <FormField
-                    // @ts-ignore - discriminated union makes this safe
                     control={form.control}
                     name="recipientId"
                     render={({ field }) => (
@@ -395,7 +290,6 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
                 />
 
                 <FormField
-                  // @ts-ignore - discriminated union makes this safe
                   control={form.control}
                   name="details"
                   render={({ field }) => (
@@ -423,5 +317,5 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
     return <MessageDetail message={selectedMessage} onBack={() => setView('list')} />
   }
 
-  return <MessageList onMessageSelect={handleMessageSelect} onCompose={() => setView('form')} />
+  return <MessageList onMessageSelect={handleMessageSelect} onCompose={() => setView('form')} isPartner={isPartner} />
 }

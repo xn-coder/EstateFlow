@@ -1,11 +1,10 @@
-
 'use client';
 
 import Link from 'next/link';
 import type { Role, User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Building2, User as UserIcon, LogOut, Briefcase, Wallet, Globe, Book } from 'lucide-react';
+import { Building2, User as UserIcon, LogOut, Briefcase, Wallet, Globe, Book, LifeBuoy } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_ROLES } from '@/lib/roles';
+import SupportTicketDialog from './support-ticket-dialog';
 
 interface AppHeaderProps {
   role: Role;
@@ -102,6 +102,12 @@ export default function AppHeader({
                         <span>Earning & Wallet</span>
                     </Link>
                 </DropdownMenuItem>
+                 <SupportTicketDialog currentUser={currentUser}>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <LifeBuoy className="mr-2 h-4 w-4" />
+                        <span>Help & Support</span>
+                    </DropdownMenuItem>
+                </SupportTicketDialog>
               </>
             )}
 
