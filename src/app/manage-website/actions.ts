@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -13,7 +14,13 @@ export async function getWebsiteData(): Promise<WebsiteData> {
     const docSnap = await getDoc(configRef);
 
     if (docSnap.exists()) {
-      return docSnap.data() as WebsiteData;
+      const data = docSnap.data() as WebsiteData;
+      // One-time data migration for partnerFees
+      if (!data.partnerFees) {
+        await updateDoc(configRef, { partnerFees: initialWebsiteData.partnerFees });
+        data.partnerFees = initialWebsiteData.partnerFees;
+      }
+      return data;
     } else {
       await setDoc(configRef, initialWebsiteData);
       return initialWebsiteData;
