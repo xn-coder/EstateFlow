@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -18,12 +17,153 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import type { Message, User } from '@/types';
-import { useAuth } from '@/hooks/useAuth';
 import { getMessages, markMessageAsRead, sendMessage } from '@/app/messages/actions';
 import { format, parseISO } from 'date-fns';
 import { Skeleton } from './ui/skeleton';
 
-// New validation schemas for admin form
+// New component for sellers
+const SellerSendMessageForm = ({ currentUser }: { currentUser: User }) => {
+    const { toast } = useToast();
+
+    const sellerSchema = z.object({
+        recipientType: z.enum(['all', 'specific']),
+        recipientId: z.string().optional(),
+        subject: z.string().min(1, 'Subject is required.'),
+        details: z.string().min(1, 'Details are required.'),
+    }).refine(data => {
+        return !(data.recipientType === 'specific' && (!data.recipientId || data.recipientId.trim() === ''));
+    }, {
+        message: 'Partner ID or Email is required.',
+        path: ['recipientId'],
+    });
+
+    const form = useForm<z.infer<typeof sellerSchema>>({
+        resolver: zodResolver(sellerSchema),
+        defaultValues: {
+            recipientType: 'all',
+            subject: '',
+            details: '',
+        }
+    });
+
+    const recipientType = form.watch('recipientType');
+
+    const onSubmit = async (values: z.infer<typeof sellerSchema>) => {
+        let actionData;
+        if (values.recipientType === 'all') {
+            actionData = {
+                type: 'announcement' as const,
+                announcementFor: 'partner' as const,
+                subject: values.subject,
+                details: values.details,
+            };
+        } else {
+            actionData = {
+                type: 'partner' as const,
+                recipientId: values.recipientId,
+                subject: values.subject,
+                details: values.details,
+            };
+        }
+
+        const result = await sendMessage(actionData, currentUser);
+        if (result.success) {
+            toast({
+                title: 'Message Sent!',
+                description: 'Your message has been successfully sent.',
+            });
+            form.reset();
+        } else {
+            toast({ title: 'Error', description: result.error, variant: 'destructive' });
+        }
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Send an Update to Partners</CardTitle>
+                <CardDescription>Compose and send your message to all or a specific partner.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="recipientType"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Recipient</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Partners</SelectItem>
+                                            <SelectItem value="specific">Specific Partner</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        {recipientType === 'specific' && (
+                             <FormField
+                                control={form.control}
+                                name="recipientId"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Partner ID or Email</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Enter Partner ID or Email" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        )}
+                        <FormField
+                            control={form.control}
+                            name="subject"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Subject</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Enter message subject" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="details"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Details</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="Type your message here." className="min-h-[150px]" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="flex justify-end">
+                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                                {form.formState.isSubmitting ? 'Sending...' : 'Send Message'}
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </CardContent>
+        </Card>
+    );
+};
+
+
+// Main component starts here.
+// Validation schemas for admin form
 const announcementSchema = z.object({
   type: z.literal('announcement'),
   announcementFor: z.enum(['partner', 'seller', 'both'], { required_error: 'Please select an audience.' }),
@@ -232,6 +372,12 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
   };
 
   const isPartner = currentUser.role === 'Partner';
+  const isSeller = currentUser.role === 'Seller';
+  
+  // Seller View
+  if (isSeller) {
+      return <SellerSendMessageForm currentUser={currentUser} />;
+  }
 
   // Partner view is just an inbox
   if (isPartner) {

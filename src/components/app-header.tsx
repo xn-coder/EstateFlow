@@ -27,9 +27,10 @@ export default function AppHeader({
   currentUser,
 }: AppHeaderProps) {
   const { logout } = useAuth();
-  const hasSidebar = ADMIN_ROLES.includes(role) || role === 'Partner';
+  const hasSidebar = ADMIN_ROLES.includes(role) || role === 'Partner' || role === 'Seller';
   const isAdminRole = ADMIN_ROLES.includes(role);
   const isPartner = role === 'Partner';
+  const isSeller = role === 'Seller';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center border-b bg-card px-2 sm:px-4 shadow-sm">
@@ -86,6 +87,15 @@ export default function AppHeader({
                   </Link>
                 </DropdownMenuItem>
               </>
+            )}
+            
+            {isSeller && (
+               <DropdownMenuItem asChild>
+                  <Link href="/manage-website">
+                    <Globe className="mr-2 h-4 w-4" />
+                    <span>Manage Website</span>
+                  </Link>
+                </DropdownMenuItem>
             )}
 
             {isPartner && (
