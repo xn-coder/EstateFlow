@@ -49,12 +49,14 @@ export default function PaymentHistoryPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  const authorizedRoles = ['Admin', 'Wallet Manager', 'Seller'];
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
     }
     // Also check for role authorization
-    if (!loading && user && !['Admin', 'Wallet Manager'].includes(user.role)) {
+    if (!loading && user && !authorizedRoles.includes(user.role)) {
       router.push('/'); // Redirect to dashboard if not authorized
     }
   }, [user, loading, router]);
@@ -64,7 +66,7 @@ export default function PaymentHistoryPage() {
   }
 
   // Double check auth here before rendering
-  if (!['Admin', 'Wallet Manager'].includes(user.role)) {
+  if (!authorizedRoles.includes(user.role)) {
     return <PaymentHistorySkeleton />;
   }
 
