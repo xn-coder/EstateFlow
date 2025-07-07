@@ -16,6 +16,7 @@ import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import AddContentDialog from './add-content-dialog';
 import { Badge } from './ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ManageContentContent() {
   const [content, setContent] = React.useState<ContentItem[]>([]);
@@ -23,17 +24,19 @@ export default function ManageContentContent() {
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
   const router = useRouter();
+  const { user: currentUser } = useAuth();
 
   const fetchData = React.useCallback(async () => {
     setLoading(true);
+    const sellerId = currentUser?.role === 'Seller' ? currentUser.id : undefined;
     const [contentData, categoryData] = await Promise.all([
-      getContent(),
-      getCategories(),
+      getContent(sellerId),
+      getCategories(sellerId),
     ]);
     setContent(contentData);
     setCategories(categoryData);
     setLoading(false);
-  }, []);
+  }, [currentUser]);
 
   React.useEffect(() => {
     fetchData();

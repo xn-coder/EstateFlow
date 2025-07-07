@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addContent } from '@/app/manage-content/actions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { Category } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
 
 const contentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -79,6 +80,7 @@ function FileUpload({ onFileSelect, previewUrl, hint }: { onFileSelect: (base64:
 export default function AddContentDialog({ children, categories, onContentAdded }: AddContentDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
 
   const form = useForm<z.infer<typeof contentSchema>>({
     resolver: zodResolver(contentSchema),
@@ -98,10 +100,14 @@ export default function AddContentDialog({ children, categories, onContentAdded 
         return;
     }
     
-    const result = await addContent({
+    const sellerId = currentUser?.role === 'Seller' ? currentUser.id : undefined;
+    const result = await addContent(
+      {
         ...values,
         categoryName: selectedCategory.name,
-    });
+      },
+      sellerId
+    );
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       onContentAdded();

@@ -16,6 +16,7 @@ import { ArrowUpDown, Edit, Trash2, PlusCircle, ArrowLeft, Search } from 'lucide
 import { Badge } from './ui/badge';
 import { ADMIN_ROLES } from '@/lib/roles';
 import { Input } from './ui/input';
+import { useAuth } from '@/hooks/useAuth';
 
 
 const CatalogCard = ({ catalog }: { catalog: Catalog }) => {
@@ -60,13 +61,15 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
   const { toast } = useToast();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = React.useState('');
+  const { user: currentUser } = useAuth();
 
   const fetchCatalogs = React.useCallback(async () => {
     setLoading(true);
-    const data = await getCatalogs();
+    const sellerId = currentUser?.role === 'Seller' ? currentUser.id : undefined;
+    const data = await getCatalogs(sellerId);
     setCatalogs(data);
     setLoading(false);
-  }, []);
+  }, [currentUser]);
 
   React.useEffect(() => {
     fetchCatalogs();

@@ -16,6 +16,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import AddMarketingKitDialog from './add-marketing-kit-dialog';
 import { ADMIN_ROLES } from '@/lib/roles';
+import { useAuth } from '@/hooks/useAuth';
 
 const MarketingKitCard = ({ kit }: { kit: MarketingKitInfo }) => {
   return (
@@ -54,13 +55,15 @@ export default function ManageMarketingKitsContent({ role }: { role: Role }) {
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
   const router = useRouter();
+  const { user: currentUser } = useAuth();
 
   const fetchKits = React.useCallback(async () => {
     setLoading(true);
-    const data = await getMarketingKits();
+    const sellerId = currentUser?.role === 'Seller' ? currentUser.id : undefined;
+    const data = await getMarketingKits(sellerId);
     setKits(data);
     setLoading(false);
-  }, []);
+  }, [currentUser]);
 
   React.useEffect(() => {
     fetchKits();

@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, limit, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, limit, doc, updateDoc, getDoc, QueryConstraint } from 'firebase/firestore';
 import * as z from 'zod';
 import type { Catalog, MarketingKitInfo, CatalogMarketingKit } from '@/types';
 
@@ -100,9 +100,14 @@ export async function addCatalog(data: Omit<Catalog, 'id' | 'catalogCode'>) {
   }
 }
 
-export async function getCatalogs(): Promise<Catalog[]> {
+export async function getCatalogs(sellerId?: string): Promise<Catalog[]> {
   try {
-    const catalogsSnapshot = await getDocs(collection(db, 'catalogs'));
+    const constraints: QueryConstraint[] = [];
+    if (sellerId) {
+        constraints.push(where("sellerId", "==", sellerId));
+    }
+    const q = query(collection(db, 'catalogs'), ...constraints);
+    const catalogsSnapshot = await getDocs(q);
     return catalogsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Catalog));
   } catch (error) {
     console.error("Error fetching catalogs:", error);
@@ -110,9 +115,9 @@ export async function getCatalogs(): Promise<Catalog[]> {
   }
 }
 
-export async function getMarketingKits(): Promise<MarketingKitInfo[]> {
+export async function getMarketingKits(sellerId?: string): Promise<MarketingKitInfo[]> {
   try {
-    const catalogs = await getCatalogs();
+    const catalogs = await getCatalogs(sellerId);
     const allKits: MarketingKitInfo[] = [];
 
     catalogs.forEach(catalog => {
@@ -142,7 +147,7 @@ const addMarketingKitSchema = z.object({
   uploadedFile: z.string().min(1, 'File is required'),
 });
 
-export async function addMarketingKit(data: z.infer<typeof addMarketingKitSchema>) {
+export async function addMarketingKit(data: z.infer<typeof addMarketingKitSchema>, sellerId?: string) {
   const validation = addMarketingKitSchema.safeParse(data);
   if (!validation.success) {
     console.error('Validation errors:', validation.error.flatten());
@@ -153,11 +158,18 @@ export async function addMarketingKit(data: z.infer<typeof addMarketingKitSchema
   
   try {
     const catalogsRef = collection(db, 'catalogs');
-    const q = query(catalogsRef, where('catalogCode', '==', catalogCode), limit(1));
+    const constraints: QueryConstraint[] = [where('catalogCode', '==', catalogCode)];
+    if (sellerId) {
+        constraints.push(where("sellerId", "==", sellerId));
+    }
+    const q = query(catalogsRef, ...constraints, limit(1));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      return { success: false, error: `Catalog with code "${catalogCode}" not found.` };
+      const errorMessage = sellerId
+        ? `Catalog with code "${catalogCode}" not found or you do not have permission to edit it.`
+        : `Catalog with code "${catalogCode}" not found.`;
+      return { success: false, error: errorMessage };
     }
 
     const catalogDoc = querySnapshot.docs[0];

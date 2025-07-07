@@ -3,6 +3,7 @@
 
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -302,6 +303,7 @@ export interface Category {
   imageUrl: string;
   url: string;
   categoryCode?: string;
+  sellerId?: string;
 }
 
 export interface ContentItem {
@@ -313,6 +315,7 @@ export interface ContentItem {
   catalogCode?: string;
   contentType: 'Article' | 'Video' | 'FAQs';
   contentCode?: string;
+  sellerId?: string;
 }
 
 export interface SupportTicket {

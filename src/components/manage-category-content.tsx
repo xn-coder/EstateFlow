@@ -14,19 +14,22 @@ import { ArrowUpDown, Edit, Trash2, PlusCircle, ArrowLeft, Image as ImageIcon } 
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import AddCategoryDialog from './add-category-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ManageCategoryContent() {
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
   const router = useRouter();
+  const { user: currentUser } = useAuth();
 
   const fetchCategories = React.useCallback(async () => {
     setLoading(true);
-    const data = await getCategories();
+    const sellerId = currentUser?.role === 'Seller' ? currentUser.id : undefined;
+    const data = await getCategories(sellerId);
     setCategories(data);
     setLoading(false);
-  }, []);
+  }, [currentUser]);
 
   React.useEffect(() => {
     fetchCategories();

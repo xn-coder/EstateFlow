@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { addCategory } from '@/app/manage-category/actions';
+import { useAuth } from '@/hooks/useAuth';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
@@ -74,6 +75,7 @@ function FileUpload({ onFileSelect, previewUrl, hint }: { onFileSelect: (base64:
 export default function AddCategoryDialog({ children, onCategoryAdded }: AddCategoryDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
 
   const form = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
@@ -85,7 +87,8 @@ export default function AddCategoryDialog({ children, onCategoryAdded }: AddCate
   });
 
   const onSubmit = async (values: z.infer<typeof categorySchema>) => {
-    const result = await addCategory(values);
+    const sellerId = currentUser?.role === 'Seller' ? currentUser.id : undefined;
+    const result = await addCategory(values, sellerId);
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       onCategoryAdded();

@@ -22,6 +22,7 @@ import { Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { addMarketingKit } from '@/app/add-catalog/actions';
+import { useAuth } from '@/hooks/useAuth';
 
 const marketingKitSchema = z.object({
   catalogCode: z.string().min(1, 'Catalog code is required'),
@@ -77,6 +78,7 @@ function FileUploadButton({ label, onFileSelect, previewUrl, hint, accept = "ima
 export default function AddMarketingKitDialog({ children, onKitAdded }: AddMarketingKitDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
 
   const form = useForm<z.infer<typeof marketingKitSchema>>({
     resolver: zodResolver(marketingKitSchema),
@@ -90,7 +92,8 @@ export default function AddMarketingKitDialog({ children, onKitAdded }: AddMarke
   });
 
   const onSubmit = async (values: z.infer<typeof marketingKitSchema>) => {
-    const result = await addMarketingKit(values);
+    const sellerId = currentUser?.role === 'Seller' ? currentUser.id : undefined;
+    const result = await addMarketingKit(values, sellerId);
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       onKitAdded();
