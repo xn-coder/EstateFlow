@@ -66,7 +66,7 @@ export async function registerPartner(data: z.infer<typeof partnerSchema>) {
     // Create partner profile
     const partnerProfileRef = await addDoc(collection(db, 'partnerProfiles'), dataForFirestore);
 
-    const feeStatus = partnerCategory === 'Associate Partner' ? 'Not Applicable' : 'Pending Payment';
+    const feeStatus = partnerCategory === 'Affiliate Partner' ? 'Pending Payment' : 'Not Applicable';
 
     // Create a corresponding user entry
     await addDoc(usersRef, {
