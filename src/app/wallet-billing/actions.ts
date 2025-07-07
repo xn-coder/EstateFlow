@@ -115,7 +115,8 @@ export async function updateReceivableStatus(id: string, status: 'Pending' | 'Re
       const summaryData = summaryDoc.data() as { totalBalance: number; revenue: number };
       transaction.update(walletSummaryRef, {
         totalBalance: summaryData.totalBalance + amount,
-        revenue: summaryData.revenue + amount,
+        // Revenue is recognized at time of sale, not on payment receipt.
+        // revenue: summaryData.revenue + amount,
       });
       
       const newHistory: Omit<PaymentHistory, 'id'> = {

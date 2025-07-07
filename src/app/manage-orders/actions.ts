@@ -4,7 +4,7 @@
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, orderBy, where, doc, updateDoc, runTransaction, getDoc, limit } from 'firebase/firestore';
 import * as z from 'zod';
-import type { Customer, SubmittedEnquiry, Catalog, User, PartnerData, Payable, PaymentHistory } from '@/types';
+import type { Customer, SubmittedEnquiry, Catalog, User, PartnerData, Payable, PaymentHistory, Receivable } from '@/types';
 
 const enquirySchema = z.object({
   catalogId: z.string(),
@@ -104,7 +104,7 @@ export async function confirmEnquiry(enquiryId: string) {
             const partnerUser = partnerUserDoc.data() as User;
             if (!partnerUser.partnerProfileId) throw new Error("Partner profile ID not found.");
             
-            const partnerProfileRef = doc(db, 'partnerProfiles', partnerUser.partnerProfileId);
+            const partnerProfileRef = doc(db, 'partnerProfiles', user.partnerProfileId);
             const partnerProfileDoc = await transaction.get(partnerProfileRef);
             if (!partnerProfileDoc.exists()) throw new Error("Partner profile not found.");
             const partnerProfile = partnerProfileDoc.data() as PartnerData;
@@ -140,28 +140,27 @@ export async function confirmEnquiry(enquiryId: string) {
                 transaction.set(newPayableRef, newPayable);
             }
 
-            // 4. Update wallet summary
+            // 4. Create a receivable for the full order amount
+            const newReceivableRef = doc(collection(db, 'receivables'));
+            const newReceivable: Omit<Receivable, 'id'> = {
+                date: new Date().toISOString().split('T')[0],
+                partnerName: partnerUser.name,
+                partnerId: partnerUser.partnerCode || partnerUser.id,
+                pendingAmount: catalog.sellingPrice,
+                status: 'Pending',
+                description: `Sale of '${catalog.title}'`,
+            };
+            transaction.set(newReceivableRef, newReceivable);
+            
+            // 5. Update wallet summary (revenue only, not balance)
             if (!walletSummaryDoc.exists()) {
-                transaction.set(walletSummaryRef, { totalBalance: catalog.sellingPrice, revenue: catalog.sellingPrice });
+                transaction.set(walletSummaryRef, { totalBalance: 0, revenue: catalog.sellingPrice });
             } else {
                 const summaryData = walletSummaryDoc.data();
                 transaction.update(walletSummaryRef, {
-                    totalBalance: summaryData.totalBalance + catalog.sellingPrice,
-                    revenue: summaryData.revenue + catalog.sellingPrice,
+                    revenue: (summaryData.revenue || 0) + catalog.sellingPrice,
                 });
             }
-
-            // 5. Write payment history
-            const newHistoryRef = doc(collection(db, 'paymentHistory'));
-            const newHistory: Omit<PaymentHistory, 'id'> = {
-                date: new Date().toISOString().split('T')[0],
-                name: `Sale of '${catalog.title}' by ${partnerUser.name}`,
-                transactionId: `SALE-${enquiry.enquiryId}`,
-                amount: catalog.sellingPrice,
-                paymentMethod: 'Sale',
-                type: 'Credit',
-            };
-            transaction.set(newHistoryRef, newHistory);
             
             // 6. Write new customer if they don't exist
             if (existingCustomersSnap.empty) {
