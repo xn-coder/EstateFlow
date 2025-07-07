@@ -93,6 +93,7 @@ const AdminBusinessView = () => {
 
     const partnerItems = [
         { label: 'Manage Partner', href: '/manage-partner' },
+        { label: 'Manage Seller', href: '/manage-seller' },
         { label: 'Partner Activation', href: '/partner-activation' },
         { label: 'Deactivated Partner', href: '/deactivated-partner' },
         { label: 'Manage Customer', href: '/manage-customers' },
