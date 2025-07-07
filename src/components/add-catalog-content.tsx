@@ -21,6 +21,7 @@ import { Checkbox } from './ui/checkbox';
 import { getCategories } from '@/app/manage-category/actions';
 import type { Category } from '@/types';
 import { partnerCategories } from '@/types';
+import SummernoteEditor from './summernote-editor';
 
 // Schemas for each step
 const step1Schema = z.object({
@@ -426,7 +427,11 @@ export default function AddCatalogContent() {
                   )}
 
                   {step === 4 && (
-                     <FormField control={control} name="detailsContent" render={({ field }) => ( <FormItem><FormLabel>Details</FormLabel><FormControl><Textarea className="min-h-64" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                     <FormField
+                        control={control}
+                        name="detailsContent"
+                        render={({ field }) => <SummernoteEditor value={field.value || ''} onChange={field.onChange} />}
+                      />
                   )}
                   
                    {step === 5 && (
