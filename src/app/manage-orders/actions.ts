@@ -2,9 +2,9 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, where, writeBatch, doc } from 'firebase/firestore';
 import * as z from 'zod';
-import type { SubmittedEnquiry, User } from '@/types';
+import type { SubmittedEnquiry, User, Customer } from '@/types';
 
 const enquirySchema = z.object({
   catalogId: z.string(),
@@ -29,15 +29,35 @@ export async function submitEnquiry(data: Omit<SubmittedEnquiry, 'id' | 'enquiry
   }
   
   try {
+    const batch = writeBatch(db);
+
+    // 1. Create Enquiry
+    const enquiryRef = doc(collection(db, 'enquiries'));
     const enquiryId = `ENQ${Math.floor(100000 + Math.random() * 900000)}`;
-    const dataToSave = {
+    const enquiryToSave = {
       ...validation.data,
       enquiryId,
       createdAt: new Date().toISOString(),
       status: 'New' as const,
     };
-    await addDoc(collection(db, 'enquiries'), dataToSave);
-    return { success: true, message: 'Enquiry submitted successfully!' };
+    batch.set(enquiryRef, enquiryToSave);
+
+    // 2. Create Customer
+    const customerRef = doc(collection(db, 'customers'));
+    const customerId = `CUS${Math.floor(100000 + Math.random() * 900000)}`;
+    const newCustomer: Omit<Customer, 'id'> = {
+        customerId,
+        name: data.customerName,
+        email: data.customerEmail,
+        phone: data.customerPhone,
+        pincode: data.customerPincode,
+        createdBy: data.submittedBy.id,
+        createdAt: new Date().toISOString(),
+    };
+    batch.set(customerRef, newCustomer);
+
+    await batch.commit();
+    return { success: true, message: 'Enquiry submitted and customer created successfully!' };
   } catch (error) {
     console.error('Error submitting enquiry:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';

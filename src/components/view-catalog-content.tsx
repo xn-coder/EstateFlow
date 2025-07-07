@@ -114,6 +114,7 @@ const EnquiryForm = ({ catalog, currentUser }: { catalog: Catalog, currentUser: 
                 <FormProvider {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <Input defaultValue={catalog.catalogCode} readOnly className="bg-muted" />
+                        <Input defaultValue={currentUser.partnerCode || currentUser.id} readOnly className="bg-muted" />
                         <FormField control={form.control} name="customerName" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Customer Name" {...field} /></FormControl><FormMessage /></FormItem> )} />
                         <FormField control={form.control} name="customerPhone" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Phone Number" {...field} /></FormControl><FormMessage /></FormItem> )} />
                         <FormField control={form.control} name="customerEmail" render={({ field }) => ( <FormItem><FormControl><Input type="email" placeholder="Customer Email Details" {...field} /></FormControl><FormMessage /></FormItem> )} />

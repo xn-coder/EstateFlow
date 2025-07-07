@@ -3,6 +3,7 @@
 
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -201,6 +202,17 @@ export interface WalletSummary {
   revenue: number;
   receivable: number;
   payable: number;
+}
+
+export interface Customer {
+  id: string; // document ID
+  customerId: string; // custom ID
+  name: string;
+  email: string;
+  phone: string;
+  pincode: string;
+  createdBy: string; // partner user ID
+  createdAt: string; // ISO string
 }
 
 export interface CatalogSlideshow {
