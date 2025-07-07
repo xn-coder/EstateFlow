@@ -141,11 +141,17 @@ export default function LoginPage() {
             </Button>
             <p className="text-xs text-muted-foreground mt-2">Adds initial users to Firestore if they don't exist.</p>
           </div>
-           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="underline">
-              Register as a Partner
-            </Link>
+           <div className="mt-6 text-center text-sm">
+            <p className="text-muted-foreground">Don&apos;t have an account?</p>
+            <div className="flex items-center justify-center gap-x-6 mt-2">
+                <Link href="/seller-signup" className="font-medium text-primary hover:underline">
+                Register as Seller
+                </Link>
+                <div className="h-4 w-px bg-border"></div>
+                <Link href="/signup" className="font-medium text-primary hover:underline">
+                Register as Partner
+                </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
