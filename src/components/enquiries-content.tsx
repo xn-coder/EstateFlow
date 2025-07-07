@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import type { SubmittedEnquiry, User } from '@/types';
-import { getEnquiriesByPartner } from '@/app/manage-orders/actions';
+import { getEnquiries } from '@/app/manage-orders/actions';
 import { format, parseISO } from 'date-fns';
 import { CheckCircle, Eye, Phone, Trash2 } from 'lucide-react';
 
@@ -48,8 +49,9 @@ export default function EnquiriesContent({ currentUser }: { currentUser: User })
     React.useEffect(() => {
         const fetchEnquiries = async () => {
             setLoading(true);
-            const data = await getEnquiriesByPartner(currentUser.id);
-            setEnquiries(data);
+            const allEnquiries = await getEnquiries();
+            const partnerEnquiries = allEnquiries.filter(e => e.submittedBy.id === currentUser.id);
+            setEnquiries(partnerEnquiries);
             setLoading(false);
         };
         fetchEnquiries();

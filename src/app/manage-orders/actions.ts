@@ -58,15 +58,3 @@ export async function getEnquiries(): Promise<SubmittedEnquiry[]> {
     return [];
   }
 }
-
-export async function getEnquiriesByPartner(partnerId: string): Promise<SubmittedEnquiry[]> {
-  try {
-    const enquiriesRef = collection(db, 'enquiries');
-    const q = query(enquiriesRef, where('submittedBy.id', '==', partnerId), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubmittedEnquiry));
-  } catch (error) {
-    console.error("Error fetching enquiries for partner:", error);
-    return [];
-  }
-}
