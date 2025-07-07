@@ -1,6 +1,7 @@
 
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -261,8 +262,8 @@ export interface Catalog {
   // Step 2
   pricingType: 'INR' | 'USD';
   sellingPrice: number;
-  earningType: 'Fixed rate' | 'commission' | 'reward point' | 'partner_category_commission';
-  earning?: number;
+  earningType: 'Fixed rate' | 'commission' | 'reward point';
+  earning: number;
   partnerCategoryCommissions?: {
     'Affiliate Partner'?: number;
     'Super Affiliate Partner'?: number;

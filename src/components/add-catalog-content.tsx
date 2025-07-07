@@ -35,8 +35,8 @@ const step1Schema = z.object({
 const step2Schema = z.object({
   pricingType: z.enum(['INR', 'USD']),
   sellingPrice: z.coerce.number().min(0, 'Selling price must be a positive number'),
-  earningType: z.enum(['Fixed rate', 'commission', 'reward point', 'partner_category_commission']),
-  earning: z.coerce.number().optional(),
+  earningType: z.enum(['Fixed rate', 'commission', 'reward point']),
+  earning: z.coerce.number().min(0, 'Earning must be a positive number'),
   partnerCategoryCommissions: z.object({
     'Affiliate Partner': z.coerce.number().optional(),
     'Super Affiliate Partner': z.coerce.number().optional(),
@@ -103,26 +103,7 @@ const combinedSchema = step1Schema
   .merge(step6Schema)
   .merge(step7Schema)
   .merge(step8Schema)
-  .merge(step9Schema)
-  .superRefine((data, ctx) => {
-    if (data.earningType === 'partner_category_commission') {
-      if (!data.partnerCategoryCommissions || Object.values(data.partnerCategoryCommissions).every(v => v === undefined || v === null)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'At least one partner commission must be set.',
-          path: ['partnerCategoryCommissions'],
-        });
-      }
-    } else {
-      if (data.earning === undefined || data.earning === null || data.earning < 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'A positive earning value is required for this earning type.',
-          path: ['earning'],
-        });
-      }
-    }
-  });
+  .merge(step9Schema);
 
 
 type FormValues = z.infer<typeof combinedSchema>;
@@ -237,8 +218,6 @@ export default function AddCatalogContent() {
 
   const { trigger, handleSubmit, formState: { isSubmitting }, control, watch, setValue } = methods;
 
-  const earningType = watch('earningType');
-
   const { fields: slideshowFields, append: appendSlideshow, remove: removeSlideshow } = useFieldArray({ control, name: 'slideshows' });
   const { fields: faqFields, append: appendFaq, remove: removeFaq } = useFieldArray({ control, name: 'faqs' });
   const { fields: galleryFields, append: appendGallery, remove: removeGallery } = useFieldArray({ control, name: 'galleryImages' });
@@ -349,65 +328,55 @@ export default function AddCatalogContent() {
                       <FormField control={control} name="sellingPrice" render={({ field }) => ( <FormItem><FormLabel>Selling Price*</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem> )} />
                       <FormField control={control} name="earningType" render={({ field }) => (
                           <FormItem><FormLabel>Earning Type</FormLabel><Select 
-                                onValueChange={(value) => {
-                                    field.onChange(value);
-                                    if (value === 'partner_category_commission') {
-                                        setValue('earning', undefined);
-                                    } else {
-                                        setValue('partnerCategoryCommissions', {});
-                                    }
-                                }}
+                                onValueChange={field.onChange}
                                 defaultValue={field.value}>
                               <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                               <SelectContent>
                                 <SelectItem value="Fixed rate">Fixed rate</SelectItem>
                                 <SelectItem value="commission">Commission</SelectItem>
                                 <SelectItem value="reward point">Reward Point</SelectItem>
-                                <SelectItem value="partner_category_commission">Partner Category Commission</SelectItem>
                               </SelectContent>
                           </Select><FormMessage /></FormItem>
                         )} />
                         
-                        {earningType !== 'partner_category_commission' ? (
-                            <FormField control={control} name="earning" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Earning*</FormLabel>
-                                    <FormControl><Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                        ) : (
-                          <Card>
+                        <FormField control={control} name="earning" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Earning*</FormLabel>
+                                <FormControl><Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        
+                        <Card>
                             <CardHeader>
-                              <CardTitle className="text-base">Partner Category Commissions (%)</CardTitle>
-                              <CardDescription>Set the commission percentage for each partner category.</CardDescription>
+                            <CardTitle className="text-base">Partner Returns (%)</CardTitle>
+                            <CardDescription>Set the return percentage for each partner category. This is optional.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                              {partnerCategories.map(category => (
+                            {partnerCategories.map(category => (
                                 <FormField
-                                  key={category}
-                                  control={control}
-                                  name={`partnerCategoryCommissions.${category}`}
-                                  render={({ field }) => (
+                                key={category}
+                                control={control}
+                                name={`partnerCategoryCommissions.${category}`}
+                                render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>{category}</FormLabel>
-                                      <FormControl>
+                                    <FormLabel>{category}</FormLabel>
+                                    <FormControl>
                                         <Input
-                                          type="number"
-                                          placeholder="e.g., 10 for 10%"
-                                          {...field}
-                                          onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
-                                          value={field.value ?? ''}
+                                        type="number"
+                                        placeholder="e.g., 10 for 10%"
+                                        {...field}
+                                        onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
+                                        value={field.value ?? ''}
                                         />
-                                      </FormControl>
-                                      <FormMessage />
+                                    </FormControl>
+                                    <FormMessage />
                                     </FormItem>
-                                  )}
+                                )}
                                 />
-                              ))}
+                            ))}
                             </CardContent>
-                          </Card>
-                        )}
+                        </Card>
                     </div>
                   )}
 
