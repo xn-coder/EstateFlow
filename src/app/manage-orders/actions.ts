@@ -4,7 +4,7 @@
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, orderBy, where, doc, updateDoc, runTransaction, getDoc, limit } from 'firebase/firestore';
 import * as z from 'zod';
-import type { Customer, SubmittedEnquiry } from '@/types';
+import type { Customer, SubmittedEnquiry, Catalog, User, PartnerData, Payable, PaymentHistory } from '@/types';
 
 const enquirySchema = z.object({
   catalogId: z.string(),
@@ -63,40 +63,93 @@ export async function confirmEnquiry(enquiryId: string) {
     if (!enquiryId) {
         return { success: false, error: 'Invalid Enquiry ID provided.' };
     }
-    
+
     const enquiryRef = doc(db, 'enquiries', enquiryId);
-    
+
     try {
-        const enquiryDocSnap = await getDoc(enquiryRef);
-        if (!enquiryDocSnap.exists()) {
+        const enquiryForCustomerCheck = await getDoc(enquiryRef);
+        if (!enquiryForCustomerCheck.exists()) {
             throw new Error("Enquiry not found.");
         }
-
-        const enquiry = { id: enquiryDocSnap.id, ...enquiryDocSnap.data() } as SubmittedEnquiry;
-        if (!enquiry || !enquiry.customerEmail || !enquiry.submittedBy || !enquiry.submittedBy.id || !enquiry.id) {
-            throw new Error('Invalid or incomplete enquiry data. Cannot proceed.');
-        }
-
-        if (enquiry.status !== 'New') {
-            return { success: true, message: "Enquiry already processed." };
-        }
+        const enquiryDataForCheck = enquiryForCustomerCheck.data() as SubmittedEnquiry;
 
         const customersRef = collection(db, 'customers');
-        const customerQuery = query(customersRef, where("email", "==", enquiry.customerEmail), limit(1));
-        const existingCustomers = await getDocs(customerQuery);
-        
+        const customerQuery = query(customersRef, where("email", "==", enquiryDataForCheck.customerEmail), limit(1));
+        const existingCustomersSnap = await getDocs(customerQuery);
+
         await runTransaction(db, async (transaction) => {
             const freshEnquiryDoc = await transaction.get(enquiryRef);
             if (!freshEnquiryDoc.exists()) {
                 throw new Error("Enquiry not found inside transaction.");
             }
-            const freshEnquiryData = freshEnquiryDoc.data() as SubmittedEnquiry;
-            if (freshEnquiryData.status !== 'New') {
-                console.log("Enquiry was processed by another request.");
+            const enquiry = { id: freshEnquiryDoc.id, ...freshEnquiryDoc.data() } as SubmittedEnquiry;
+
+            if (enquiry.status !== 'New') {
                 return;
             }
 
-            if (existingCustomers.empty) {
+            const catalogRef = doc(db, 'catalogs', enquiry.catalogId);
+            const catalogDoc = await transaction.get(catalogRef);
+            if (!catalogDoc.exists()) throw new Error("Catalog not found.");
+            const catalog = { id: catalogDoc.id, ...catalogDoc.data() } as Catalog;
+
+            const partnerUserRef = doc(db, 'users', enquiry.submittedBy.id);
+            const partnerUserDoc = await transaction.get(partnerUserRef);
+            if (!partnerUserDoc.exists()) throw new Error("Partner user not found.");
+            const partnerUser = partnerUserDoc.data() as User;
+            if (!partnerUser.partnerProfileId) throw new Error("Partner profile ID not found.");
+            const partnerProfileRef = doc(db, 'partnerProfiles', partnerUser.partnerProfileId);
+            const partnerProfileDoc = await transaction.get(partnerProfileRef);
+            if (!partnerProfileDoc.exists()) throw new Error("Partner profile not found.");
+            const partnerProfile = partnerProfileDoc.data() as PartnerData;
+
+            let commissionAmount = 0;
+            const commissionPercentage = catalog.partnerCategoryCommissions?.[partnerProfile.partnerCategory];
+
+            if (commissionPercentage && commissionPercentage > 0) {
+                commissionAmount = (catalog.sellingPrice * commissionPercentage) / 100;
+            } else if (catalog.earningType === 'commission') {
+                commissionAmount = (catalog.sellingPrice * catalog.earning) / 100;
+            } else if (catalog.earningType === 'Fixed rate') {
+                commissionAmount = catalog.earning;
+            }
+
+            if (commissionAmount > 0) {
+                const newPayableRef = doc(collection(db, 'payables'));
+                const newPayable: Omit<Payable, 'id'> = {
+                    date: new Date().toISOString().split('T')[0],
+                    recipientName: partnerUser.name,
+                    recipientId: partnerUser.partnerCode || partnerUser.id,
+                    payableAmount: commissionAmount,
+                    status: 'Pending',
+                };
+                transaction.set(newPayableRef, newPayable);
+            }
+
+            const walletSummaryRef = doc(db, 'wallet', 'summary');
+            const walletSummaryDoc = await transaction.get(walletSummaryRef);
+            if (!walletSummaryDoc.exists()) {
+                transaction.set(walletSummaryRef, { totalBalance: catalog.sellingPrice, revenue: catalog.sellingPrice });
+            } else {
+                const summaryData = walletSummaryDoc.data();
+                transaction.update(walletSummaryRef, {
+                    totalBalance: summaryData.totalBalance + catalog.sellingPrice,
+                    revenue: summaryData.revenue + catalog.sellingPrice,
+                });
+            }
+
+            const newHistoryRef = doc(collection(db, 'paymentHistory'));
+            const newHistory: Omit<PaymentHistory, 'id'> = {
+                date: new Date().toISOString().split('T')[0],
+                name: `Sale of '${catalog.title}' by ${partnerUser.name}`,
+                transactionId: `SALE-${enquiry.enquiryId}`,
+                amount: catalog.sellingPrice,
+                paymentMethod: 'Sale',
+                type: 'Credit',
+            };
+            transaction.set(newHistoryRef, newHistory);
+
+            if (existingCustomersSnap.empty) {
                 const customerId = `CD${Math.random().toString().slice(2, 12)}`;
                 const newCustomer: Omit<Customer, 'id'> = {
                     customerId: customerId,
@@ -107,14 +160,14 @@ export async function confirmEnquiry(enquiryId: string) {
                     createdBy: enquiry.submittedBy.id,
                     createdAt: new Date().toISOString(),
                 };
-                const newCustomerRef = doc(collection(db, 'customers'));
+                const newCustomerRef = doc(customersRef);
                 transaction.set(newCustomerRef, newCustomer);
             }
 
             transaction.update(enquiryRef, { status: 'Contacted' });
         });
 
-        return { success: true, message: 'Enquiry confirmed and customer created.' };
+        return { success: true, message: 'Enquiry confirmed and processed successfully.' };
     } catch (error) {
         console.error('Error confirming enquiry:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';

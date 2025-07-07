@@ -164,7 +164,7 @@ export default function PartnerActivationContent() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant={user.feeStatus === 'Paid' || user.feeStatus === 'Not Applicable' ? 'secondary' : 'destructive'}>
+                                    <Badge variant={user.feeStatus === 'Paid' ? 'success' : user.feeStatus === 'Not Applicable' ? 'secondary' : 'destructive'}>
                                         {user.feeStatus || 'N/A'}
                                     </Badge>
                                 </TableCell>

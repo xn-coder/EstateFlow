@@ -28,6 +28,7 @@ const catalogMarketingKitSchema = z.object({
 
 const catalogSchema: z.ZodType<Omit<Catalog, 'id' | 'catalogCode'>> = z.object({
   // Step 1
+  sellerId: z.string(),
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
   metaKeyword: z.string().optional(),

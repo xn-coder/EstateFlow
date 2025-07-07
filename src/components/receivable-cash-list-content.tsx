@@ -34,7 +34,7 @@ export default function ReceivableCashListContent() {
 
 
   const getStatusBadgeVariant = (status: Receivable['status']) => {
-    return status === 'Received' ? 'secondary' : 'destructive';
+    return status === 'Received' ? 'success' : 'destructive';
   }
 
   const handleMarkAsReceived = async (id: string) => {

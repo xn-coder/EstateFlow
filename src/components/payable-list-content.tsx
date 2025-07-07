@@ -39,7 +39,7 @@ export default function PayableListContent({ currentUser }: PayableListContentPr
 
 
   const getStatusBadgeVariant = (status: Payable['status']) => {
-    return status === 'Paid' ? 'secondary' : 'destructive';
+    return status === 'Paid' ? 'success' : 'destructive';
   }
 
   const handleMarkAsPaid = async (id: string) => {

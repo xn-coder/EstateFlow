@@ -19,7 +19,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { addCatalog } from '@/app/add-catalog/actions';
 import { Checkbox } from './ui/checkbox';
 import { getCategories } from '@/app/manage-category/actions';
-import type { Category } from '@/types';
+import type { Category, User } from '@/types';
 import { partnerCategories } from '@/types';
 import SummernoteEditor from './summernote-editor';
 
@@ -170,7 +170,7 @@ function FileUploadButton({ label, onFileSelect, previewUrl, hint, accept = "ima
   );
 }
 
-export default function AddCatalogContent() {
+export default function AddCatalogContent({ currentUser }: { currentUser: User }) {
   const [step, setStep] = React.useState(1);
   const router = useRouter();
   const { toast } = useToast();
@@ -252,9 +252,10 @@ export default function AddCatalogContent() {
       ...data,
       categoryName: selectedCategory.name,
       galleryImages: (data.galleryImages || []).map(img => img.value),
+      sellerId: currentUser.id,
     };
     
-    const result = await addCatalog(finalData);
+    const result = await addCatalog(finalData as any);
     if (result.success) {
       toast({ title: 'Success', description: result.message });
       router.push('/manage-business');
@@ -266,7 +267,7 @@ export default function AddCatalogContent() {
   return (
     <div className="max-w-4xl mx-auto">
       <FormProvider {...methods}>
-        <form>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <Card>
             <CardHeader>
               <div className="flex items-center gap-4">
@@ -361,7 +362,7 @@ export default function AddCatalogContent() {
                         <Card>
                             <CardHeader>
                             <CardTitle className="text-base">Partner Returns (%)</CardTitle>
-                            <CardDescription>Set the return percentage for each partner category. This is optional.</CardDescription>
+                            <CardDescription>Set the return percentage for each partner category. This is optional and separate from the main earning above.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                             {partnerCategories.map(category => (
@@ -515,7 +516,7 @@ export default function AddCatalogContent() {
                 {step < steps.length ? (
                   <Button type="button" onClick={nextStep}>Next</Button>
                 ) : (
-                  <Button type="button" onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish Catalog'}</Button>
+                  <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish Catalog'}</Button>
                 )}
               </div>
             </CardContent>

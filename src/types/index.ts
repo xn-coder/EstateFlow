@@ -2,6 +2,7 @@
 
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -252,6 +253,7 @@ export interface CatalogMarketingKit {
 export interface Catalog {
   id: string;
   catalogCode: string;
+  sellerId: string;
   // Step 1
   title: string;
   description: string;

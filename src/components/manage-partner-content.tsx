@@ -127,7 +127,7 @@ export default function ManagePartnerContent() {
                                         </div>
                                     </TableCell>
                                     <TableCell className="hidden sm:table-cell">{user.partnerCode || 'N/A'}</TableCell>
-                                    <TableCell><Badge variant="secondary">Active</Badge></TableCell>
+                                    <TableCell><Badge variant="success">Active</Badge></TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
                                             <Button asChild variant="ghost" size="icon" title="View Profile">
