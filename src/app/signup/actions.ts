@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import bcrypt from 'bcryptjs';
 import * as z from 'zod';
+import { qualifications } from '@/types';
 
 // This is the full schema for validation on the server.
 const partnerSchema = z.object({
@@ -12,7 +13,7 @@ const partnerSchema = z.object({
   name: z.string().min(1),
   dob: z.date(),
   gender: z.enum(['Male', 'Female', 'Other']),
-  qualification: z.string().min(1),
+  qualification: z.enum(qualifications),
   phone: z.string().min(10),
   email: z.string().email(),
   whatsapp: z.string().min(10),

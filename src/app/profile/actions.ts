@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { doc, updateDoc, getDoc, addDoc, collection, deleteDoc, query, where, getDocs } from 'firebase/firestore';
 import * as z from 'zod';
 import type { Role, User } from '@/types';
+import { qualifications } from '@/types';
 import bcrypt from 'bcryptjs';
 import { ADMIN_ROLES } from '@/lib/roles';
 
@@ -201,7 +202,7 @@ const partnerPersonalDetailsSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   dob: z.date(),
   gender: z.enum(['Male', 'Female', 'Other']),
-  qualification: z.string().min(1, 'Qualification is required'),
+  qualification: z.enum(qualifications),
   profileImage: z.string().optional(),
 });
 export async function updatePartnerPersonalDetails(partnerProfileId: string, userId: string, data: z.infer<typeof partnerPersonalDetailsSchema>) {

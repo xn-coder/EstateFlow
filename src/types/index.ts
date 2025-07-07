@@ -3,6 +3,9 @@ export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manage
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
 
+export const qualifications = ["Post graduate", "Graduate", "Under graduate", "12th", "10th"] as const;
+export type Qualification = typeof qualifications[number];
+
 export interface User {
   id: string;
   name: string;
@@ -23,7 +26,7 @@ export interface PartnerData {
   name: string;
   dob: string; // Stored as ISO string in Firestore
   gender: 'Male' | 'Female' | 'Other';
-  qualification: string;
+  qualification: Qualification;
   phone: string;
   email: string;
   whatsapp: string;

@@ -22,6 +22,7 @@ import { format, subYears } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { registerPartner } from './actions';
+import { qualifications } from '@/types';
 
 // Zod schemas for each step
 const personalDetailsSchema = z.object({
@@ -29,7 +30,7 @@ const personalDetailsSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   dob: z.date({ required_error: 'Date of birth is required' }),
   gender: z.enum(['Male', 'Female', 'Other'], { required_error: 'Gender is required' }),
-  qualification: z.string().min(1, 'Qualification is required'),
+  qualification: z.enum(qualifications, { required_error: 'Qualification is required' }),
   phone: z.string().min(10, 'A valid phone number is required'),
   email: z.string().email('Invalid email address'),
   whatsapp: z.string().min(10, 'A valid WhatsApp number is required'),
@@ -143,7 +144,7 @@ export default function SignupPage() {
     defaultValues: {
       name: '',
       gender: undefined,
-      qualification: '',
+      qualification: undefined,
       phone: '',
       email: '',
       whatsapp: '',
@@ -247,7 +248,18 @@ export default function SignupPage() {
                       </Select><FormMessage /></FormItem>
                     )} />
                   </div>
-                  <FormField control={methods.control} name="qualification" render={({ field }) => ( <FormItem><FormLabel>Qualification</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                  <FormField control={methods.control} name="qualification" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Qualification</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Select qualification" /></SelectTrigger></FormControl>
+                          <SelectContent>
+                              {qualifications.map(q => <SelectItem key={q} value={q}>{q}</SelectItem>)}
+                          </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={methods.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem> )} />
                     <FormField control={methods.control} name="whatsapp" render={({ field }) => ( <FormItem><FormLabel>Whatsapp Number</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem> )} />

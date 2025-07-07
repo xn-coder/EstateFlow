@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -23,6 +24,7 @@ import { CalendarIcon, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updatePartnerPersonalDetails } from '@/app/profile/actions';
 import type { PartnerActivationInfo } from '@/types';
+import { qualifications } from '@/types';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { cn } from '@/lib/utils';
@@ -33,7 +35,7 @@ const partnerPersonalDetailsSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   dob: z.date(),
   gender: z.enum(['Male', 'Female', 'Other']),
-  qualification: z.string().min(1, 'Qualification is required'),
+  qualification: z.enum(qualifications),
   profileImage: z.string().optional(),
 });
 
@@ -135,7 +137,26 @@ export default function EditPartnerPersonalDialog({ children, partnerInfo, onUpd
                     <SelectContent><SelectItem value="Male">Male</SelectItem><SelectItem value="Female">Female</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent>
                 </Select><FormMessage /></FormItem>
             )} />
-            <FormField control={form.control} name="qualification" render={({ field }) => ( <FormItem><FormLabel>Education</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+            <FormField
+              control={form.control}
+              name="qualification"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Education</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select qualification" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {qualifications.map(q => <SelectItem key={q} value={q}>{q}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <DialogFooter>
               <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
               <Button type="submit" disabled={form.formState.isSubmitting}>
