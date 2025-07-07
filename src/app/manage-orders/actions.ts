@@ -135,6 +135,7 @@ export async function confirmEnquiry(enquiryId: string) {
                     recipientId: partnerUser.partnerCode || partnerUser.id,
                     payableAmount: commissionAmount,
                     status: 'Pending',
+                    description: `Commission for '${catalog.title}'`,
                 };
                 transaction.set(newPayableRef, newPayable);
             }

@@ -3,7 +3,7 @@
 
 import { db } from '@/lib/firebase';
 import { collection, doc, getDocs, getDoc, writeBatch, updateDoc, addDoc, query, limit, setDoc, where, runTransaction } from 'firebase/firestore';
-import type { Payable, PaymentHistory, Receivable, User, WalletSummary } from '@/types';
+import type { Payable, PaymentHistory, Receivable, User, WalletSummary, PartnerWalletData } from '@/types';
 import * as z from 'zod';
 import bcrypt from 'bcryptjs';
 
@@ -385,6 +385,7 @@ export async function makeAdHocPayment(data: z.infer<typeof adHocPaymentSchema>)
               recipientId: recipientId,
               payableAmount: amount,
               status: 'Paid',
+              description: `Ad-hoc payment to ${recipientName}`,
           });
           
           // C. Create new payment history doc
@@ -405,5 +406,50 @@ export async function makeAdHocPayment(data: z.infer<typeof adHocPaymentSchema>)
       console.error('Ad-hoc payment error:', error);
       const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
       return { success: false, error: errorMessage };
+  }
+}
+
+export async function getPartnerWalletData(partnerId: string): Promise<PartnerWalletData> {
+  try {
+    const payablesRef = collection(db, 'payables');
+    
+    const userRef = doc(db, 'users', partnerId);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+      return { totalEarning: 0, paidAmount: 0, pendingAmount: 0, rewardPoints: 0, transactions: [] };
+    }
+    const user = userSnap.data() as User;
+    
+    // Partners can be identified by user ID (legacy) or partner code.
+    const partnerIdentifier = user.partnerCode || user.id;
+
+    const q = query(payablesRef, where('recipientId', '==', partnerIdentifier));
+    const snapshot = await getDocs(q);
+    
+    const transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payable));
+
+    let totalEarning = 0;
+    let paidAmount = 0;
+    let pendingAmount = 0;
+
+    transactions.forEach(t => {
+      totalEarning += t.payableAmount;
+      if (t.status === 'Paid') {
+        paidAmount += t.payableAmount;
+      } else {
+        pendingAmount += t.payableAmount;
+      }
+    });
+
+    return {
+      totalEarning,
+      paidAmount,
+      pendingAmount,
+      rewardPoints: 0, // Not implemented yet
+      transactions,
+    };
+  } catch (error) {
+    console.error("Error fetching partner wallet data:", error);
+    return { totalEarning: 0, paidAmount: 0, pendingAmount: 0, rewardPoints: 0, transactions: [] };
   }
 }

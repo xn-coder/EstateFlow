@@ -516,7 +516,7 @@ export default function AddCatalogContent({ currentUser }: { currentUser: User }
                 {step < steps.length ? (
                   <Button type="button" onClick={nextStep}>Next</Button>
                 ) : (
-                  <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish Catalog'}</Button>
+                  <Button type="button" onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish Catalog'}</Button>
                 )}
               </div>
             </CardContent>
