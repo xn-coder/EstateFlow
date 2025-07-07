@@ -23,7 +23,7 @@ import { Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
-import { sendDirectMessage } from '@/app/messages/actions';
+import { sendMessage } from '@/app/messages/actions';
 
 const messageSchema = z.object({
   subject: z.string().min(1, 'Subject is required.'),
@@ -67,13 +67,11 @@ export default function SendDirectMessageDialog({ children, partner }: SendDirec
         return;
     }
 
-    const result = await sendDirectMessage({
+    const result = await sendMessage({
+        type: 'partner',
+        recipientId: partner.email,
         ...values,
-        recipientId: partner.id,
-        recipientName: partner.name,
-        senderId: currentUser.id,
-        senderName: currentUser.name,
-    });
+    }, currentUser);
 
     if (result.success) {
       toast({ title: 'Success', description: result.message });
@@ -97,7 +95,7 @@ export default function SendDirectMessageDialog({ children, partner }: SendDirec
             <FormItem>
                 <FormLabel>Partner ID</FormLabel>
                 <FormControl>
-                    <Input value={partner.partnerCode || partner.id} readOnly disabled />
+                    <Input value={partner.partnerCode || partner.email} readOnly disabled />
                 </FormControl>
             </FormItem>
             <FormField

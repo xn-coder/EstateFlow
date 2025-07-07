@@ -7,15 +7,22 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import type { Category } from '@/types';
+import type { Category, PartnerActivationInfo, WebsiteData, User } from '@/types';
 import { Skeleton } from './ui/skeleton';
-import { ChevronRight, Book, Mail } from 'lucide-react';
+import { ChevronRight, Book, Mail, Edit } from 'lucide-react';
 import AddMarketingKitDialog from './add-marketing-kit-dialog';
 import AddCategoryDialog from './add-category-dialog';
 import AddContentDialog from './add-content-dialog';
 import AddUserDialog from './add-user-dialog';
 import { getCategories } from '@/app/manage-category/actions';
-
+import { getPartnerById } from '@/app/manage-partner/actions';
+import { getWebsiteData } from '@/app/manage-website/actions';
+import Image from 'next/image';
+import EditBusinessDetailsDialog from './edit-partner-business-details-dialog';
+import EditPartnerBusinessLogoDialog from './edit-partner-business-logo-dialog';
+import EditPartnerDigitalCardDialog from './edit-partner-digital-card-dialog';
+import EditLinkDetailsDialog from './edit-link-details-dialog';
+import EditBusinessProfileDialog from './edit-business-profile-dialog';
 
 // Components for Admin View
 const AdminListItem = ({ children, href = "#", isDialog = false, DialogComponent }: { children: React.ReactNode; href?: string; isDialog?: boolean; DialogComponent?: React.ReactElement; }) => {
@@ -176,6 +183,7 @@ const ListItem = ({ href, children }: { href: string; children: React.ReactNode 
     </Link>
 );
 
+
 const PartnerBusinessDeskView = () => {
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
@@ -190,8 +198,8 @@ const PartnerBusinessDeskView = () => {
                 <CardContent className="p-0">
                     <div className="divide-y">
                         <ListItem href="/manage-catalog">Explore Catalog Now</ListItem>
+                        <ListItem href="/enquiries">List of Enquiries</ListItem>
                         <ListItem href="/wallet-billing">Send Invoice & Bills</ListItem>
-                        <ListItem href="/updates">Help & Support</ListItem>
                     </div>
                 </CardContent>
             </Card>

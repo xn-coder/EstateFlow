@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -13,10 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { updateMessages } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, Pencil } from 'lucide-react';
-import type { UpdateMessage, User } from '@/types';
+import type { Message, User } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { getMessages, markMessageAsRead, sendMessage } from '@/app/messages/actions';
+import { format, parseISO } from 'date-fns';
+import { Skeleton } from './ui/skeleton';
 
 // New validation schemas for admin form
 const announcementSchema = z.object({
@@ -27,7 +31,7 @@ const announcementSchema = z.object({
 });
 
 const directMessageSchema = z.object({
-  recipientId: z.string().min(1, 'Recipient ID is required.'),
+  recipientId: z.string().min(1, 'Recipient ID or Email is required.'),
   subject: z.string().min(1, 'Subject is required.'),
   details: z.string().min(1, 'Details are required.'),
 });
@@ -40,17 +44,19 @@ const formSchema = z.discriminatedUnion('type', [
 
 
 interface MessageListProps {
-  onMessageSelect: (message: UpdateMessage) => void;
+  onMessageSelect: (message: Message) => void;
   onCompose?: () => void;
   isPartner: boolean;
+  messages: Message[];
+  loading: boolean;
 }
 
-const MessageList = ({ onMessageSelect, onCompose, isPartner }: MessageListProps) => (
+const MessageList = ({ onMessageSelect, onCompose, isPartner, messages, loading }: MessageListProps) => (
     <Card>
         <CardHeader className="flex flex-row items-center justify-between">
             <div>
                 <CardTitle>Updates</CardTitle>
-                <CardDescription>You have {updateMessages.filter(m => !m.read).length} unread messages.</CardDescription>
+                <CardDescription>You have {messages.filter(m => !m.read).length} unread messages.</CardDescription>
             </div>
             {!isPartner && onCompose && (
               <Button onClick={onCompose}>
@@ -61,38 +67,58 @@ const MessageList = ({ onMessageSelect, onCompose, isPartner }: MessageListProps
         </CardHeader>
         <CardContent>
             <ScrollArea className="h-[500px]">
-                <div className="space-y-2 pr-4">
-                    {updateMessages.map((message) => (
-                    <button
-                        key={message.id}
-                        onClick={() => onMessageSelect(message)}
-                        className={cn(
-                        'w-full text-left flex items-start gap-4 p-4 rounded-lg border transition-colors hover:bg-muted/50',
-                        !message.read && 'bg-primary/5'
-                        )}
-                    >
-                        <Avatar className="h-10 w-10 border">
-                        <AvatarImage src={'https://placehold.co/40x40.png'} alt={message.from} data-ai-hint="person abstract" />
-                        <AvatarFallback>{message.from.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 overflow-hidden">
-                          <div className="flex justify-between items-start">
-                              <div className="font-semibold">{message.from}</div>
-                              <div className="text-xs text-muted-foreground">{message.date}</div>
-                          </div>
-                          <p className={cn('font-medium truncate', !message.read && 'text-primary')}>{message.subject}</p>
-                          <p className="text-sm text-muted-foreground line-clamp-1">{message.body}</p>
-                        </div>
-                    </button>
-                    ))}
-                </div>
+                 {loading ? (
+                    <div className="space-y-2 pr-4">
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="flex items-start gap-4 p-4">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-4 w-1/2" />
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-4 w-full" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : messages.length > 0 ? (
+                    <div className="space-y-2 pr-4">
+                        {messages.map((message) => (
+                        <button
+                            key={message.id}
+                            onClick={() => onMessageSelect(message)}
+                            className={cn(
+                            'w-full text-left flex items-start gap-4 p-4 rounded-lg border transition-colors hover:bg-muted/50',
+                            !message.read && 'bg-primary/5'
+                            )}
+                        >
+                            <Avatar className="h-10 w-10 border">
+                            <AvatarImage src={'https://placehold.co/40x40.png'} alt={message.senderName} data-ai-hint="person abstract" />
+                            <AvatarFallback>{message.senderName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 overflow-hidden">
+                            <div className="flex justify-between items-start">
+                                <div className="font-semibold">{message.senderName}</div>
+                                <div className="text-xs text-muted-foreground">{format(parseISO(message.createdAt), 'dd MMM')}</div>
+                            </div>
+                            <p className={cn('font-medium truncate', !message.read && 'text-primary')}>{message.subject}</p>
+                            <p className="text-sm text-muted-foreground line-clamp-1">{message.details}</p>
+                            </div>
+                        </button>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-16">
+                        <h3 className="text-lg font-medium">No Messages</h3>
+                        <p className="text-muted-foreground">Your inbox is empty.</p>
+                    </div>
+                )}
             </ScrollArea>
         </CardContent>
     </Card>
 );
 
 interface MessageDetailProps {
-  message: UpdateMessage;
+  message: Message;
   onBack: () => void;
 }
 
@@ -106,22 +132,22 @@ const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
         <div className="flex flex-col gap-2 sm:flex-row items-start sm:items-center justify-between border-b pb-4">
             <div className="flex items-center gap-4">
                 <Avatar className="h-10 w-10 border">
-                    <AvatarImage src={'https://placehold.co/40x40.png'} alt={message.from} data-ai-hint="person abstract" />
-                    <AvatarFallback>{message.from.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={'https://placehold.co/40x40.png'} alt={message.senderName} data-ai-hint="person abstract" />
+                    <AvatarFallback>{message.senderName.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-semibold">{message.from}</p>
+                    <p className="font-semibold">{message.senderName}</p>
                 </div>
             </div>
             <div className="text-sm text-muted-foreground self-start sm:self-center">
-                {message.date}
+                {format(parseISO(message.createdAt), 'dd MMM yyyy, p')}
             </div>
         </div>
         <CardTitle className="text-2xl !mt-2">{message.subject}</CardTitle>
     </CardHeader>
     <CardContent>
       <div className="prose dark:prose-invert max-w-none prose-p:my-2">
-        <p>{message.body}</p>
+        <p>{message.details}</p>
       </div>
     </CardContent>
   </Card>
@@ -131,7 +157,23 @@ const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
 export default function SendMessageContent({ currentUser }: { currentUser: User }) {
   const { toast } = useToast();
   const [view, setView] = React.useState<'list' | 'detail' | 'form'>('list');
-  const [selectedMessage, setSelectedMessage] = React.useState<UpdateMessage | null>(null);
+  const [selectedMessage, setSelectedMessage] = React.useState<Message | null>(null);
+  const [messages, setMessages] = React.useState<Message[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  const fetchMessages = React.useCallback(async () => {
+    if (currentUser) {
+      setLoading(true);
+      const data = await getMessages(currentUser.id);
+      setMessages(data);
+      setLoading(false);
+    }
+  }, [currentUser]);
+
+  React.useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -145,25 +187,30 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
 
   const messageType = form.watch('type');
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log('Sending message:', values);
-    toast({
-        title: 'Message Sent!',
-        description: 'Your message has been successfully sent.',
-    });
-    form.reset({
-      type: 'announcement',
-      announcementFor: 'partner',
-      subject: '',
-      details: '',
-    });
-    setView('list');
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const result = await sendMessage(values, currentUser);
+    if (result.success) {
+        toast({
+            title: 'Message Sent!',
+            description: 'Your message has been successfully sent.',
+        });
+        form.reset({
+          type: 'announcement',
+          announcementFor: 'partner',
+          subject: '',
+          details: '',
+        });
+        setView('list');
+    } else {
+        toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
   };
   
-  const handleMessageSelect = (message: UpdateMessage) => {
-    const targetMessage = updateMessages.find(m => m.id === message.id);
-    if(targetMessage) {
-        targetMessage.read = true;
+  const handleMessageSelect = (message: Message) => {
+    if (!message.read) {
+        markMessageAsRead(message.id);
+        const updatedMessages = messages.map(m => m.id === message.id ? { ...m, read: true } : m);
+        setMessages(updatedMessages);
     }
     setSelectedMessage(message);
     setView('detail');
@@ -176,7 +223,7 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
     if (view === 'detail' && selectedMessage) {
         return <MessageDetail message={selectedMessage} onBack={() => setView('list')} />
     }
-    return <MessageList onMessageSelect={handleMessageSelect} isPartner={isPartner} />
+    return <MessageList onMessageSelect={handleMessageSelect} isPartner={isPartner} messages={messages} loading={loading} />
   }
 
   // Admin view logic
@@ -265,9 +312,9 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
                     name="recipientId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{messageType === 'partner' ? 'Partner ID' : 'Seller ID'}</FormLabel>
+                        <FormLabel>{messageType === 'partner' ? 'Partner ID or Email' : 'Seller ID or Email'}</FormLabel>
                         <FormControl>
-                          <Input placeholder={`Enter the ${messageType} ID`} {...field} />
+                          <Input placeholder={`Enter the ${messageType} ID or Email`} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -304,7 +351,9 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
                 />
 
                 <div className="flex justify-end">
-                    <Button type="submit">Send Message</Button>
+                    <Button type="submit" disabled={form.formState.isSubmitting}>
+                        {form.formState.isSubmitting ? 'Sending...' : 'Send Message'}
+                    </Button>
                 </div>
               </form>
             </Form>
@@ -317,5 +366,5 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
     return <MessageDetail message={selectedMessage} onBack={() => setView('list')} />
   }
 
-  return <MessageList onMessageSelect={handleMessageSelect} onCompose={() => setView('form')} isPartner={isPartner} />
+  return <MessageList onMessageSelect={handleMessageSelect} onCompose={() => setView('form')} isPartner={isPartner} messages={messages} loading={loading} />
 }

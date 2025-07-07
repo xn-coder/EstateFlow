@@ -1,6 +1,7 @@
 
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -120,12 +121,16 @@ export interface Contact {
   avatar: string;
 }
 
-export interface UpdateMessage {
+export interface Message {
   id: string;
-  from: string;
+  createdAt: string; // ISO
+  senderId: string;
+  senderName: string;
+  recipientId: string;
+  recipientName: string;
   subject: string;
-  body: string;
-  date: string;
+  details: string;
+  attachment?: string;
   read: boolean;
 }
 

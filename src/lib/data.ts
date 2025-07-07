@@ -1,4 +1,4 @@
-import type { Property, User, Lead, PropertyType, Contact, UpdateMessage, Enquiry, Receivable, Payable, PaymentHistory, SupportTicket } from '@/types';
+import type { Property, User, Lead, PropertyType, Contact, Enquiry, Receivable, Payable, PaymentHistory, SupportTicket } from '@/types';
 
 export const initialUsersForSeed: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@estateflow.com', role: 'Admin', avatar: 'https://placehold.co/40x40.png' },
@@ -91,41 +91,6 @@ export const contacts: Contact[] = Array.from({ length: 10 }, (_, i) => ({
   code: i % 2 === 0 ? `DSA 000 000 001` : `USR 000 000 001`,
   avatar: 'https://placehold.co/40x40.png',
 }));
-
-export const updateMessages: UpdateMessage[] = [
-  {
-    id: 'msg1',
-    from: 'Admin Team',
-    subject: 'Important System Update - Action Required',
-    body: 'We will be performing a system update this weekend to improve performance and security. The platform may be temporarily unavailable on Saturday from 2 AM to 4 AM EST. We appreciate your patience.',
-    date: '2 Days ago',
-    read: false,
-  },
-  {
-    id: 'msg2',
-    from: 'Support Team',
-    subject: 'RE: Regarding your recent ticket #12345',
-    body: 'We have an update on your support ticket #12345. Our team has resolved the issue you reported. Please check your support dashboard for details and confirm the resolution. Thank you!',
-    date: '3 Days ago',
-    read: true,
-  },
-  {
-    id: 'msg3',
-    from: 'Marketing',
-    subject: 'Exciting News: New Partner Program Benefits',
-    body: 'We are excited to announce new benefits for our valued partners, including higher commission rates and exclusive marketing materials. Learn more in the partner portal.',
-    date: '5 Days ago',
-    read: true,
-  },
-   {
-    id: 'msg4',
-    from: 'Billing Department',
-    subject: 'Your invoice for July 2024 is ready',
-    body: 'Your monthly invoice is now available for review and payment in the Wallet & Billing section. Please ensure payment is made by the due date to avoid service interruption.',
-    date: '1 Week ago',
-    read: true,
-  },
-];
 
 export const businessReportData = [
   { day: 'Day 0', leads: 5, sales: 2, customers: 3 },

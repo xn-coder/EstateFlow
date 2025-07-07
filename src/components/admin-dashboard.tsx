@@ -1,6 +1,7 @@
 
 'use client';
 
+import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import BusinessReportChart from './business-report-chart';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,7 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowUpDown, CheckCircle, AlertTriangle, XCircle, Search } from 'lucide-react';
-import { enquiries, properties, users, leads } from '@/lib/data';
+import { getEnquiries } from '@/app/manage-orders/actions';
+import { format, parseISO } from 'date-fns';
+import { Skeleton } from './ui/skeleton';
+import type { SubmittedEnquiry } from '@/types';
 
 const StatCard = ({ title, value, description }: { title: string; value: string; description: string }) => (
   <Card>
@@ -23,17 +27,30 @@ const StatCard = ({ title, value, description }: { title: string; value: string;
 );
 
 export default function AdminDashboard() {
-  const totalProperties = properties.length;
-  const totalUsers = users.length;
-  const totalLeads = leads.length;
-  const totalPartners = users.filter(user => user.role === 'Partner').length;
+  const [enquiryData, setEnquiryData] = React.useState<SubmittedEnquiry[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchEnquiries = async () => {
+      setLoading(true);
+      const data = await getEnquiries();
+      setEnquiryData(data);
+      setLoading(false);
+    };
+    fetchEnquiries();
+  }, []);
+
+  const totalProperties = 0; // Replace with dynamic data if needed
+  const totalUsers = 0;
+  const totalLeads = enquiryData.length;
+  const totalPartners = 0;
   
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Total Properties" value={totalProperties.toString()} description="Listed on the platform" />
         <StatCard title="Total Users" value={totalUsers.toString()} description="Admin, Sellers, and Partners" />
-        <StatCard title="Total Leads" value={totalLeads.toString()} description="Generated from properties" />
+        <StatCard title="Total Leads" value={loading ? '...' : totalLeads.toString()} description="Generated from properties" />
         <StatCard title="Total Partners" value={totalPartners.toString()} description="Agent partners" />
       </div>
 
@@ -75,14 +92,28 @@ export default function AdminDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {enquiries.map((enquiry) => (
+                {loading ? (
+                  [...Array(5)].map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-36" /></TableCell>
+                      <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><div className="flex items-center gap-2"><Skeleton className="h-6 w-6" /><Skeleton className="h-6 w-6" /><Skeleton className="h-6 w-6" /></div></TableCell>
+                    </TableRow>
+                  ))
+                ) : enquiryData.length > 0 ? (
+                    enquiryData.map((enquiry) => (
                     <TableRow key={enquiry.id}>
                         <TableCell>{enquiry.enquiryId}</TableCell>
-                        <TableCell>{enquiry.date}</TableCell>
-                        <TableCell>{enquiry.name}</TableCell>
-                        <TableCell className="hidden md:table-cell">{enquiry.phone}</TableCell>
-                        <TableCell className="hidden lg:table-cell">{enquiry.partnerId}</TableCell>
-                        <TableCell>{enquiry.catalogName}</TableCell>
+                        <TableCell>{format(parseISO(enquiry.createdAt), 'dd MMM yyyy')}</TableCell>
+                        <TableCell>{enquiry.customerName}</TableCell>
+                        <TableCell className="hidden md:table-cell">{enquiry.customerPhone}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{enquiry.submittedBy.name}</TableCell>
+                        <TableCell>{enquiry.catalogTitle}</TableCell>
                         <TableCell className="hidden lg:table-cell">{enquiry.catalogCode}</TableCell>
                         <TableCell className="flex items-center gap-2">
                             <Button variant="ghost" size="icon" className="text-green-500 hover:text-green-600 h-6 w-6">
@@ -96,12 +127,15 @@ export default function AdminDashboard() {
                             </Button>
                         </TableCell>
                     </TableRow>
-                ))}
+                    ))
+                ) : (
+                    <TableRow><TableCell colSpan={8} className="h-24 text-center">No enquiries found.</TableCell></TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between mt-4 text-sm text-muted-foreground gap-4 sm:gap-0">
-            <div>Showing 1 to {enquiries.length} of {enquiries.length} entries</div>
+            <div>Showing 1 to {enquiryData.length} of {enquiryData.length} entries</div>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="sm" disabled>«</Button>
               <Button variant="outline" size="sm" disabled>‹</Button>

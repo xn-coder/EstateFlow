@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, where } from 'firebase/firestore';
 import * as z from 'zod';
 import type { SubmittedEnquiry, User } from '@/types';
 
@@ -53,6 +53,18 @@ export async function getEnquiries(): Promise<SubmittedEnquiry[]> {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubmittedEnquiry));
   } catch (error) {
     console.error("Error fetching enquiries:", error);
+    return [];
+  }
+}
+
+export async function getEnquiriesByPartner(partnerId: string): Promise<SubmittedEnquiry[]> {
+  try {
+    const enquiriesRef = collection(db, 'enquiries');
+    const q = query(enquiriesRef, where('submittedBy.id', '==', partnerId), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubmittedEnquiry));
+  } catch (error) {
+    console.error("Error fetching enquiries for partner:", error);
     return [];
   }
 }
