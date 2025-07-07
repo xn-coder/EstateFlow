@@ -67,6 +67,7 @@ export async function confirmEnquiry(enquiryId: string) {
     const enquiryRef = doc(db, 'enquiries', enquiryId);
 
     try {
+        // Perform reads outside the transaction where possible
         const enquiryForCustomerCheck = await getDoc(enquiryRef);
         if (!enquiryForCustomerCheck.exists()) {
             throw new Error("Enquiry not found.");
@@ -78,12 +79,16 @@ export async function confirmEnquiry(enquiryId: string) {
         const existingCustomersSnap = await getDocs(customerQuery);
 
         await runTransaction(db, async (transaction) => {
+            // ----- All reads must come before writes -----
+
+            // 1. Read all necessary documents
             const freshEnquiryDoc = await transaction.get(enquiryRef);
             if (!freshEnquiryDoc.exists()) {
                 throw new Error("Enquiry not found inside transaction.");
             }
             const enquiry = { id: freshEnquiryDoc.id, ...freshEnquiryDoc.data() } as SubmittedEnquiry;
 
+            // Only process if status is 'New'
             if (enquiry.status !== 'New') {
                 return;
             }
@@ -98,11 +103,18 @@ export async function confirmEnquiry(enquiryId: string) {
             if (!partnerUserDoc.exists()) throw new Error("Partner user not found.");
             const partnerUser = partnerUserDoc.data() as User;
             if (!partnerUser.partnerProfileId) throw new Error("Partner profile ID not found.");
+            
             const partnerProfileRef = doc(db, 'partnerProfiles', partnerUser.partnerProfileId);
             const partnerProfileDoc = await transaction.get(partnerProfileRef);
             if (!partnerProfileDoc.exists()) throw new Error("Partner profile not found.");
             const partnerProfile = partnerProfileDoc.data() as PartnerData;
+            
+            const walletSummaryRef = doc(db, 'wallet', 'summary');
+            const walletSummaryDoc = await transaction.get(walletSummaryRef);
 
+            // ----- All writes happen after reads -----
+
+            // 2. Calculate commission
             let commissionAmount = 0;
             const commissionPercentage = catalog.partnerCategoryCommissions?.[partnerProfile.partnerCategory];
 
@@ -114,6 +126,7 @@ export async function confirmEnquiry(enquiryId: string) {
                 commissionAmount = catalog.earning;
             }
 
+            // 3. Write new payable if there's a commission
             if (commissionAmount > 0) {
                 const newPayableRef = doc(collection(db, 'payables'));
                 const newPayable: Omit<Payable, 'id'> = {
@@ -126,8 +139,7 @@ export async function confirmEnquiry(enquiryId: string) {
                 transaction.set(newPayableRef, newPayable);
             }
 
-            const walletSummaryRef = doc(db, 'wallet', 'summary');
-            const walletSummaryDoc = await transaction.get(walletSummaryRef);
+            // 4. Update wallet summary
             if (!walletSummaryDoc.exists()) {
                 transaction.set(walletSummaryRef, { totalBalance: catalog.sellingPrice, revenue: catalog.sellingPrice });
             } else {
@@ -138,6 +150,7 @@ export async function confirmEnquiry(enquiryId: string) {
                 });
             }
 
+            // 5. Write payment history
             const newHistoryRef = doc(collection(db, 'paymentHistory'));
             const newHistory: Omit<PaymentHistory, 'id'> = {
                 date: new Date().toISOString().split('T')[0],
@@ -148,7 +161,8 @@ export async function confirmEnquiry(enquiryId: string) {
                 type: 'Credit',
             };
             transaction.set(newHistoryRef, newHistory);
-
+            
+            // 6. Write new customer if they don't exist
             if (existingCustomersSnap.empty) {
                 const customerId = `CD${Math.random().toString().slice(2, 12)}`;
                 const newCustomer: Omit<Customer, 'id'> = {
@@ -164,6 +178,7 @@ export async function confirmEnquiry(enquiryId: string) {
                 transaction.set(newCustomerRef, newCustomer);
             }
 
+            // 7. Update the enquiry status
             transaction.update(enquiryRef, { status: 'Contacted' });
         });
 
