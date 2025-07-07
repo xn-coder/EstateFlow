@@ -2,6 +2,7 @@
 
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -16,6 +17,7 @@ export interface User {
   partnerProfileId?: string;
   status?: 'Pending' | 'Active' | 'Deactivated';
   partnerCode?: string;
+  feeStatus?: 'Pending Payment' | 'Paid' | 'Not Applicable';
 }
 
 export interface PartnerData {
@@ -40,6 +42,8 @@ export interface PartnerData {
   aadhaarCard: string;
   panCard: string;
   position?: string;
+  partnerCategory: 'Affiliate Partner' | 'Associate Partner' | 'Channel Partner';
+  paymentProof?: string;
 }
 
 export interface PartnerActivationInfo {

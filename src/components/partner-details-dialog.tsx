@@ -19,11 +19,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { PartnerActivationInfo } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { CheckCircle } from 'lucide-react';
+import { Badge } from './ui/badge';
 
 interface PartnerDetailsDialogProps {
   children: React.ReactNode;
   partnerInfo: PartnerActivationInfo;
   onActivate?: (userId: string) => void;
+  onApprovePayment?: (userId: string) => void;
 }
 
 const DetailRow = ({ label, value }: { label: string; value?: React.ReactNode }) => (
@@ -48,7 +50,7 @@ const ImageViewer = ({ label, base64Image, hint }: { label: string; base64Image?
   </Card>
 );
 
-export default function PartnerDetailsDialog({ children, partnerInfo, onActivate }: PartnerDetailsDialogProps) {
+export default function PartnerDetailsDialog({ children, partnerInfo, onActivate, onApprovePayment }: PartnerDetailsDialogProps) {
   const { user, profile } = partnerInfo;
   
   const handleActivateClick = () => {
@@ -56,6 +58,13 @@ export default function PartnerDetailsDialog({ children, partnerInfo, onActivate
       onActivate(user.id);
     }
   };
+  
+  const handleApproveClick = () => {
+    if (onApprovePayment) {
+        onApprovePayment(user.id);
+    }
+  };
+
 
   return (
     <Dialog>
@@ -77,7 +86,7 @@ export default function PartnerDetailsDialog({ children, partnerInfo, onActivate
                         </Avatar>
                         <div>
                             <h2 className="text-xl font-bold">{profile.name}</h2>
-                            <p className="text-sm text-muted-foreground">{user.partnerCode || 'N/A'}</p>
+                            <p className="text-sm text-muted-foreground">Status: <Badge variant={user.feeStatus === 'Paid' || user.feeStatus === 'Not Applicable' ? 'secondary' : 'destructive'}>{user.feeStatus || 'N/A'}</Badge></p>
                         </div>
                     </div>
                 </CardContent>
@@ -125,6 +134,7 @@ export default function PartnerDetailsDialog({ children, partnerInfo, onActivate
                         </dd>
                       </div>
                     )}
+                    <DetailRow label="Partner Category" value={profile.partnerCategory} />
                     <DetailRow label="Business Type" value={profile.businessType} />
                     <DetailRow label="GSTN" value={profile.gstn ?? 'N/A'} />
                     <DetailRow label="Age of Business" value={`${profile.businessAge} years`} />
@@ -138,24 +148,32 @@ export default function PartnerDetailsDialog({ children, partnerInfo, onActivate
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ImageViewer label="Aadhaar Card" base64Image={profile.aadhaarCard} hint="identification card" />
                     <ImageViewer label="PAN Card" base64Image={profile.panCard} hint="identification card" />
+                     {profile.paymentProof && (
+                        <ImageViewer label="Payment Proof" base64Image={profile.paymentProof} hint="payment receipt" />
+                    )}
                 </div>
               </div>
           </div>
         </ScrollArea>
         
-        <DialogFooter className="p-6 pt-4 border-t bg-background">
+        <DialogFooter className="p-6 pt-4 border-t bg-background justify-between">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">
                     {onActivate ? 'Cancel' : 'Close'}
                 </Button>
             </DialogClose>
             {onActivate && (
-                <DialogClose asChild>
-                    <Button onClick={handleActivateClick}>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Activate Partner
-                    </Button>
-                </DialogClose>
+                <div className="flex gap-2">
+                    {user.feeStatus === 'Pending Payment' && onApprovePayment && (
+                        <Button onClick={handleApproveClick}>Approve Payment</Button>
+                    )}
+                    <DialogClose asChild>
+                        <Button onClick={handleActivateClick} disabled={user.feeStatus === 'Pending Payment'}>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Activate Partner
+                        </Button>
+                    </DialogClose>
+                </div>
             )}
         </DialogFooter>
       </DialogContent>

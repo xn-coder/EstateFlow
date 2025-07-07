@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import type { PartnerActivationInfo, User } from '@/types';
-import { getPendingPartners, activatePartner, deletePendingPartner } from '@/app/partner-activation/actions';
+import { getPendingPartners, activatePartner, deletePendingPartner, approveFeePayment } from '@/app/partner-activation/actions';
 import PartnerDetailsDialog from './partner-details-dialog';
 import { Badge } from './ui/badge';
 import { CheckCircle, Clock, Trash2, ArrowUpDown } from 'lucide-react';
@@ -70,19 +70,30 @@ export default function PartnerActivationContent() {
     }
   };
 
+  const handleApprovePayment = async (userId: string) => {
+    const result = await approveFeePayment(userId);
+    if (result.success) {
+      toast({ title: 'Success', description: 'Payment approved. You can now activate this partner.' });
+      fetchPartners(); // Refresh the list
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
+  };
+
 
   if (loading) {
     return (
         <div className="space-y-6">
             <Skeleton className="h-10 w-72" />
-            <Card>
+             <Card>
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
-                           <TableRow>
+                            <TableRow>
                                 <TableHead><Skeleton className="h-5 w-24" /></TableHead>
                                 <TableHead><Skeleton className="h-5 w-32" /></TableHead>
                                 <TableHead><Skeleton className="h-5 w-20" /></TableHead>
+                                <TableHead><Skeleton className="h-5 w-24" /></TableHead>
                                 <TableHead><Skeleton className="h-5 w-24" /></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -92,6 +103,7 @@ export default function PartnerActivationContent() {
                                     <TableCell><div className="flex items-center gap-2"><Skeleton className="h-10 w-10 rounded-full" /><Skeleton className="h-5 w-28" /></div></TableCell>
                                     <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                                     <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
+                                     <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
                                     <TableCell><div className="flex justify-end gap-2"><Skeleton className="h-10 w-10 rounded-md" /><Skeleton className="h-10 w-32 rounded-md" /></div></TableCell>
                                 </TableRow>
                             ))}
@@ -121,6 +133,7 @@ export default function PartnerActivationContent() {
                             <TableHead><button className="flex items-center gap-1">Partner <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                             <TableHead className="hidden sm:table-cell"><button className="flex items-center gap-1">Email <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead>Fee Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -141,6 +154,11 @@ export default function PartnerActivationContent() {
                                 <Badge variant="secondary" className="flex items-center w-fit">
                                     <Clock className="h-3 w-3 mr-1.5" />
                                     Pending
+                                </Badge>
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant={user.feeStatus === 'Paid' || user.feeStatus === 'Not Applicable' ? 'secondary' : 'destructive'}>
+                                    {user.feeStatus || 'N/A'}
                                 </Badge>
                             </TableCell>
                             <TableCell className="text-right">
@@ -169,7 +187,7 @@ export default function PartnerActivationContent() {
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
-                                    <PartnerDetailsDialog partnerInfo={{ user, profile }} onActivate={handleActivate}>
+                                    <PartnerDetailsDialog partnerInfo={{ user, profile }} onActivate={handleActivate} onApprovePayment={handleApprovePayment}>
                                         <Button size="sm">
                                             <CheckCircle className="mr-2 h-4 w-4" />
                                             Review & Activate

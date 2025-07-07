@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -78,5 +79,19 @@ export async function deletePendingPartner(userId: string, partnerProfileId: str
   } catch (error) {
     console.error("Error deleting pending partner:", error);
     return { success: false, error: 'Failed to delete partner registration.' };
+  }
+}
+
+
+export async function approveFeePayment(userId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      feeStatus: 'Paid'
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error approving fee payment:", error);
+    return { success: false, error: 'Failed to approve fee payment.' };
   }
 }

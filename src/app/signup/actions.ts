@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -27,6 +28,8 @@ const partnerSchema = z.object({
   aadhaarCard: z.string().min(1),
   panCard: z.string().min(1),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
+  partnerCategory: z.enum(['Affiliate Partner', 'Associate Partner', 'Channel Partner']),
+  paymentProof: z.string().optional(),
 });
 
 export async function registerPartner(data: z.infer<typeof partnerSchema>) {
@@ -36,7 +39,7 @@ export async function registerPartner(data: z.infer<typeof partnerSchema>) {
     return { success: false, error: 'Invalid data submitted. Please check the form.' };
   }
 
-  const { email, name, phone, dob, password, ...profileData } = validation.data;
+  const { email, name, phone, dob, password, partnerCategory, ...profileData } = validation.data;
 
   try {
     const usersRef = collection(db, 'users');
@@ -56,10 +59,13 @@ export async function registerPartner(data: z.infer<typeof partnerSchema>) {
         email,
         phone,
         dob: dob.toISOString(),
+        partnerCategory,
     };
     
     // Create partner profile
     const partnerProfileRef = await addDoc(collection(db, 'partnerProfiles'), dataForFirestore);
+
+    const feeStatus = partnerCategory === 'Associate Partner' ? 'Not Applicable' : 'Pending Payment';
 
     // Create a corresponding user entry
     await addDoc(usersRef, {
@@ -71,6 +77,7 @@ export async function registerPartner(data: z.infer<typeof partnerSchema>) {
       avatar: validation.data.profileImage || `https://placehold.co/40x40.png`,
       partnerProfileId: partnerProfileRef.id, // Link to the detailed profile
       status: 'Pending',
+      feeStatus: feeStatus,
     });
 
     return { success: true, message: 'Partner registered successfully. Your account is pending admin activation.' };

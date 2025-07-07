@@ -44,6 +44,7 @@ const personalDetailsSchema = z.object({
 const businessDetailsSchema = z.object({
   businessLogo: z.string().optional(),
   businessType: z.string().min(1, 'Business type is required'),
+  partnerCategory: z.enum(['Affiliate Partner', 'Associate Partner', 'Channel Partner'], { required_error: 'Partner category is required' }),
   gstn: z.string().optional(),
   businessAge: z.coerce.number().min(0, 'Business age cannot be negative'),
   areaCovered: z.string().min(1, 'Area covered is required'),
@@ -52,6 +53,7 @@ const businessDetailsSchema = z.object({
 const documentUploadsSchema = z.object({
   aadhaarCard: z.string().min(1, 'Aadhaar card is required'),
   panCard: z.string().min(1, 'PAN card is required'),
+  paymentProof: z.string().optional(),
 });
 
 // We only need the shape for triggering validation
@@ -61,7 +63,17 @@ const combinedSchemaForValidation = personalDetailsSchema
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
+  })
+  .superRefine((data, ctx) => {
+    if ((data.partnerCategory === 'Affiliate Partner' || data.partnerCategory === 'Channel Partner') && !data.paymentProof) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Payment proof is required for this partner type.',
+            path: ['paymentProof'],
+        });
+    }
   });
+
 
 // Final schema for submission includes password
 const finalSchema = combinedSchemaForValidation;
@@ -71,7 +83,7 @@ type FormValues = z.infer<typeof finalSchema>;
 const steps = [
   { id: 1, title: 'Personal Details', fields: Object.keys(personalDetailsSchema.shape) as (keyof z.infer<typeof personalDetailsSchema>)[] },
   { id: 2, title: 'Business Details', fields: Object.keys(businessDetailsSchema.shape) as (keyof z.infer<typeof businessDetailsSchema>)[] },
-  { id: 3, title: 'Document Uploads', fields: Object.keys(documentUploadsSchema.shape) as (keyof z.infer<typeof documentUploadsSchema>)[] },
+  { id: 3, title: 'Document Uploads', fields: [...Object.keys(documentUploadsSchema.shape), 'paymentProof'] as (keyof z.infer<typeof documentUploadsSchema>)[] },
 ];
 
 function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
@@ -147,11 +159,13 @@ export default function SignupPage() {
       areaCovered: '',
       aadhaarCard: '',
       panCard: '',
+      partnerCategory: undefined,
     },
     mode: 'onChange'
   });
 
-  const { trigger, handleSubmit, formState: { isSubmitting } } = methods;
+  const { trigger, handleSubmit, formState: { isSubmitting }, watch } = methods;
+  const partnerCategory = watch('partnerCategory');
 
   const nextStep = async () => {
     const currentStepFields = steps[step - 1].fields;
@@ -261,6 +275,20 @@ export default function SignupPage() {
                       </FormItem>
                     )} />
                     <FormField control={methods.control} name="businessType" render={({ field }) => ( <FormItem><FormLabel>Business Type</FormLabel><FormControl><Input placeholder="e.g., Real Estate Agency" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                     <FormField control={methods.control} name="partnerCategory" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Partner Category</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Affiliate Partner">Affiliate Partner</SelectItem>
+                                    <SelectItem value="Associate Partner">Associate Partner</SelectItem>
+                                    <SelectItem value="Channel Partner">Channel Partner</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
                     <FormField control={methods.control} name="gstn" render={({ field }) => ( <FormItem><FormLabel>GSTN (Optional)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                     <FormField control={methods.control} name="businessAge" render={({ field }) => ( <FormItem><FormLabel>Age of Business (in years)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem> )} />
                     <FormField control={methods.control} name="areaCovered" render={({ field }) => ( <FormItem><FormLabel>Area Covered</FormLabel><FormControl><Input placeholder="e.g., Downtown, North Suburbs" {...field} /></FormControl><FormMessage /></FormItem> )} />
@@ -281,6 +309,14 @@ export default function SignupPage() {
                           <FormMessage />
                       </FormItem>
                     )} />
+                    {(partnerCategory === 'Affiliate Partner' || partnerCategory === 'Channel Partner') && (
+                        <FormField control={methods.control} name="paymentProof" render={({ field }) => (
+                            <FormItem>
+                                <FileUploadButton label="Upload Fee Payment Proof" onFileSelect={field.onChange} previewUrl={field.value} hint="payment receipt" />
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    )}
                  </div>
               )}
 
