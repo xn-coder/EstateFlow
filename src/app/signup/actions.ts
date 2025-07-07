@@ -29,7 +29,7 @@ const partnerSchema = z.object({
   aadhaarCard: z.string().min(1),
   panCard: z.string().min(1),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
-  partnerCategory: z.enum(['Affiliate Partner', 'Associate Partner', 'Channel Partner']),
+  partnerCategory: z.enum(['Affiliate Partner', 'Super Affiliate Partner', 'Associate Partner', 'Channel Partner']),
   paymentProof: z.string().optional(),
 });
 

@@ -65,6 +65,9 @@ export async function activatePartner(userId: string): Promise<{ success: boolea
       case 'Affiliate Partner':
         prefix = 'AF';
         break;
+      case 'Super Affiliate Partner':
+        prefix = 'SFA';
+        break;
       case 'Associate Partner':
         prefix = 'AS';
         break;

@@ -42,7 +42,7 @@ export interface PartnerData {
   aadhaarCard: string;
   panCard: string;
   position?: string;
-  partnerCategory: 'Affiliate Partner' | 'Associate Partner' | 'Channel Partner';
+  partnerCategory: 'Affiliate Partner' | 'Super Affiliate Partner' | 'Associate Partner' | 'Channel Partner';
   paymentProof?: string;
 }
 

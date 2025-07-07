@@ -45,7 +45,7 @@ const personalDetailsSchema = z.object({
 const businessDetailsSchema = z.object({
   businessLogo: z.string().optional(),
   businessType: z.string().min(1, 'Business type is required'),
-  partnerCategory: z.enum(['Affiliate Partner', 'Associate Partner', 'Channel Partner'], { required_error: 'Partner category is required' }),
+  partnerCategory: z.enum(['Affiliate Partner', 'Super Affiliate Partner', 'Associate Partner', 'Channel Partner'], { required_error: 'Partner category is required' }),
   gstn: z.string().optional(),
   businessAge: z.coerce.number().min(0, 'Business age cannot be negative'),
   areaCovered: z.string().min(1, 'Area covered is required'),
@@ -66,7 +66,7 @@ const combinedSchemaForValidation = personalDetailsSchema
     path: ['confirmPassword'],
   })
   .superRefine((data, ctx) => {
-    if ((data.partnerCategory === 'Affiliate Partner' || data.partnerCategory === 'Channel Partner') && !data.paymentProof) {
+    if ((data.partnerCategory === 'Affiliate Partner' || data.partnerCategory === 'Channel Partner' || data.partnerCategory === 'Super Affiliate Partner') && !data.paymentProof) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'Payment proof is required for this partner type.',
@@ -294,6 +294,7 @@ export default function SignupPage() {
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
                                 <SelectContent>
                                     <SelectItem value="Affiliate Partner">Affiliate Partner</SelectItem>
+                                    <SelectItem value="Super Affiliate Partner">Super Affiliate Partner</SelectItem>
                                     <SelectItem value="Associate Partner">Associate Partner</SelectItem>
                                     <SelectItem value="Channel Partner">Channel Partner</SelectItem>
                                 </SelectContent>
@@ -321,7 +322,7 @@ export default function SignupPage() {
                           <FormMessage />
                       </FormItem>
                     )} />
-                    {(partnerCategory === 'Affiliate Partner' || partnerCategory === 'Channel Partner') && (
+                    {(partnerCategory === 'Affiliate Partner' || partnerCategory === 'Channel Partner' || partnerCategory === 'Super Affiliate Partner') && (
                         <FormField control={methods.control} name="paymentProof" render={({ field }) => (
                             <FormItem>
                                 <FileUploadButton label="Upload Fee Payment Proof" onFileSelect={field.onChange} previewUrl={field.value} hint="payment receipt" />
