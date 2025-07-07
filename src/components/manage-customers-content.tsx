@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from './ui/skeleton';
 import { getCustomers } from '@/app/manage-customers/actions';
+import { getUsers } from '@/app/login/actions';
 import type { Customer } from '@/types';
 import { format, parseISO } from 'date-fns';
 import { ArrowUpDown } from 'lucide-react';
@@ -19,16 +20,28 @@ export default function ManageCustomersContent() {
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
   const router = useRouter();
+  const [userMap, setUserMap] = React.useState<Map<string, string>>(new Map());
 
-  const fetchCustomers = React.useCallback(async () => {
+  const fetchData = React.useCallback(async () => {
     setLoading(true);
     try {
-        const data = await getCustomers();
-        setCustomers(data);
+        const [customerData, userData] = await Promise.all([
+            getCustomers(),
+            getUsers()
+        ]);
+        setCustomers(customerData);
+
+        const newMap = new Map<string, string>();
+        userData.forEach(user => {
+            if (user.id && user.partnerCode) {
+                newMap.set(user.id, user.partnerCode);
+            }
+        });
+        setUserMap(newMap);
     } catch (err) {
         toast({
             title: "Error",
-            description: "Failed to fetch customers.",
+            description: "Failed to fetch customer data.",
             variant: "destructive"
         })
     }
@@ -36,8 +49,8 @@ export default function ManageCustomersContent() {
   }, [toast]);
 
   React.useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
+    fetchData();
+  }, [fetchData]);
 
 
   return (
@@ -91,7 +104,7 @@ export default function ManageCustomersContent() {
                       <TableCell className="font-medium">{customer.name}</TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground">{customer.email}</TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground">{customer.phone}</TableCell>
-                      <TableCell className="hidden lg:table-cell font-mono text-xs text-muted-foreground">{customer.createdBy}</TableCell>
+                      <TableCell className="hidden lg:table-cell font-mono text-xs text-muted-foreground">{userMap.get(customer.createdBy) || customer.createdBy}</TableCell>
                       <TableCell>{format(parseISO(customer.createdAt), 'dd MMM yyyy, p')}</TableCell>
                     </TableRow>
                   ))
