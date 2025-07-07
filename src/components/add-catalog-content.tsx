@@ -266,7 +266,7 @@ export default function AddCatalogContent() {
   return (
     <div className="max-w-4xl mx-auto">
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form>
           <Card>
             <CardHeader>
               <div className="flex items-center gap-4">
@@ -515,7 +515,7 @@ export default function AddCatalogContent() {
                 {step < steps.length ? (
                   <Button type="button" onClick={nextStep}>Next</Button>
                 ) : (
-                  <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish Catalog'}</Button>
+                  <Button type="button" onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish Catalog'}</Button>
                 )}
               </div>
             </CardContent>
