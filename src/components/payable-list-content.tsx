@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getPayables, updatePayableStatus } from '@/app/wallet-billing/actions';
 import { Skeleton } from './ui/skeleton';
 import AddPayableDialog from './add-payable-dialog';
+import ViewPayableDetailsDialog from './view-payable-details-dialog';
 
 interface PayableListContentProps {
   currentUser: User;
@@ -55,10 +56,6 @@ export default function PayableListContent({ currentUser }: PayableListContentPr
        toast({ title: 'Error', description: result.error, variant: 'destructive' });
        setPayableItems(originalItems);
     }
-  };
-
-  const handleViewDetails = () => {
-    toast({ title: 'Info', description: 'View Details functionality is not yet implemented.' });
   };
 
   const handlePrintInvoice = () => {
@@ -154,9 +151,11 @@ export default function PayableListContent({ currentUser }: PayableListContentPr
                               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-green-600 h-8 w-8" title="Mark as Paid" onClick={() => handleMarkAsPaid(item.id)} disabled={item.status === 'Paid'}>
                                   <CheckCircle className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary h-8 w-8" title="View Details" onClick={handleViewDetails}>
-                                  <Eye className="h-4 w-4" />
-                              </Button>
+                              <ViewPayableDetailsDialog payable={item}>
+                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary h-8 w-8" title="View Details">
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                              </ViewPayableDetailsDialog>
                               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-8 w-8" title="Print Invoice" onClick={handlePrintInvoice}>
                                   <Printer className="h-4 w-4" />
                               </Button>
