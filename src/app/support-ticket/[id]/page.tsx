@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ADMIN_ROLES } from '@/lib/roles';
@@ -50,7 +50,7 @@ export default function ProcessTicketPage() {
     }
   }, [user, authLoading, router, authorizedRoles]);
   
-  const fetchTicket = React.useCallback(async () => {
+  const fetchTicket = useCallback(async () => {
     if (ticketId) {
       const data = await getSupportTicketById(ticketId);
       if (data) {
