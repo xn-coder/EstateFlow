@@ -2,9 +2,9 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, where, doc, updateDoc, runTransaction } from 'firebase/firestore';
 import * as z from 'zod';
-import type { SubmittedEnquiry } from '@/types';
+import type { Customer, SubmittedEnquiry } from '@/types';
 
 const enquirySchema = z.object({
   catalogId: z.string(),
@@ -57,4 +57,46 @@ export async function getEnquiries(): Promise<SubmittedEnquiry[]> {
     console.error("Error fetching enquiries:", error);
     return [];
   }
+}
+
+export async function confirmEnquiry(enquiry: SubmittedEnquiry) {
+    if (enquiry.status !== 'New') {
+        return { success: false, error: 'This enquiry has already been processed.' };
+    }
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const enquiryRef = doc(db, 'enquiries', enquiry.id);
+            const customersRef = collection(db, 'customers');
+            
+            // 1. Check if customer already exists (by email) to avoid duplicates
+            const customerQuery = query(customersRef, where("email", "==", enquiry.customerEmail));
+            const existingCustomers = await transaction.get(customerQuery);
+            
+            if (existingCustomers.empty) {
+                // 2. If not, create a new customer
+                const customerId = `CUST${Math.floor(100000 + Math.random() * 900000)}`;
+                const newCustomer: Omit<Customer, 'id'> = {
+                    customerId: customerId,
+                    name: enquiry.customerName,
+                    email: enquiry.customerEmail,
+                    phone: enquiry.customerPhone,
+                    pincode: enquiry.customerPincode,
+                    createdBy: enquiry.submittedBy.id,
+                    createdAt: new Date().toISOString(),
+                };
+                const newCustomerRef = doc(customersRef);
+                transaction.set(newCustomerRef, newCustomer);
+            }
+
+            // 3. Update the enquiry status
+            transaction.update(enquiryRef, { status: 'Contacted' });
+        });
+
+        return { success: true, message: 'Enquiry confirmed and customer created.' };
+    } catch (error) {
+        console.error('Error confirming enquiry:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+        return { success: false, error: errorMessage };
+    }
 }
