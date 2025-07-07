@@ -7,10 +7,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AdminSidebar from '@/components/admin-sidebar';
-import AppHeader from '@/components/app-header';
 import WalletBillingContent from '@/components/wallet-billing-content';
 import DashboardFooter from '@/components/dashboard-footer';
 import { ADMIN_ROLES } from '@/lib/roles';
+import PartnerSidebar from '@/components/partner-sidebar';
+import PartnerWalletContent from '@/components/partner-wallet-content';
 
 function WalletBillingSkeleton() {
   return (
@@ -55,7 +56,7 @@ export default function WalletBillingPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const authorizedRoles = [...ADMIN_ROLES, 'Seller'];
+  const authorizedRoles = [...ADMIN_ROLES, 'Seller', 'Partner'];
 
   useEffect(() => {
     if (!loading && !user) {
@@ -71,14 +72,20 @@ export default function WalletBillingPage() {
   }
 
   const isAdminOrSeller = ADMIN_ROLES.includes(user.role) || user.role === 'Seller';
+  const isPartner = user.role === 'Partner';
 
   return (
     <SidebarProvider>
       {isAdminOrSeller && <AdminSidebar role={user.role} />}
+      {isPartner && <PartnerSidebar />}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          <WalletBillingContent currentUser={user} />
+          {isPartner ? (
+            <PartnerWalletContent currentUser={user} />
+          ) : (
+            <WalletBillingContent currentUser={user} />
+          )}
         </main>
         <DashboardFooter />
       </SidebarInset>

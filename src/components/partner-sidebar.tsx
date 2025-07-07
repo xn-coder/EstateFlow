@@ -18,6 +18,7 @@ import {
   Megaphone,
   Bell,
   BookCopy,
+  Wallet,
 } from 'lucide-react';
 
 export default function PartnerSidebar() {
@@ -53,6 +54,12 @@ export default function PartnerSidebar() {
             <SidebarMenuButton href="/manage-business" isActive={pathname.startsWith('/manage-business')} tooltip="Business Desk">
               <Briefcase />
               Business Desk
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton href="/wallet-billing" isActive={pathname.startsWith('/wallet-billing')} tooltip="Earning & Wallet">
+              <Wallet />
+              Earning & Wallet
             </SidebarMenuButton>
           </SidebarMenuItem>
            <SidebarMenuItem>
