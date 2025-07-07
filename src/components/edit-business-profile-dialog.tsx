@@ -25,7 +25,6 @@ import { Upload } from 'lucide-react';
 import { updateBusinessInfo } from '@/app/manage-website/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { WebsiteData, User } from '@/types';
-import { ScrollArea } from './ui/scroll-area';
 
 const businessProfileSchema = z.object({
   name: z.string().min(1, 'Website title is required'),
@@ -103,7 +102,7 @@ export default function EditBusinessProfileDialog({ children, currentUser, busin
           <DialogTitle>Edit Business Profile</DialogTitle>
           <DialogDescription>Update your business information and website SEO settings.</DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto">
             <div className="p-6">
                 <Form {...form}>
                 <form id="edit-business-profile-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -184,7 +183,7 @@ export default function EditBusinessProfileDialog({ children, currentUser, busin
                 </form>
                 </Form>
             </div>
-        </ScrollArea>
+        </div>
         <DialogFooter className="p-6 pt-4 border-t bg-background">
           <DialogClose asChild>
             <Button type="button" variant="secondary">Cancel</Button>
