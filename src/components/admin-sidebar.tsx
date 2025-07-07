@@ -32,6 +32,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
   const isBusinessManager = role === 'Business Manager';
   const isSupportTeam = role === 'Support Team';
   const isWalletManager = role === 'Wallet Manager';
+  const isSeller = role === 'Seller';
 
   return (
     <Sidebar collapsible="icon" variant="sidebar" side="left">
@@ -51,7 +52,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
               Dashboard
             </SidebarMenuButton>
           </SidebarMenuItem>
-          {(isAdmin || isManager) && (
+          {(isAdmin || isManager || isSeller) && (
             <SidebarMenuItem>
               <SidebarMenuButton href="/manage-orders" isActive={pathname.startsWith('/manage-orders')} tooltip="Manage Orders">
                 <ShoppingCart />
@@ -59,7 +60,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          {(isAdmin || isManager || isBusinessManager) && (
+          {(isAdmin || isManager || isBusinessManager || isSeller) && (
             <SidebarMenuItem>
               <SidebarMenuButton href="/manage-business" isActive={pathname.startsWith('/manage-business')} tooltip="Manage Business">
                 <Briefcase />
@@ -75,7 +76,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          {(isAdmin || isWalletManager) && (
+          {(isAdmin || isWalletManager || isSeller) && (
             <SidebarMenuItem>
               <SidebarMenuButton href="/wallet-billing" isActive={pathname === '/wallet-billing' || pathname.startsWith('/receivable') || pathname.startsWith('/payable') || pathname.startsWith('/payment-history')} tooltip="Wallet & Billing">
                 <Wallet />
@@ -83,7 +84,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          {(isAdmin || isManager || isBusinessManager || isSupportTeam || isWalletManager) && (
+          {(isAdmin || isManager || isBusinessManager || isSupportTeam || isWalletManager || isSeller) && (
             <SidebarMenuItem>
               <SidebarMenuButton href="/updates" isActive={pathname === '/updates'} tooltip="Updates">
                 <Bell />

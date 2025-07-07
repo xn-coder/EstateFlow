@@ -24,6 +24,7 @@ import { Upload } from 'lucide-react';
 import { updateBusinessInfo } from '@/app/manage-website/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { WebsiteData } from '@/types';
+import { ScrollArea } from './ui/scroll-area';
 
 const businessProfileSchema = z.object({
   name: z.string().min(1, 'Website title is required'),
@@ -95,96 +96,99 @@ export default function EditBusinessProfileDialog({ children, businessInfo, onUp
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md p-0 max-h-[90vh] flex flex-col">
+        <DialogHeader className="p-6 pb-4 border-b">
           <DialogTitle>Edit Business Profile</DialogTitle>
           <DialogDescription>Update your business information and website SEO settings.</DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Avatar className="h-24 w-24 border">
-                <AvatarImage src={logoPreview || ''} alt="Business Logo" />
-                <AvatarFallback>{businessInfo.name.substring(0, 2)}</AvatarFallback>
-              </Avatar>
-              <div className="relative">
-                <Button type="button" variant="outline">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Logo
-                </Button>
-                <Input
-                  type="file"
-                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                  onChange={handleLogoChange}
-                  accept="image/*"
-                />
-              </div>
+        <ScrollArea className="flex-1">
+            <div className="p-6">
+                <Form {...form}>
+                <form id="edit-business-profile-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <Avatar className="h-24 w-24 border">
+                        <AvatarImage src={logoPreview || ''} alt="Business Logo" />
+                        <AvatarFallback>{businessInfo.name.substring(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    <div className="relative">
+                        <Button type="button" variant="outline">
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Logo
+                        </Button>
+                        <Input
+                        type="file"
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                        onChange={handleLogoChange}
+                        accept="image/*"
+                        />
+                    </div>
+                    </div>
+                    
+                    <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Website Title</FormLabel>
+                        <FormControl>
+                            <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+
+                    <FormField
+                    control={form.control}
+                    name="tagline"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Website Tagline</FormLabel>
+                        <FormControl>
+                            <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+
+                    <FormField
+                    control={form.control}
+                    name="metaKeywords"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Website Meta Keywords</FormLabel>
+                        <FormControl>
+                            <Input {...field} placeholder="e.g., keyword1, keyword2" />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    
+                    <FormField
+                    control={form.control}
+                    name="metaDescription"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Website Meta Description</FormLabel>
+                        <FormControl>
+                            <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </form>
+                </Form>
             </div>
-            
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Website Title</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="tagline"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Website Tagline</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="metaKeywords"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Website Meta Keywords</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="e.g., keyword1, keyword2" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="metaDescription"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Website Meta Description</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">Cancel</Button>
-              </DialogClose>
-              <Button type="submit">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        </ScrollArea>
+        <DialogFooter className="p-6 pt-4 border-t bg-background">
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">Cancel</Button>
+          </DialogClose>
+          <Button type="submit" form="edit-business-profile-form">Save Changes</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

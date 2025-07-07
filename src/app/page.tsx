@@ -69,10 +69,11 @@ export default function Home() {
   }
 
   const isAdminRole = ADMIN_ROLES.includes(user.role);
+  const isSeller = user.role === 'Seller';
   
   return (
     <SidebarProvider>
-      {isAdminRole && <AdminSidebar role={user.role} />}
+      {(isAdminRole || isSeller) && <AdminSidebar role={user.role} />}
       {user.role === 'Partner' && <PartnerSidebar />}
       
       <SidebarInset className="flex flex-col">
