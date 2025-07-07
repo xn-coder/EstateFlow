@@ -11,7 +11,7 @@ const enquirySchema = z.object({
   catalogCode: z.string(),
   catalogTitle: z.string(),
   customerName: z.string().min(1, 'Name is required'),
-  customerPhone: z.string().min(10, 'A valid phone number is required'),
+  customerPhone: z.string().min(1, 'A valid phone number is required'),
   customerEmail: z.string().email('A valid email is required'),
   customerPincode: z.string().min(1, 'Pincode or City is required'),
   submittedBy: z.object({
