@@ -19,6 +19,31 @@ import { ADMIN_ROLES } from '@/lib/roles';
 import { useAuth } from '@/hooks/useAuth';
 
 const MarketingKitCard = ({ kit }: { kit: MarketingKitInfo }) => {
+  const getDownloadInfo = (dataUri: string, title: string) => {
+    if (!dataUri || !dataUri.startsWith('data:')) {
+      return { href: '#', downloadName: 'invalid_file' };
+    }
+
+    const mimeTypeMatch = dataUri.match(/^data:(.*);base64,/);
+    let extension = 'bin';
+    if (mimeTypeMatch && mimeTypeMatch[1]) {
+      const mimeType = mimeTypeMatch[1];
+      const subType = mimeType.split('/')[1];
+      if (subType) {
+          extension = subType.split('+')[0]; // Handles things like 'svg+xml'
+      }
+    }
+    
+    if (extension === 'jpeg') extension = 'jpg';
+
+    const safeTitle = title.replace(/[^a-zA-Z0-9-]/g, '_');
+    const downloadName = `${safeTitle}.${extension}`;
+
+    return { href: dataUri, downloadName };
+  }
+
+  const { href, downloadName } = getDownloadInfo(kit.uploadedFile, kit.nameOrTitle);
+
   return (
     <Card className="overflow-hidden flex flex-col group">
       <CardHeader className="p-0">
@@ -38,8 +63,8 @@ const MarketingKitCard = ({ kit }: { kit: MarketingKitInfo }) => {
         <CardDescription className="text-xs line-clamp-1 mt-1">{kit.catalogTitle} ({kit.catalogCode})</CardDescription>
       </CardContent>
       <CardFooter>
-        <Button asChild className="w-full">
-          <a href={kit.uploadedFile} download target="_blank" rel="noopener noreferrer">
+        <Button asChild className="w-full" disabled={href === '#'}>
+          <a href={href} download={downloadName}>
             <Download className="mr-2 h-4 w-4" />
             Download
           </a>
