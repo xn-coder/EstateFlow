@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { registerPartner } from './actions';
 import { qualifications } from '@/types';
+import { partnerRegistrationFees } from '@/lib/config';
 
 // Zod schemas for each step
 const personalDetailsSchema = z.object({
@@ -168,6 +169,7 @@ export default function SignupPage() {
 
   const { trigger, handleSubmit, formState: { isSubmitting }, watch } = methods;
   const partnerCategory = watch('partnerCategory');
+  const registrationFee = partnerCategory ? partnerRegistrationFees[partnerCategory as keyof typeof partnerRegistrationFees] : null;
 
   const nextStep = async () => {
     const currentStepFields = steps[step - 1].fields;
@@ -300,6 +302,11 @@ export default function SignupPage() {
                                     <SelectItem value="Channel Partner">Channel Partner</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {registrationFee && (
+                              <FormDescription>
+                                Registration Fee: ₹{registrationFee.toLocaleString()}
+                              </FormDescription>
+                            )}
                             <FormMessage />
                         </FormItem>
                     )} />
