@@ -1,7 +1,8 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, doc, getDoc, updateDoc } from 'firebase/firestore';
 import * as z from 'zod';
 import type { SupportTicket, User } from '@/types';
 
@@ -55,4 +56,55 @@ export async function getSupportTickets(): Promise<SupportTicket[]> {
     console.error("Error fetching support tickets:", error);
     return [];
   }
+}
+
+export async function getSupportTicketById(id: string): Promise<SupportTicket | null> {
+    try {
+        const docRef = doc(db, 'supportTickets', id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() } as SupportTicket;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching ticket by ID:", error);
+        return null;
+    }
+}
+
+const updateTicketSchema = z.object({
+    ticketId: z.string(),
+    status: z.enum(['Latest', 'Processing', 'Solved']),
+    resolutionData: z.object({
+        resolvedAt: z.string().optional(),
+        resolvedBy: z.string().optional(),
+        feedback: z.string().optional(),
+        resolutionDetails: z.string().optional(),
+    }).optional(),
+});
+
+
+export async function updateTicketStatus(data: z.infer<typeof updateTicketSchema>) {
+    const validation = updateTicketSchema.safeParse(data);
+    if (!validation.success) {
+        return { success: false, error: 'Invalid data.' };
+    }
+
+    const { ticketId, status, resolutionData } = validation.data;
+
+    try {
+        const ticketRef = doc(db, 'supportTickets', ticketId);
+        const updateData: Partial<SupportTicket> = { status };
+
+        if (status === 'Solved' && resolutionData) {
+            Object.assign(updateData, resolutionData);
+        }
+
+        await updateDoc(ticketRef, updateData);
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating ticket status:", error);
+        return { success: false, error: 'Failed to update ticket.' };
+    }
 }

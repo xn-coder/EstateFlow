@@ -1,13 +1,14 @@
+
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, ArrowUpDown, Info, Clock, CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Search, ArrowUpDown, Info } from 'lucide-react';
 import { getSupportTickets } from '@/app/support-ticket/actions';
 import type { SupportTicket } from '@/types';
 import { format, parseISO } from 'date-fns';
@@ -30,7 +31,6 @@ const StatCard = ({ title, value, description, loading }: { title: string; value
 );
 
 export default function SupportTicketContent() {
-  const { toast } = useToast();
   const [tickets, setTickets] = React.useState<SupportTicket[]>([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -45,13 +45,6 @@ export default function SupportTicketContent() {
     fetchTickets();
   }, [fetchTickets]);
   
-  const handleActionClick = (action: string, ticketId: string) => {
-    toast({
-        title: 'Action Triggered',
-        description: `${action} clicked for ticket ${ticketId}.`,
-    });
-  };
-
   const latestTickets = tickets.filter(t => t.status === 'Latest').length;
   const processingTickets = tickets.filter(t => t.status === 'Processing').length;
   const solvedTickets = tickets.filter(t => t.status === 'Solved').length;
@@ -107,7 +100,7 @@ export default function SupportTicketContent() {
                       <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-10" /></TableCell>
                     </TableRow>
                   ))
                 ) : tickets.length > 0 ? (
@@ -119,17 +112,11 @@ export default function SupportTicketContent() {
                             <TableCell>{ticket.userType}</TableCell>
                             <TableCell>{`${ticket.queryCategory} - ${ticket.subject}`}</TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-1">
-                                <Button variant="ghost" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white h-6 w-6" onClick={() => handleActionClick('View Details', ticket.ticketId)}>
-                                    <Info className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="bg-red-500 hover:bg-red-600 text-white h-6 w-6" onClick={() => handleActionClick('View History', ticket.ticketId)}>
-                                    <Clock className="h-4 w-4" />
-                                </Button>
-                                 <Button variant="ghost" size="icon" className="bg-green-500 hover:bg-green-600 text-white h-6 w-6" onClick={() => handleActionClick('Mark Solved', ticket.ticketId)}>
-                                    <CheckCircle className="h-4 w-4" />
-                                </Button>
-                              </div>
+                              <Button asChild variant="ghost" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white h-6 w-6">
+                                <Link href={`/support-ticket/${ticket.id}`}>
+                                  <Info className="h-4 w-4" />
+                                </Link>
+                              </Button>
                             </TableCell>
                         </TableRow>
                     ))
