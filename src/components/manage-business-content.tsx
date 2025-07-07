@@ -192,6 +192,71 @@ const AdminBusinessView = () => {
     );
 }
 
+const SellerBusinessView = () => {
+    const [categories, setCategories] = React.useState<Category[]>([]);
+    const fetchData = React.useCallback(async () => {
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+    }, []);
+
+    React.useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const SellerStatCard = ({ title, value, description }: { title: string; value: string; description: string; }) => (
+        <Card className="bg-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-normal text-muted-foreground">{title}</CardTitle>
+            <p className="text-3xl font-bold">{value}</p>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">{description}</p>
+          </CardContent>
+        </Card>
+    );
+
+    const catalogItems = [
+        { label: 'Add a Catalog', href: '/add-catalog' },
+        { label: 'Manage Catalog', href: '/manage-catalog' },
+        { label: 'Add a Category', isDialog: true, Dialog: <AddCategoryDialog onCategoryAdded={fetchData} /> },
+        { label: 'Manage Categories', href: '/manage-category' },
+        { label: 'Add Content', isDialog: true, Dialog: <AddContentDialog categories={categories} onContentAdded={() => {}} /> },
+        { label: 'Manage Content', href: '/manage-content' },
+        { label: 'Add a Marketing Kit', isDialog: true, Dialog: <AddMarketingKitDialog onKitAdded={() => {}} /> },
+        { label: 'Manage Marketing Kits', href: '/manage-marketing-kits' },
+    ];
+    
+    const accountItems = [
+        { label: 'Leaderboard', href: '#' },
+        { label: 'Manage Website', href: '/manage-website' },
+        { label: 'My Account', href: '/profile' },
+    ];
+    return (
+        <div className="space-y-6 max-w-7xl mx-auto">
+             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <SellerStatCard title="Sales" value="1000" description="Order" />
+            </div>
+
+             <Card>
+                <CardContent className="p-0">
+                    <div className="divide-y">
+                        {catalogItems.map((item) => <AdminListItem key={item.label} href={item.href} isDialog={item.isDialog} DialogComponent={item.Dialog}>{item.label}</AdminListItem>)}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardContent className="p-0">
+                    <div className="divide-y">
+                        {accountItems.map((item) => <AdminListItem key={item.label} href={item.href}>{item.label}</AdminListItem>)}
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
+
 // Components for Partner View
 const PartnerStatCard = ({ title, value, description }: { title: string, value: string, description: string }) => (
     <Card>
@@ -255,20 +320,22 @@ export default function ManageBusinessContent() {
     const { user, loading: authLoading } = useAuth();
     const [dataLoading, setDataLoading] = React.useState(true);
 
-    const isPartner = user?.role === 'Partner';
-
     React.useEffect(() => {
         // This is to prevent a flash of the wrong content while the user role is being determined.
         const timer = setTimeout(() => setDataLoading(false), 200);
         return () => clearTimeout(timer);
     }, []);
     
-    if (authLoading || dataLoading) {
+    if (authLoading || dataLoading || !user) {
         return <ManageBusinessContentSkeleton />;
     }
     
-    if (isPartner) {
+    if (user.role === 'Partner') {
         return <PartnerBusinessDeskView />;
+    }
+
+    if (user.role === 'Seller') {
+        return <SellerBusinessView />;
     }
 
     // Default to admin view for non-partners
