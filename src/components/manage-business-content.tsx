@@ -96,7 +96,7 @@ const AdminBusinessView = () => {
         { label: 'Manage Partner', href: '/manage-partner' },
         { label: 'Partner Activation', href: '/partner-activation' },
         { label: 'Deactivated Partner', href: '/deactivated-partner' },
-        { label: 'Manage Customer', href: '#' },
+        { label: 'Manage Customer', href: '/manage-customers' },
         { label: 'Manage Access', href: '/manage-access' },
         { label: 'Give Access', isDialog: true, Dialog: <AddUserDialog onUserAdded={() => {}} /> },
     ];
