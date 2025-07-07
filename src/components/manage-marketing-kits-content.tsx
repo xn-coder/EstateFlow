@@ -74,14 +74,14 @@ export default function ManageMarketingKitsContent({ role }: { role: Role }) {
     toast({ title: 'Info', description: `Delete functionality for kit ${id} is not implemented yet.` });
   };
 
-  const isAdminRole = ADMIN_ROLES.includes(role);
+  const isAdminOrSeller = ADMIN_ROLES.includes(role) || role === 'Seller';
 
   if (loading) {
     return (
        <div className="space-y-6">
            <Skeleton className="h-10 w-64" />
-           <div className={`grid grid-cols-1 ${isAdminRole ? '' : 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-6`}>
-             {isAdminRole ? (
+           <div className={`grid grid-cols-1 ${isAdminOrSeller ? '' : 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-6`}>
+             {isAdminOrSeller ? (
                <Skeleton className="h-[200px] w-full" />
              ) : (
                [...Array(8)].map((_, i) => (
@@ -93,7 +93,7 @@ export default function ManageMarketingKitsContent({ role }: { role: Role }) {
    );
  }
 
-  if (isAdminRole) {
+  if (isAdminOrSeller) {
     return (
       <div className="space-y-6">
         <Card>

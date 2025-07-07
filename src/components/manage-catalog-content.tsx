@@ -96,7 +96,7 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
     });
   };
 
-  const isAdminRole = ADMIN_ROLES.includes(role);
+  const isAdminOrSeller = ADMIN_ROLES.includes(role) || role === 'Seller';
 
   if (loading) {
     return (
@@ -105,8 +105,8 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
                <Skeleton className="h-10 w-64" />
                <Skeleton className="h-10 w-32" />
            </div>
-           <div className={`grid grid-cols-1 ${isAdminRole ? '' : 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-6`}>
-             {isAdminRole ? (
+           <div className={`grid grid-cols-1 ${isAdminOrSeller ? '' : 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-6`}>
+             {isAdminOrSeller ? (
                <Skeleton className="h-[200px] w-full" />
              ) : (
                [...Array(4)].map((_, i) => (
@@ -152,6 +152,7 @@ export default function ManageCatalogContent({ role }: { role: Role }) {
     );
   }
 
+  // Admin or Seller View
   return (
     <div className="space-y-6">
        <Card>

@@ -51,7 +51,7 @@ export default function ManageMarketingKitsPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const authorizedRoles = [...ADMIN_ROLES, 'Partner'];
+  const authorizedRoles = [...ADMIN_ROLES, 'Partner', 'Seller'];
 
   useEffect(() => {
     if (!loading && !user) {
@@ -66,11 +66,11 @@ export default function ManageMarketingKitsPage() {
     return <ManageMarketingKitsSkeleton />;
   }
   
-  const isAdminRole = ADMIN_ROLES.includes(user.role);
+  const isAdminOrSeller = ADMIN_ROLES.includes(user.role) || user.role === 'Seller';
 
   return (
     <SidebarProvider>
-      {isAdminRole && <AdminSidebar role={user.role} />}
+      {isAdminOrSeller && <AdminSidebar role={user.role} />}
       {user.role === 'Partner' && <PartnerSidebar />}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
