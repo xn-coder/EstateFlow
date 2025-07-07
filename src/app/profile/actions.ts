@@ -277,7 +277,9 @@ export async function updatePartnerAddressDetails(partnerProfileId: string, data
 
 const partnerKycSchema = z.object({
     aadhaarCard: z.string().min(1, 'Aadhaar card is required'),
+    aadhaarNumber: z.string().length(12, 'Aadhaar must be 12 digits.'),
     panCard: z.string().min(1, 'PAN card is required'),
+    panNumber: z.string().length(10, 'PAN must be 10 characters.'),
 });
 export async function updatePartnerKycDetails(partnerProfileId: string, data: z.infer<typeof partnerKycSchema>) {
     const validation = partnerKycSchema.safeParse(data);
@@ -285,10 +287,7 @@ export async function updatePartnerKycDetails(partnerProfileId: string, data: z.
 
     try {
         const profileRef = doc(db, 'partnerProfiles', partnerProfileId);
-        await updateDoc(profileRef, {
-            aadhaarCard: data.aadhaarCard,
-            panCard: data.panCard,
-        });
+        await updateDoc(profileRef, data);
         return { success: true, message: 'KYC documents updated.' };
     } catch (error) {
         console.error('Error updating KYC details:', error);

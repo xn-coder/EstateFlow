@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import bcrypt from 'bcryptjs';
 import * as z from 'zod';
-import { qualifications } from '@/types';
+import { qualifications, FeeApplicablePartnerCategory, feeApplicablePartnerCategories } from '@/types';
 
 // This is the full schema for validation on the server.
 const partnerSchema = z.object({
@@ -26,14 +26,17 @@ const partnerSchema = z.object({
   gstn: z.string().optional(),
   businessAge: z.coerce.number().min(0),
   areaCovered: z.string().min(1),
+  aadhaarNumber: z.string().length(12),
   aadhaarCard: z.string().min(1),
+  panNumber: z.string().length(10),
   panCard: z.string().min(1),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
-  partnerCategory: z.enum(['Affiliate Partner', 'Super Affiliate Partner', 'Associate Partner', 'Channel Partner']),
+  partnerCategory: z.enum(['Affiliate Partner', ...feeApplicablePartnerCategories]),
   paymentProof: z.string().optional(),
 });
 
-export async function registerPartner(data: z.infer<typeof partnerSchema>) {
+export async function registerPartner(data: Omit<z.infer<typeof partnerSchema>, 'password'> & { password?: string }) {
+  // We omit password from the data type so it isn't passed around, but we need it for validation.
   const validation = partnerSchema.safeParse(data);
   if (!validation.success) {
     console.error('Validation errors:', validation.error.flatten());
@@ -66,8 +69,8 @@ export async function registerPartner(data: z.infer<typeof partnerSchema>) {
     // Create partner profile
     const partnerProfileRef = await addDoc(collection(db, 'partnerProfiles'), dataForFirestore);
 
-    const requiredPaymentCategories = ['Super Affiliate Partner', 'Associate Partner', 'Channel Partner'];
-    const feeStatus = requiredPaymentCategories.includes(partnerCategory) ? 'Pending Payment' : 'Not Applicable';
+    const requiredPaymentCategories = feeApplicablePartnerCategories;
+    const feeStatus = requiredPaymentCategories.includes(partnerCategory as FeeApplicablePartnerCategory) ? 'Pending Payment' : 'Not Applicable';
 
     // Create a corresponding user entry
     await addDoc(usersRef, {
@@ -80,6 +83,7 @@ export async function registerPartner(data: z.infer<typeof partnerSchema>) {
       partnerProfileId: partnerProfileRef.id, // Link to the detailed profile
       status: 'Pending',
       feeStatus: feeStatus,
+      userCode: `US${crypto.randomUUID().substring(0, 10).toUpperCase()}`,
     });
 
     return { success: true, message: 'Partner registered successfully. Your account is pending admin activation.' };

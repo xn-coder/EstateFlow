@@ -43,7 +43,9 @@ export interface PartnerData {
   businessAge: number;
   areaCovered: string;
   aadhaarCard: string;
+  aadhaarNumber?: string;
   panCard: string;
+  panNumber?: string;
   position?: string;
   partnerCategory: 'Affiliate Partner' | FeeApplicablePartnerCategory;
   paymentProof?: string;

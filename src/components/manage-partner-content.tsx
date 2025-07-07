@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { PartnerActivationInfo } from '@/types';
 import { getActivePartners, deactivatePartner } from '@/app/manage-partner/actions';
 import { Badge } from './ui/badge';
-import { Eye, MessageSquare, UserX, ArrowUpDown } from 'lucide-react';
+import { Eye, MessageSquare, UserX, ArrowUpDown, ArrowLeft } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,87 +87,92 @@ export default function ManagePartnerContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-            <h1 className="text-2xl font-bold">Manage Partners</h1>
-            <p className="text-muted-foreground">View, message, or deactivate active partners.</p>
-        </div>
-      </div>
-      
-      <Card>
-          <CardContent className='p-0'>
-             {partners.length > 0 ? (
-                 <Table>
-                     <TableHeader>
-                         <TableRow>
-                             <TableHead><button className="flex items-center gap-1">Partner <ArrowUpDown className="h-3 w-3" /></button></TableHead>
-                             <TableHead className="hidden sm:table-cell"><button className="flex items-center gap-1">Partner ID <ArrowUpDown className="h-3 w-3" /></button></TableHead>
-                             <TableHead>Status</TableHead>
-                             <TableHead className="text-right">Actions</TableHead>
-                         </TableRow>
-                     </TableHeader>
-                     <TableBody>
-                         {partners.map(({ user, profile }) => (
-                             <TableRow key={user.id}>
-                                 <TableCell>
-                                     <div className='flex items-center gap-2'>
-                                        <Avatar className="h-10 w-10 border">
-                                            <AvatarImage src={user.avatar} alt={user.name} />
-                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className='flex flex-col'>
-                                            <span className='font-medium'>{user.name}</span>
-                                            <span className='text-xs text-muted-foreground'>{user.email}</span>
-                                        </div>
-                                     </div>
-                                 </TableCell>
-                                 <TableCell className="hidden sm:table-cell">{user.partnerCode || 'N/A'}</TableCell>
-                                 <TableCell><Badge variant="secondary">Active</Badge></TableCell>
-                                 <TableCell className="text-right">
-                                     <div className="flex justify-end gap-2">
-                                        <Button asChild variant="ghost" size="icon" title="View Profile">
-                                          <Link href={`/manage-partner/${user.id}`}>
-                                            <Eye className="h-4 w-4" />
-                                          </Link>
-                                        </Button>
-                                        <Button variant="ghost" size="icon" title="Message Partner" onClick={() => router.push('/updates')}>
-                                            <MessageSquare className="h-4 w-4" />
-                                        </Button>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="ghost" size="icon" title="Deactivate Partner" className="text-destructive hover:text-destructive">
-                                                    <UserX className="h-4 w-4" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    This will deactivate {user.name}. They will not be able to log in until their account is reactivated.
-                                                </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDeactivate(user.id)}>
-                                                    Deactivate
-                                                </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                     </div>
-                                 </TableCell>
-                             </TableRow>
-                         ))}
-                     </TableBody>
-                 </Table>
-             ) : (
-                <div className="text-center py-16">
-                    <h3 className="text-lg font-medium">No Active Partners</h3>
-                    <p className="text-muted-foreground">There are currently no active partners.</p>
+        <Card>
+            <CardHeader>
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => router.push('/manage-business')}>
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="sr-only">Back</span>
+                    </Button>
+                    <div>
+                        <CardTitle>Manage Partners</CardTitle>
+                        <CardDescription>View, message, or deactivate active partners.</CardDescription>
+                    </div>
                 </div>
-             )}
-          </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent className='p-0'>
+                {partners.length > 0 ? (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead><button className="flex items-center gap-1">Partner <ArrowUpDown className="h-3 w-3" /></button></TableHead>
+                                <TableHead className="hidden sm:table-cell"><button className="flex items-center gap-1">Partner ID <ArrowUpDown className="h-3 w-3" /></button></TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {partners.map(({ user, profile }) => (
+                                <TableRow key={user.id}>
+                                    <TableCell>
+                                        <div className='flex items-center gap-2'>
+                                            <Avatar className="h-10 w-10 border">
+                                                <AvatarImage src={user.avatar} alt={user.name} />
+                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className='flex flex-col'>
+                                                <span className='font-medium'>{user.name}</span>
+                                                <span className='text-xs text-muted-foreground'>{user.email}</span>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="hidden sm:table-cell">{user.partnerCode || 'N/A'}</TableCell>
+                                    <TableCell><Badge variant="secondary">Active</Badge></TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <Button asChild variant="ghost" size="icon" title="View Profile">
+                                            <Link href={`/manage-partner/${user.id}`}>
+                                                <Eye className="h-4 w-4" />
+                                            </Link>
+                                            </Button>
+                                            <Button variant="ghost" size="icon" title="Message Partner" onClick={() => router.push('/updates')}>
+                                                <MessageSquare className="h-4 w-4" />
+                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon" title="Deactivate Partner" className="text-destructive hover:text-destructive">
+                                                        <UserX className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This will deactivate {user.name}. They will not be able to log in until their account is reactivated.
+                                                    </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeactivate(user.id)}>
+                                                        Deactivate
+                                                    </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                ) : (
+                    <div className="text-center py-16">
+                        <h3 className="text-lg font-medium">No Active Partners</h3>
+                        <p className="text-muted-foreground">There are currently no active partners.</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
     </div>
   );
 }

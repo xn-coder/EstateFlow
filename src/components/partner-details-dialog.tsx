@@ -144,7 +144,11 @@ export default function PartnerDetailsDialog({ children, partnerInfo, onActivate
               </Card>
 
               <div>
-                <h3 className="text-lg font-semibold mb-4">Uploaded Documents</h3>
+                <h3 className="text-lg font-semibold mb-4">KYC Documents</h3>
+                 <CardContent>
+                    <DetailRow label="Aadhaar Number" value={profile.aadhaarNumber} />
+                    <DetailRow label="PAN Number" value={profile.panNumber} />
+                 </CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ImageViewer label="Aadhaar Card" base64Image={profile.aadhaarCard} hint="identification card" />
                     <ImageViewer label="PAN Card" base64Image={profile.panCard} hint="identification card" />

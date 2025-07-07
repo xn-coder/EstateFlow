@@ -9,11 +9,12 @@ import { getCustomers } from '@/app/manage-customers/actions';
 import { getUsers } from '@/app/login/actions';
 import type { Customer } from '@/types';
 import { format, parseISO } from 'date-fns';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Input } from './ui/input';
 import { Search } from 'lucide-react';
+import { Button } from './ui/button';
 
 export default function ManageCustomersContent() {
   const [customers, setCustomers] = React.useState<Customer[]>([]);
@@ -57,8 +58,16 @@ export default function ManageCustomersContent() {
     <div className="space-y-6 max-w-7xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>Manage Customers</CardTitle>
-          <CardDescription>View all customers created by partners.</CardDescription>
+           <div className="flex items-center gap-4">
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => router.push('/manage-business')}>
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="sr-only">Back</span>
+              </Button>
+              <div>
+                  <CardTitle>Manage Customers</CardTitle>
+                  <CardDescription>View all customers created by partners.</CardDescription>
+              </div>
+            </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-end mb-4">

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -25,7 +26,9 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 
 const partnerKycSchema = z.object({
     aadhaarCard: z.string().min(1, 'Aadhaar card is required'),
+    aadhaarNumber: z.string().length(12, 'Aadhaar must be 12 digits.'),
     panCard: z.string().min(1, 'PAN card is required'),
+    panNumber: z.string().length(10, 'PAN must be 10 characters.'),
 });
 
 interface EditPartnerKycDialogProps {
@@ -79,7 +82,9 @@ export default function EditPartnerKycDialog({ children, partnerInfo, onUpdate }
     resolver: zodResolver(partnerKycSchema),
     defaultValues: {
       aadhaarCard: profile.aadhaarCard,
+      aadhaarNumber: profile.aadhaarNumber || '',
       panCard: profile.panCard,
+      panNumber: profile.panNumber || '',
     },
   });
   
@@ -90,7 +95,9 @@ export default function EditPartnerKycDialog({ children, partnerInfo, onUpdate }
     if (open) {
       form.reset({
         aadhaarCard: profile.aadhaarCard,
+        aadhaarNumber: profile.aadhaarNumber || '',
         panCard: profile.panCard,
+        panNumber: profile.panNumber || '',
       });
     }
   }, [open, profile, form]);
@@ -118,10 +125,36 @@ export default function EditPartnerKycDialog({ children, partnerInfo, onUpdate }
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
+              name="aadhaarNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Aadhaar Card Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter 12-digit Aadhaar Number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="aadhaarCard"
               render={({ field }) => (
                 <FormItem>
                   <FileUploadPreview label="Aadhaar Card" hint="identification card" base64Image={aadhaarPreview} onFileSelect={field.onChange} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="panNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>PAN Card Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter 10-character PAN" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

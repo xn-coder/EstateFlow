@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Pencil, Plus, Search, Trash2, ArrowUpDown } from 'lucide-react';
+import { Pencil, Plus, Search, Trash2, ArrowUpDown, ArrowLeft } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +26,7 @@ import { deleteUser } from '@/app/profile/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import EditUserDialog from './edit-user-dialog';
+import { useRouter } from 'next/navigation';
 
 interface ManageAccessContentProps {
   currentUser: User;
@@ -35,6 +36,7 @@ export default function ManageAccessContent({ currentUser }: ManageAccessContent
   const [teamMembers, setTeamMembers] = React.useState<User[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
+  const router = useRouter();
 
   const fetchUsers = React.useCallback(async () => {
     setLoading(true);
@@ -64,16 +66,24 @@ export default function ManageAccessContent({ currentUser }: ManageAccessContent
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <Card>
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <div>
-            <CardTitle className="text-lg">Manage Access</CardTitle>
-            <CardDescription>Add, view or remove team members.</CardDescription>
-          </div>
-          <AddUserDialog onUserAdded={fetchUsers}>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Add User
-            </Button>
-          </AddUserDialog>
+        <CardHeader>
+             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => router.push('/manage-business')}>
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="sr-only">Back</span>
+                    </Button>
+                    <div>
+                        <CardTitle>Manage Access</CardTitle>
+                        <CardDescription>Add, view or remove team members.</CardDescription>
+                    </div>
+                </div>
+                <AddUserDialog onUserAdded={fetchUsers}>
+                    <Button>
+                    <Plus className="mr-2 h-4 w-4" /> Add User
+                    </Button>
+                </AddUserDialog>
+            </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-4 gap-2">

@@ -53,7 +53,9 @@ const businessDetailsSchema = z.object({
 });
 
 const documentUploadsSchema = z.object({
+  aadhaarNumber: z.string().length(12, 'Aadhaar must be 12 digits.'),
   aadhaarCard: z.string().min(1, 'Aadhaar card is required'),
+  panNumber: z.string().length(10, 'PAN must be 10 characters.'),
   panCard: z.string().min(1, 'PAN card is required'),
   paymentProof: z.string().optional(),
 });
@@ -67,8 +69,7 @@ const combinedSchemaForValidation = personalDetailsSchema
     path: ['confirmPassword'],
   })
   .superRefine((data, ctx) => {
-    const requiredCategories = ['Super Affiliate Partner', 'Associate Partner', 'Channel Partner'];
-    if (data.partnerCategory && requiredCategories.includes(data.partnerCategory) && !data.paymentProof) {
+    if (feeApplicablePartnerCategories.includes(data.partnerCategory as FeeApplicablePartnerCategory) && !data.paymentProof) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'Payment proof is required for this partner type.',
@@ -167,7 +168,9 @@ export default function SignupPage() {
       gstn: '',
       businessAge: 0,
       areaCovered: '',
+      aadhaarNumber: '',
       aadhaarCard: '',
+      panNumber: '',
       panCard: '',
       partnerCategory: undefined,
     },
@@ -327,19 +330,21 @@ export default function SignupPage() {
 
               {step === 3 && (
                  <div className="space-y-6">
+                    <FormField control={methods.control} name="aadhaarNumber" render={({ field }) => ( <FormItem><FormLabel>Aadhaar Card Number</FormLabel><FormControl><Input placeholder="Enter 12-digit Aadhaar Number" {...field} /></FormControl><FormMessage /></FormItem> )} />
                     <FormField control={methods.control} name="aadhaarCard" render={({ field }) => (
                       <FormItem>
                           <FileUploadButton label="Aadhaar Card" onFileSelect={field.onChange} previewUrl={field.value} hint="identification card" />
                           <FormMessage />
                       </FormItem>
                     )} />
+                    <FormField control={methods.control} name="panNumber" render={({ field }) => ( <FormItem><FormLabel>PAN Card Number</FormLabel><FormControl><Input placeholder="Enter 10-character PAN" {...field} /></FormControl><FormMessage /></FormItem> )} />
                      <FormField control={methods.control} name="panCard" render={({ field }) => (
                       <FormItem>
                           <FileUploadButton label="PAN Card" onFileSelect={field.onChange} previewUrl={field.value} hint="identification card" />
                           <FormMessage />
                       </FormItem>
                     )} />
-                    {partnerCategory && ['Super Affiliate Partner', 'Associate Partner', 'Channel Partner'].includes(partnerCategory) && (
+                    {partnerCategory && feeApplicablePartnerCategories.includes(partnerCategory as FeeApplicablePartnerCategory) && (
                         <FormField control={methods.control} name="paymentProof" render={({ field }) => (
                             <FormItem>
                                 <FileUploadButton label="Upload Fee Payment Proof" onFileSelect={field.onChange} previewUrl={field.value} hint="payment receipt" />
