@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -8,22 +7,14 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import type { PartnerActivationInfo, WebsiteData, Category } from '@/types';
-import { getPartnerById } from '@/app/manage-partner/actions';
-import { getWebsiteData } from '@/app/manage-website/actions';
+import type { Category } from '@/types';
 import { Skeleton } from './ui/skeleton';
-import { Settings, Share2, ChevronRight, Book, Mail } from 'lucide-react';
-import Image from 'next/image';
+import { ChevronRight, Book, Mail } from 'lucide-react';
 import AddMarketingKitDialog from './add-marketing-kit-dialog';
 import AddCategoryDialog from './add-category-dialog';
 import AddContentDialog from './add-content-dialog';
 import AddUserDialog from './add-user-dialog';
 import { getCategories } from '@/app/manage-category/actions';
-import EditLegalInfoDialog from './edit-legal-info-dialog';
-import EditLinkDetailsDialog from './edit-link-details-dialog';
-import EditPartnerBusinessDetailsDialog from './edit-partner-business-details-dialog';
-import EditPartnerBusinessLogoDialog from './edit-partner-business-logo-dialog';
-import EditPartnerDigitalCardDialog from './edit-partner-digital-card-dialog';
 
 
 // Components for Admin View
@@ -163,7 +154,7 @@ const AdminBusinessView = () => {
     );
 }
 
-// --- Partner-facing components for the new layout ---
+// Components for Partner View
 const PartnerStatCard = ({ title, value, description }: { title: string, value: string, description: string }) => (
     <Card>
       <CardHeader className="pb-2">
@@ -176,118 +167,37 @@ const PartnerStatCard = ({ title, value, description }: { title: string, value: 
     </Card>
 );
 
-const EditableCard = ({ title, children, editAction, shareAction }: { title: string; children: React.ReactNode; editAction?: React.ReactNode; shareAction?: boolean; }) => (
-    <Card>
-        <CardHeader className="flex flex-row items-center justify-between py-3">
-            <CardTitle className="text-base font-semibold">{title}</CardTitle>
-            <div className="flex items-center gap-1">
-                {shareAction && <Button variant="ghost" size="icon"><Share2 className="h-4 w-4" /></Button>}
-                {editAction}
-            </div>
-        </CardHeader>
-        <CardContent className="pt-0">{children}</CardContent>
-    </Card>
+const ListItem = ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <Link href={href} className="block w-full text-left">
+        <div className="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors">
+            <span className="font-medium">{children}</span>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </div>
+    </Link>
 );
 
-const DetailRow = ({ label, value }: { label: string; value?: React.ReactNode }) => (
-    <div className="flex justify-between py-2 border-b last:border-b-0 text-sm">
-      <p className="text-muted-foreground">{label}</p>
-      <p className="font-medium text-right">{value || 'N/A'}</p>
-    </div>
-);
-
-const PartnerBusinessView = ({ partnerInfo, websiteData, onUpdate }: { partnerInfo: PartnerActivationInfo, websiteData: WebsiteData, onUpdate: () => void }) => {
-    const { profile } = partnerInfo;
-
+const PartnerBusinessDeskView = () => {
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <PartnerStatCard title="Enquiry" value="100" description="Leads" />
+        <div className="space-y-6 max-w-7xl mx-auto">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <PartnerStatCard title="Enquiry" value="1000" description="Leads" />
+                <PartnerStatCard title="Customer" value="1000" description="Clients" />
                 <PartnerStatCard title="Associate" value="100" description="Team" />
-                <PartnerStatCard title="Revenue" value="1000 INR" description="Weekly Earning" />
                 <PartnerStatCard title="Leaderboard" value="10001" description="Current Rank" />
             </div>
 
-            <EditableCard 
-                title="Business Details" 
-                editAction={
-                    <EditPartnerBusinessDetailsDialog partnerInfo={partnerInfo} onUpdate={onUpdate}>
-                        <Button variant="ghost" size="icon"><Settings className="h-4 w-4" /></Button>
-                    </EditPartnerBusinessDetailsDialog>
-                }
-            >
-                <DetailRow label="Business Type" value={profile.businessType} />
-                <DetailRow label="Business Name" value={profile.name} />
-                <DetailRow label="GSTN" value={profile.gstn} />
-                <DetailRow label="Age Of Business" value={`${profile.businessAge} Month`} />
-                <DetailRow label="Area Covered" value={profile.areaCovered} />
-            </EditableCard>
-            
-            <EditableCard 
-                title="Business Logo" 
-                editAction={
-                    <EditPartnerBusinessLogoDialog partnerInfo={partnerInfo} onUpdate={onUpdate}>
-                        <Button variant="ghost" size="icon"><Settings className="h-4 w-4" /></Button>
-                    </EditPartnerBusinessLogoDialog>
-                }
-            >
-                <div className="flex justify-center p-4">
-                    <Image src={profile.businessLogo || "https://placehold.co/128x128.png"} alt="Business Logo" width={128} height={128} className="rounded-lg" data-ai-hint="company logo" />
-                </div>
-            </EditableCard>
-
-            <EditableCard 
-                title="Digital Card" 
-                editAction={
-                    <EditPartnerDigitalCardDialog partnerInfo={partnerInfo} onUpdate={onUpdate}>
-                        <Button variant="ghost" size="icon"><Settings className="h-4 w-4" /></Button>
-                    </EditPartnerDigitalCardDialog>
-                } 
-                shareAction
-            >
-                 <DetailRow label="Your Name" value={profile.name} />
-                 <DetailRow label="Position" value={profile.position || 'Director'} />
-                 <DetailRow label="Display Phone Number" value={profile.phone} />
-                 <DetailRow label="Display Email" value={profile.email} />
-                 <DetailRow label="Address" value={`${profile.address}, ${profile.city}, ${profile.state}, India`} />
-                 <div className="pt-2"><Button variant="link" className="p-0 h-auto">View Card</Button></div>
-            </EditableCard>
-
-            <EditableCard 
-                title="Website Setting" 
-                editAction={
-                    <EditLegalInfoDialog legalInfo={websiteData.legalInfo} onUpdate={onUpdate}>
-                        <Button variant="ghost" size="icon"><Settings className="h-4 w-4" /></Button>
-                    </EditLegalInfoDialog>
-                } 
-                shareAction
-            >
-                 <DetailRow label="About Page" value={<span className="line-clamp-3 text-right">{websiteData.legalInfo.about}</span>} />
-                 <DetailRow label="Terms Of Services" value={<a href={websiteData.legalInfo.terms} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.terms}</a>} />
-                 <DetailRow label="Privacy policy" value={<a href={websiteData.legalInfo.privacy} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.privacy}</a>} />
-                 <DetailRow label="Refund policy" value={<a href={websiteData.legalInfo.refund} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.refund}</a>} />
-                 <DetailRow label="Disclaimer" value={<a href={websiteData.legalInfo.disclaimer} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.legalInfo.disclaimer}</a>} />
-                 <div className="pt-2"><Button variant="link" className="p-0 h-auto">View Website</Button></div>
-            </EditableCard>
-
-            <EditableCard 
-                title="Your Link Details" 
-                editAction={
-                    <EditLinkDetailsDialog links={websiteData.links} onUpdate={onUpdate}>
-                         <Button variant="ghost" size="icon"><Settings className="h-4 w-4" /></Button>
-                    </EditLinkDetailsDialog>
-                } 
-                shareAction
-            >
-                 <DetailRow label="Website" value={<a href={websiteData.links.website} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.links.website}</a>} />
-                 <DetailRow label="Facebook" value={<a href={websiteData.links.facebook} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.links.facebook}</a>} />
-                 <DetailRow label="Instagram" value={<a href={websiteData.links.instagram} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.links.instagram}</a>} />
-                 <DetailRow label="LinkedIn" value={<a href={websiteData.links.linkedin} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.links.linkedin}</a>} />
-                 <DetailRow label="YouTube" value={<a href={websiteData.links.youtube} className="text-primary hover:underline truncate block w-48 sm:w-auto" target="_blank" rel="noopener noreferrer">{websiteData.links.youtube}</a>} />
-            </EditableCard>
+            <Card>
+                <CardContent className="p-0">
+                    <div className="divide-y">
+                        <ListItem href="/manage-catalog">Explore Catalog Now</ListItem>
+                        <ListItem href="/wallet-billing">Send Invoice & Bills</ListItem>
+                        <ListItem href="/updates">Help & Support</ListItem>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
-    );
-};
+    )
+}
 
 const ManageBusinessContentSkeleton = () => (
     <div className="space-y-6">
@@ -297,48 +207,29 @@ const ManageBusinessContentSkeleton = () => (
         <Skeleton className="h-[100px] w-full" />
         <Skeleton className="h-[100px] w-full" />
       </div>
-      <Skeleton className="h-[250px] w-full" />
       <Skeleton className="h-[180px] w-full" />
-      <Skeleton className="h-[200px] w-full" />
-      <Skeleton className="h-[280px] w-full" />
-      <Skeleton className="h-[280px] w-full" />
     </div>
 );
 
 
 export default function ManageBusinessContent() {
     const { user, loading: authLoading } = useAuth();
-    const [partnerInfo, setPartnerInfo] = React.useState<PartnerActivationInfo | null>(null);
-    const [websiteData, setWebsiteData] = React.useState<WebsiteData | null>(null);
     const [dataLoading, setDataLoading] = React.useState(true);
 
     const isPartner = user?.role === 'Partner';
 
-    const fetchData = React.useCallback(async () => {
-        if (isPartner && user) {
-            setDataLoading(true);
-            const [pInfo, wData] = await Promise.all([
-                getPartnerById(user.id),
-                getWebsiteData(),
-            ]);
-            setPartnerInfo(pInfo);
-            setWebsiteData(wData);
-            setDataLoading(false);
-        } else {
-            setDataLoading(false);
-        }
-    }, [isPartner, user]);
-
     React.useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        // This is to prevent a flash of the wrong content while the user role is being determined.
+        const timer = setTimeout(() => setDataLoading(false), 200);
+        return () => clearTimeout(timer);
+    }, []);
     
-    if (authLoading || (isPartner && dataLoading)) {
+    if (authLoading || dataLoading) {
         return <ManageBusinessContentSkeleton />;
     }
     
-    if (isPartner && partnerInfo && websiteData) {
-        return <PartnerBusinessView partnerInfo={partnerInfo} websiteData={websiteData} onUpdate={fetchData} />;
+    if (isPartner) {
+        return <PartnerBusinessDeskView />;
     }
 
     // Default to admin view for non-partners
