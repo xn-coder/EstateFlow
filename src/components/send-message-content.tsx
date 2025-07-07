@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,6 +19,9 @@ import type { Message, User } from '@/types';
 import { getMessages, markMessageAsRead, sendMessage } from '@/app/messages/actions';
 import { format, parseISO } from 'date-fns';
 import { Skeleton } from './ui/skeleton';
+import SummernoteEditor from './summernote-editor';
+import DOMPurify from 'dompurify';
+
 
 // New component for sellers
 const SellerSendMessageForm = ({ currentUser }: { currentUser: User }) => {
@@ -140,13 +142,7 @@ const SellerSendMessageForm = ({ currentUser }: { currentUser: User }) => {
                             control={form.control}
                             name="details"
                             render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Details</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="Type your message here." className="min-h-[150px]" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
+                                <SummernoteEditor value={field.value} onChange={field.onChange} />
                             )}
                         />
                         <div className="flex justify-end">
@@ -287,9 +283,10 @@ const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
         <CardTitle className="text-2xl !mt-2">{message.subject}</CardTitle>
     </CardHeader>
     <CardContent>
-      <div className="prose dark:prose-invert max-w-none prose-p:my-2">
-        <p>{message.details}</p>
-      </div>
+      <div 
+        className="prose dark:prose-invert max-w-none prose-p:my-2"
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.details) }}
+        />
     </CardContent>
   </Card>
 );
@@ -501,13 +498,7 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
                   control={form.control}
                   name="details"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Details</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Type your message here." className="min-h-[150px]" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                      <SummernoteEditor value={field.value} onChange={field.onChange} />
                   )}
                 />
 

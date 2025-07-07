@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
+import 'summernote/dist/summernote-lite.css';
 import { Toaster, AuthProvider } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
