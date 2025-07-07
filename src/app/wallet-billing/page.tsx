@@ -12,6 +12,7 @@ import DashboardFooter from '@/components/dashboard-footer';
 import { ADMIN_ROLES } from '@/lib/roles';
 import PartnerSidebar from '@/components/partner-sidebar';
 import PartnerWalletContent from '@/components/partner-wallet-content';
+import AppHeader from '@/components/app-header';
 
 function WalletBillingSkeleton() {
   return (
