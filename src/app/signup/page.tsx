@@ -66,7 +66,8 @@ const combinedSchemaForValidation = personalDetailsSchema
     path: ['confirmPassword'],
   })
   .superRefine((data, ctx) => {
-    if (data.partnerCategory === 'Affiliate Partner' && !data.paymentProof) {
+    const requiredCategories = ['Super Affiliate Partner', 'Associate Partner', 'Channel Partner'];
+    if (data.partnerCategory && requiredCategories.includes(data.partnerCategory) && !data.paymentProof) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'Payment proof is required for this partner type.',
@@ -322,7 +323,7 @@ export default function SignupPage() {
                           <FormMessage />
                       </FormItem>
                     )} />
-                    {partnerCategory === 'Affiliate Partner' && (
+                    {partnerCategory && ['Super Affiliate Partner', 'Associate Partner', 'Channel Partner'].includes(partnerCategory) && (
                         <FormField control={methods.control} name="paymentProof" render={({ field }) => (
                             <FormItem>
                                 <FileUploadButton label="Upload Fee Payment Proof" onFileSelect={field.onChange} previewUrl={field.value} hint="payment receipt" />
