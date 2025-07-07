@@ -121,7 +121,7 @@ export async function updateReceivableStatus(id: string, status: 'Pending' | 'Re
       const newHistory: Omit<PaymentHistory, 'id'> = {
         date: new Date().toISOString().split('T')[0],
         name: `Received from ${receivableData.partnerName}`,
-        transactionId: `PAY${crypto.randomUUID().substring(0, 12).toUpperCase()}`,
+        transactionId: `PAY${Math.random().toString().slice(2, 14)}`,
         amount,
         paymentMethod: 'System',
         type: 'Credit',
@@ -185,7 +185,7 @@ export async function updatePayableStatus(id: string, status: 'Pending' | 'Paid'
         const newHistory: Omit<PaymentHistory, 'id'> = {
             date: new Date().toISOString().split('T')[0],
             name: `Paid to ${payableData.recipientName}`,
-            transactionId: `PAY${crypto.randomUUID().substring(0, 12).toUpperCase()}`,
+            transactionId: `PAY${Math.random().toString().slice(2, 14)}`,
             amount,
             paymentMethod: 'Wallet',
             type: 'Debit',
@@ -263,7 +263,7 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
           newHistory = {
             date: new Date().toISOString().split('T')[0],
             name: transactionName,
-            transactionId: `PAY${crypto.randomUUID().substring(0, 12).toUpperCase()}`,
+            transactionId: `PAY${Math.random().toString().slice(2, 14)}`,
             amount,
             paymentMethod,
             type: 'Credit',
@@ -281,7 +281,7 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
           newHistory = {
             date: new Date().toISOString().split('T')[0],
             name: transactionName,
-            transactionId: `PAY${crypto.randomUUID().substring(0, 12).toUpperCase()}`,
+            transactionId: `PAY${Math.random().toString().slice(2, 14)}`,
             amount,
             paymentMethod,
             type: 'Credit',
@@ -303,7 +303,7 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
           newHistory = {
             date: new Date().toISOString().split('T')[0],
             name: transactionName,
-            transactionId: `PAY${crypto.randomUUID().substring(0, 12).toUpperCase()}`,
+            transactionId: `PAY${Math.random().toString().slice(2, 14)}`,
             amount,
             paymentMethod,
             type: 'Debit',
@@ -392,7 +392,7 @@ export async function makeAdHocPayment(data: z.infer<typeof adHocPaymentSchema>)
           transaction.set(newHistoryRef, {
               date: new Date().toISOString().split('T')[0],
               name: `Paid to ${recipientName}`,
-              transactionId: `PAY${crypto.randomUUID().substring(0, 12).toUpperCase()}`,
+              transactionId: `PAY${Math.random().toString().slice(2, 14)}`,
               amount: amount,
               paymentMethod: paymentMethod,
               type: 'Debit',

@@ -95,7 +95,7 @@ export async function addCatalog(data: Omit<Catalog, 'id' | 'catalogCode'>) {
   }
   
   try {
-    const catalogCode = `CTL${crypto.randomUUID().substring(0, 9).toUpperCase()}`;
+    const catalogCode = `CTL${Math.random().toString().slice(2, 11)}`;
     const dataToSave = {
       ...validation.data,
       catalogCode,
@@ -178,7 +178,7 @@ export async function addMarketingKit(data: z.infer<typeof addMarketingKitSchema
 
     const newKit: CatalogMarketingKit = {
       ...kitData,
-      id: `MR${crypto.randomUUID().substring(0, 10).toUpperCase()}`,
+      id: `MR${Math.random().toString().slice(2, 12)}`,
       featuredImage: isBase64(kitData.featuredImage) ? placeholderImage : kitData.featuredImage,
       uploadedFile: isBase64(kitData.uploadedFile) ? (kitData.uploadedFile.startsWith('data:image') ? placeholderImage : placeholderFile) : kitData.uploadedFile,
     };

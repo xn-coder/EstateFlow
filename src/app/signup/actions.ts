@@ -83,7 +83,7 @@ export async function registerPartner(data: Omit<z.infer<typeof partnerSchema>, 
       partnerProfileId: partnerProfileRef.id, // Link to the detailed profile
       status: 'Pending',
       feeStatus: feeStatus,
-      userCode: `US${crypto.randomUUID().substring(0, 10).toUpperCase()}`,
+      userCode: `US${Math.random().toString().slice(2, 12)}`,
     });
 
     return { success: true, message: 'Partner registered successfully. Your account is pending admin activation.' };

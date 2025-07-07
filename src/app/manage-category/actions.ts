@@ -23,7 +23,7 @@ export async function addCategory(data: Omit<Category, 'id' | 'categoryCode'>) {
   const dataToSave = {
     ...validation.data,
     imageUrl: data.imageUrl.startsWith('data:') ? 'https://placehold.co/600x400.png' : data.imageUrl,
-    categoryCode: `CAT${crypto.randomUUID().substring(0, 6).toUpperCase()}`,
+    categoryCode: `CAT${Math.random().toString().slice(2, 8)}`,
   };
 
   try {

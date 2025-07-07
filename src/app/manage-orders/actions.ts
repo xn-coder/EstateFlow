@@ -29,7 +29,7 @@ export async function submitEnquiry(data: Omit<SubmittedEnquiry, 'id' | 'enquiry
   }
   
   try {
-    const enquiryId = `ENQ-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
+    const enquiryId = `ENQ-${Math.random().toString().slice(2, 10)}`;
     const enquiryToSave = {
       ...validation.data,
       enquiryId,
@@ -97,7 +97,7 @@ export async function confirmEnquiry(enquiryId: string) {
             }
 
             if (existingCustomers.empty) {
-                const customerId = `CD${crypto.randomUUID().substring(0, 10).toUpperCase()}`;
+                const customerId = `CD${Math.random().toString().slice(2, 12)}`;
                 const newCustomer: Omit<Customer, 'id'> = {
                     customerId: customerId,
                     name: enquiry.customerName,

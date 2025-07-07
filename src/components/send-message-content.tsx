@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -160,6 +161,7 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
   const [selectedMessage, setSelectedMessage] = React.useState<Message | null>(null);
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const searchParams = useSearchParams();
 
   const fetchMessages = React.useCallback(async () => {
     if (currentUser) {
@@ -184,6 +186,19 @@ export default function SendMessageContent({ currentUser }: { currentUser: User 
       details: '',
     },
   });
+
+  React.useEffect(() => {
+    const recipientId = searchParams.get('recipientId');
+    if (recipientId) {
+        form.reset({
+            type: 'partner',
+            recipientId: recipientId,
+            subject: '',
+            details: '',
+        });
+        setView('form');
+    }
+  }, [searchParams, form]);
 
   const messageType = form.watch('type');
 

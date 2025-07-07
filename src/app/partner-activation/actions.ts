@@ -79,7 +79,7 @@ export async function activatePartner(userId: string): Promise<{ success: boolea
         prefix = 'DAS';
     }
 
-    const partnerCode = `${prefix}${crypto.randomUUID().substring(0, 9).toUpperCase()}`;
+    const partnerCode = `${prefix}${Math.random().toString().slice(2, 11)}`;
 
     await updateDoc(userRef, {
       status: 'Active',

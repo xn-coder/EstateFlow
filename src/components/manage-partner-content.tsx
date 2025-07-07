@@ -135,7 +135,7 @@ export default function ManagePartnerContent() {
                                                 <Eye className="h-4 w-4" />
                                             </Link>
                                             </Button>
-                                            <Button variant="ghost" size="icon" title="Message Partner" onClick={() => router.push('/updates')}>
+                                            <Button variant="ghost" size="icon" title="Message Partner" onClick={() => router.push(`/updates?recipientId=${user.email}`)}>
                                                 <MessageSquare className="h-4 w-4" />
                                             </Button>
                                             <AlertDialog>
