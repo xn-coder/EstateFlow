@@ -17,8 +17,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { updateMessages } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, Pencil } from 'lucide-react';
-import type { UpdateMessage } from '@/types';
-
+import type { UpdateMessage, User } from '@/types';
+import { addSupportTicket } from '@/app/support-ticket/actions';
 
 const announcementSchema = z.object({
   type: z.literal('announcement'),
@@ -35,7 +35,6 @@ const directMessageSchema = z.object({
 });
 
 const formSchema = z.discriminatedUnion('type', [announcementSchema, directMessageSchema]);
-
 
 interface MessageListProps {
   onMessageSelect: (message: UpdateMessage) => void;
@@ -122,8 +121,125 @@ const MessageDetail = ({ message, onBack }: MessageDetailProps) => (
   </Card>
 );
 
+const supportTicketSchema = z.object({
+  queryCategory: z.string({ required_error: 'Please select a category.' }).min(1, 'Please select a category.'),
+  subject: z.string().min(1, 'Subject is required.'),
+  message: z.string().min(1, 'Message is required.'),
+});
 
-export default function SendMessageContent() {
+const PartnerSupportForm = ({ user }: { user: User }) => {
+  const { toast } = useToast();
+  const form = useForm<z.infer<typeof supportTicketSchema>>({
+    resolver: zodResolver(supportTicketSchema),
+    defaultValues: {
+      queryCategory: '',
+      subject: '',
+      message: '',
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof supportTicketSchema>) => {
+    const result = await addSupportTicket({
+        ...values,
+        user: {
+            id: user.id,
+            name: user.name,
+            role: user.role
+        }
+    });
+
+    if (result.success) {
+        toast({
+            title: 'Ticket Submitted',
+            description: 'Your support ticket has been sent. We will get back to you shortly.',
+        });
+        form.reset();
+    } else {
+        toast({
+            title: 'Submission Failed',
+            description: result.error,
+            variant: 'destructive',
+        });
+    }
+  };
+
+  const queryCategories = [
+    "Billing & Payments",
+    "Technical Support",
+    "Catalog Inquiry",
+    "Account Help",
+    "General Question",
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Help & Support</CardTitle>
+        <CardDescription>Have a question or need help? Fill out the form below.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="queryCategory"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Query Category</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {queryCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="subject"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Subject</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter a brief subject" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="message"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Message</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Describe your issue or question in detail." className="min-h-[150px]" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex justify-end">
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Submitting...' : 'Submit Ticket'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+};
+
+
+export default function SendMessageContent({ currentUser }: { currentUser: User }) {
   const { toast } = useToast();
   const [view, setView] = React.useState<'list' | 'detail' | 'form'>('list');
   const [selectedMessage, setSelectedMessage] = React.useState<UpdateMessage | null>(null);
@@ -163,6 +279,10 @@ export default function SendMessageContent() {
     setSelectedMessage(message);
     setView('detail');
   };
+
+  if (currentUser.role === 'Partner') {
+    return <PartnerSupportForm user={currentUser} />;
+  }
 
   if (view === 'form') {
     return (
@@ -306,4 +426,3 @@ export default function SendMessageContent() {
 
   return <MessageList onMessageSelect={handleMessageSelect} onCompose={() => setView('form')} />
 }
-

@@ -10,6 +10,7 @@ import AppHeader from '@/components/app-header';
 import SendMessageContent from '@/components/send-message-content';
 import DashboardFooter from '@/components/dashboard-footer';
 import { ADMIN_ROLES } from '@/lib/roles';
+import PartnerSidebar from '@/components/partner-sidebar';
 
 function UpdatesSkeleton() {
   return (
@@ -62,13 +63,15 @@ export default function UpdatesPage() {
     return <UpdatesSkeleton />;
   }
 
+  const isPartner = user.role === 'Partner';
+
   return (
     <SidebarProvider>
-      {ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />}
+      {isPartner ? <PartnerSidebar /> : (ADMIN_ROLES.includes(user.role) && <AdminSidebar role={user.role} />)}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          <SendMessageContent />
+          <SendMessageContent currentUser={user} />
         </main>
         <DashboardFooter />
       </SidebarInset>

@@ -8,15 +8,22 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, ArrowUpDown, Info, Clock, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supportTickets } from '@/lib/data';
+import { getSupportTickets } from '@/app/support-ticket/actions';
+import type { SupportTicket } from '@/types';
+import { format, parseISO } from 'date-fns';
+import { Skeleton } from './ui/skeleton';
 
-const StatCard = ({ title, value, description }: { title: string; value: string; description: string }) => (
+const StatCard = ({ title, value, description, loading }: { title: string; value: string; description: string, loading: boolean }) => (
   <Card>
     <CardHeader className="pb-2">
       <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
     </CardHeader>
     <CardContent>
-      <p className="text-4xl font-bold">{value}</p>
+        {loading ? (
+            <Skeleton className="h-10 w-3/4 mb-1" />
+        ) : (
+            <p className="text-4xl font-bold">{value}</p>
+        )}
       <p className="text-xs text-muted-foreground">{description}</p>
     </CardContent>
   </Card>
@@ -24,6 +31,19 @@ const StatCard = ({ title, value, description }: { title: string; value: string;
 
 export default function SupportTicketContent() {
   const { toast } = useToast();
+  const [tickets, setTickets] = React.useState<SupportTicket[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  const fetchTickets = React.useCallback(async () => {
+    setLoading(true);
+    const data = await getSupportTickets();
+    setTickets(data);
+    setLoading(false);
+  }, []);
+
+  React.useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
   
   const handleActionClick = (action: string, ticketId: string) => {
     toast({
@@ -32,17 +52,17 @@ export default function SupportTicketContent() {
     });
   };
 
-  const latestTickets = supportTickets.filter(t => t.status === 'Latest').length;
-  const processingTickets = supportTickets.filter(t => t.status === 'Processing').length;
-  const solvedTickets = supportTickets.filter(t => t.status === 'Solved').length;
+  const latestTickets = tickets.filter(t => t.status === 'Latest').length;
+  const processingTickets = tickets.filter(t => t.status === 'Processing').length;
+  const solvedTickets = tickets.filter(t => t.status === 'Solved').length;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Latest" value={latestTickets.toString()} description="Ticket" />
-        <StatCard title="Processing" value={processingTickets.toString()} description="Ticket" />
-        <StatCard title="Solved" value={solvedTickets.toString()} description="Ticket" />
-        <StatCard title="Associate" value="10" description="Team" />
+        <StatCard title="Latest" value={latestTickets.toString()} description="Ticket" loading={loading} />
+        <StatCard title="Processing" value={processingTickets.toString()} description="Ticket" loading={loading} />
+        <StatCard title="Solved" value={solvedTickets.toString()} description="Ticket" loading={loading} />
+        <StatCard title="Associate" value="10" description="Team" loading={loading} />
       </div>
 
       <Card>
@@ -79,33 +99,50 @@ export default function SupportTicketContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {supportTickets.map((ticket) => (
-                    <TableRow key={ticket.id}>
-                        <TableCell>{ticket.ticketId}</TableCell>
-                        <TableCell>{ticket.date}</TableCell>
-                        <TableCell>{ticket.userName}</TableCell>
-                        <TableCell>{ticket.userType}</TableCell>
-                        <TableCell>{ticket.supportFor}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white h-6 w-6" onClick={() => handleActionClick('View Details', ticket.ticketId)}>
-                                <Info className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="bg-red-500 hover:bg-red-600 text-white h-6 w-6" onClick={() => handleActionClick('View History', ticket.ticketId)}>
-                                <Clock className="h-4 w-4" />
-                            </Button>
-                             <Button variant="ghost" size="icon" className="bg-green-500 hover:bg-green-600 text-white h-6 w-6" onClick={() => handleActionClick('Mark Solved', ticket.ticketId)}>
-                                <CheckCircle className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                {loading ? (
+                  [...Array(5)].map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                     </TableRow>
-                ))}
+                  ))
+                ) : tickets.length > 0 ? (
+                    tickets.map((ticket) => (
+                        <TableRow key={ticket.id}>
+                            <TableCell>{ticket.ticketId}</TableCell>
+                            <TableCell>{format(parseISO(ticket.createdAt), 'dd MMM yyyy')}</TableCell>
+                            <TableCell>{ticket.userName}</TableCell>
+                            <TableCell>{ticket.userType}</TableCell>
+                            <TableCell>{`${ticket.queryCategory} - ${ticket.subject}`}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Button variant="ghost" size="icon" className="bg-orange-400 hover:bg-orange-500 text-white h-6 w-6" onClick={() => handleActionClick('View Details', ticket.ticketId)}>
+                                    <Info className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="bg-red-500 hover:bg-red-600 text-white h-6 w-6" onClick={() => handleActionClick('View History', ticket.ticketId)}>
+                                    <Clock className="h-4 w-4" />
+                                </Button>
+                                 <Button variant="ghost" size="icon" className="bg-green-500 hover:bg-green-600 text-white h-6 w-6" onClick={() => handleActionClick('Mark Solved', ticket.ticketId)}>
+                                    <CheckCircle className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                        </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">No support tickets found.</TableCell>
+                    </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between mt-4 text-sm text-muted-foreground gap-4 sm:gap-0">
-            <div>Showing 1 to {supportTickets.length} of {supportTickets.length} entries</div>
+            <div>Showing 1 to {tickets.length} of {tickets.length} entries</div>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="sm" disabled>«</Button>
               <Button variant="outline" size="sm" disabled>‹</Button>

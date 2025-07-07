@@ -272,9 +272,12 @@ export interface ContentItem {
 export interface SupportTicket {
   id: string;
   ticketId: string;
-  date: string;
+  createdAt: string; // ISO Date string
+  userId: string;
   userName: string;
-  userType: 'Customer' | 'Partner' | 'Seller';
-  supportFor: string;
+  userType: Role;
+  queryCategory: string;
+  subject: string;
+  message: string;
   status: 'Latest' | 'Processing' | 'Solved';
 }
