@@ -19,6 +19,7 @@ import {
   Bell,
   BookCopy,
   Wallet,
+  Trophy,
 } from 'lucide-react';
 
 export default function PartnerSidebar() {
@@ -66,6 +67,12 @@ export default function PartnerSidebar() {
             <SidebarMenuButton href="/manage-marketing-kits" isActive={pathname.startsWith('/manage-marketing-kits')} tooltip="Marketing Kits">
               <Megaphone />
               Marketing Kits
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton href="/leaderboard" isActive={pathname.startsWith('/leaderboard')} tooltip="Leaderboard">
+              <Trophy />
+              Leaderboard
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

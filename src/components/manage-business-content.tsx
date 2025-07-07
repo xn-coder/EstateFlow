@@ -113,7 +113,7 @@ const AdminBusinessView = () => {
     ];
     
     const accountItems = [
-        { label: 'Leaderboard', href: '#' },
+        { label: 'Leaderboard', href: '/leaderboard' },
         { label: 'Manage Website', href: '/manage-website' },
         { label: 'My Account', href: '/profile' },
     ];
@@ -228,7 +228,7 @@ const SellerBusinessView = () => {
     ];
     
     const accountItems = [
-        { label: 'Leaderboard', href: '#' },
+        { label: 'Leaderboard', href: '/leaderboard' },
         { label: 'Manage Website', href: '/manage-website' },
         { label: 'My Account', href: '/profile' },
     ];
