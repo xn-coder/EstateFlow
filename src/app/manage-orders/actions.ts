@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, orderBy, where, doc, updateDoc, runTransaction } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, where, doc, updateDoc, runTransaction, getDoc } from 'firebase/firestore';
 import * as z from 'zod';
 import type { Customer, SubmittedEnquiry } from '@/types';
 
@@ -59,26 +59,39 @@ export async function getEnquiries(): Promise<SubmittedEnquiry[]> {
   }
 }
 
-export async function confirmEnquiry(enquiry: SubmittedEnquiry) {
-    if (!enquiry || !enquiry.id || !enquiry.customerEmail || !enquiry.submittedBy || !enquiry.submittedBy.id) {
-        return { success: false, error: 'Invalid enquiry data provided.' };
+export async function confirmEnquiry(enquiryId: string) {
+    if (!enquiryId) {
+        return { success: false, error: 'Invalid Enquiry ID provided.' };
     }
     
-    if (enquiry.status !== 'New') {
-        return { success: false, error: 'This enquiry has already been processed.' };
-    }
+    const enquiryRef = doc(db, 'enquiries', enquiryId);
 
     try {
         await runTransaction(db, async (transaction) => {
-            const enquiryRef = doc(db, 'enquiries', enquiry.id);
-            const customersRef = collection(db, 'customers');
+            const enquiryDoc = await transaction.get(enquiryRef);
+
+            if (!enquiryDoc.exists()) {
+                throw new Error("Enquiry not found.");
+            }
             
-            // 1. Check if customer already exists (by email) to avoid duplicates
+            const enquiry = { id: enquiryDoc.id, ...enquiryDoc.data() } as SubmittedEnquiry;
+
+            if (!enquiry || !enquiry.customerEmail || !enquiry.submittedBy || !enquiry.submittedBy.id) {
+                throw new Error('Invalid or incomplete enquiry data. Cannot proceed.');
+            }
+
+            if (enquiry.status !== 'New') {
+                // This is not an error, just means it was already processed.
+                // We don't throw an error to avoid rolling back other potential transaction items.
+                console.log("Enquiry already processed.");
+                return;
+            }
+
+            const customersRef = collection(db, 'customers');
             const customerQuery = query(customersRef, where("email", "==", enquiry.customerEmail));
             const existingCustomers = await transaction.get(customerQuery);
             
             if (existingCustomers.empty) {
-                // 2. If not, create a new customer
                 const customerId = `CUST${Math.floor(100000 + Math.random() * 900000)}`;
                 const newCustomer: Omit<Customer, 'id'> = {
                     customerId: customerId,
@@ -93,7 +106,6 @@ export async function confirmEnquiry(enquiry: SubmittedEnquiry) {
                 transaction.set(newCustomerRef, newCustomer);
             }
 
-            // 3. Update the enquiry status
             transaction.update(enquiryRef, { status: 'Contacted' });
         });
 

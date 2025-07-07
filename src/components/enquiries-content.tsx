@@ -15,9 +15,9 @@ const EnquiryCard = ({ enquiry, onEnquiryConfirmed }: { enquiry: SubmittedEnquir
     const { toast } = useToast();
     const [isConfirming, setIsConfirming] = React.useState(false);
 
-    const handleConfirm = async () => {
+    const handleConfirm = async (enquiryId: string) => {
         setIsConfirming(true);
-        const result = await confirmEnquiry(enquiry);
+        const result = await confirmEnquiry(enquiryId);
         if (result.success) {
             toast({
                 title: 'Enquiry Confirmed',
@@ -56,7 +56,7 @@ const EnquiryCard = ({ enquiry, onEnquiryConfirmed }: { enquiry: SubmittedEnquir
                 <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{format(parseISO(enquiry.createdAt), 'dd MMM yyyy')}</span></div>
             </CardContent>
             <CardFooter className="grid grid-cols-3 gap-2">
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={handleConfirm} disabled={isConfirming || isConfirmed}>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => handleConfirm(enquiry.id)} disabled={isConfirming || isConfirmed}>
                     <UserCheck className="h-4 w-4" />
                 </Button>
                 <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleAction('Call')}><Phone className="h-4 w-4" /></Button>
@@ -73,7 +73,7 @@ export default function EnquiriesContent({ currentUser }: { currentUser: User })
     const fetchEnquiries = React.useCallback(async () => {
         setLoading(true);
         const allEnquiries = await getEnquiries();
-        const partnerEnquiries = allEnquiries.filter(e => e.submittedBy.id === currentUser.id);
+        const partnerEnquiries = allEnquiries.filter(e => e.submittedBy && e.submittedBy.id === currentUser.id);
         setEnquiries(partnerEnquiries);
         setLoading(false);
     }, [currentUser.id]);
