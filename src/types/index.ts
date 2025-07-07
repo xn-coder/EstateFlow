@@ -1,5 +1,6 @@
 
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -9,6 +10,9 @@ export type Qualification = typeof qualifications[number];
 
 export const feeApplicablePartnerCategories = ['Super Affiliate Partner', 'Associate Partner', 'Channel Partner'] as const;
 export type FeeApplicablePartnerCategory = typeof feeApplicablePartnerCategories[number];
+
+export const partnerCategories = ['Affiliate Partner', ...feeApplicablePartnerCategories] as const;
+export type PartnerCategory = typeof partnerCategories[number];
 
 export interface User {
   id: string;
@@ -49,7 +53,7 @@ export interface PartnerData {
   panCard: string;
   panNumber?: string;
   position?: string;
-  partnerCategory: 'Affiliate Partner' | FeeApplicablePartnerCategory;
+  partnerCategory: PartnerCategory;
   paymentProof?: string;
 }
 
@@ -257,8 +261,14 @@ export interface Catalog {
   // Step 2
   pricingType: 'INR' | 'USD';
   sellingPrice: number;
-  earningType: 'Fixed rate' | 'commission' | 'reward point';
-  earning: number;
+  earningType: 'Fixed rate' | 'commission' | 'reward point' | 'partner_category_commission';
+  earning?: number;
+  partnerCategoryCommissions?: {
+    'Affiliate Partner'?: number;
+    'Super Affiliate Partner'?: number;
+    'Associate Partner'?: number;
+    'Channel Partner'?: number;
+  };
   // Step 3
   slideshows: CatalogSlideshow[];
   // Step 4

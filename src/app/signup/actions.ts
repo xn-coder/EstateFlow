@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import bcrypt from 'bcryptjs';
 import * as z from 'zod';
-import { qualifications, FeeApplicablePartnerCategory, feeApplicablePartnerCategories } from '@/types';
+import { qualifications, FeeApplicablePartnerCategory, feeApplicablePartnerCategories, partnerCategories } from '@/types';
 
 // This is the full schema for validation on the server.
 const partnerSchema = z.object({
@@ -31,7 +31,7 @@ const partnerSchema = z.object({
   panNumber: z.string().length(10),
   panCard: z.string().min(1),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
-  partnerCategory: z.enum(['Affiliate Partner', ...feeApplicablePartnerCategories]),
+  partnerCategory: z.enum(partnerCategories),
   paymentProof: z.string().optional(),
 });
 

@@ -37,8 +37,14 @@ const catalogSchema: z.ZodType<Omit<Catalog, 'id' | 'catalogCode'>> = z.object({
   // Step 2
   pricingType: z.enum(['INR', 'USD']),
   sellingPrice: z.coerce.number().min(0, 'Selling price must be a positive number'),
-  earningType: z.enum(['Fixed rate', 'commission', 'reward point']),
-  earning: z.coerce.number().min(0, 'Earning must be a positive number'),
+  earningType: z.enum(['Fixed rate', 'commission', 'reward point', 'partner_category_commission']),
+  earning: z.coerce.number().min(0, 'Earning must be a positive number').optional(),
+  partnerCategoryCommissions: z.object({
+    'Affiliate Partner': z.coerce.number().optional(),
+    'Super Affiliate Partner': z.coerce.number().optional(),
+    'Associate Partner': z.coerce.number().optional(),
+    'Channel Partner': z.coerce.number().optional(),
+  }).optional(),
   // Step 3
   slideshows: z.array(catalogSlideshowSchema).optional(),
   // Step 4
@@ -55,6 +61,24 @@ const catalogSchema: z.ZodType<Omit<Catalog, 'id' | 'catalogCode'>> = z.object({
   notesContent: z.string().optional(),
   termsContent: z.string().optional(),
   policyContent: z.string().optional(),
+}).superRefine((data, ctx) => {
+    if (data.earningType === 'partner_category_commission') {
+        if (!data.partnerCategoryCommissions || Object.values(data.partnerCategoryCommissions).every(v => v === undefined || v === null)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "At least one partner commission is required for this earning type.",
+                path: ["partnerCategoryCommissions"],
+            });
+        }
+    } else {
+        if (data.earning === undefined || data.earning === null || data.earning < 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "A positive earning value is required for this earning type.",
+                path: ["earning"],
+            });
+        }
+    }
 });
 
 
