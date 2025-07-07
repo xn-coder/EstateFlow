@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -22,6 +21,7 @@ import {
 } from '@/components/ui/carousel';
 import { getWebsiteData } from '@/app/manage-website/actions';
 import type { WebsiteData } from '@/types';
+import { feeApplicablePartnerCategories } from '@/types';
 import { Skeleton } from './ui/skeleton';
 
 // A simple row component to display info
@@ -181,11 +181,13 @@ export default function ManageWebsiteContent() {
                 </EditPartnerFeesDialog>
             }
         >
-           <div className="divide-y">
-                {websiteData.partnerFees && Object.entries(websiteData.partnerFees).map(([category, fee]) => (
-                     <InfoRow key={category} label={category}>{fee ? `₹${fee.toLocaleString()}` : 'Not Set'}</InfoRow>
+            <div className="divide-y">
+                {feeApplicablePartnerCategories.map((category) => (
+                    <InfoRow key={category} label={category}>
+                        {websiteData.partnerFees?.[category] ? `₹${websiteData.partnerFees[category]?.toLocaleString()}` : 'Not Set'}
+                    </InfoRow>
                 ))}
-           </div>
+            </div>
         </EditableCard>
 
         <EditableCard
