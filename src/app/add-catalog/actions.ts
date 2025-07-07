@@ -65,33 +65,14 @@ const catalogSchema: z.ZodType<Omit<Catalog, 'id' | 'catalogCode'>> = z.object({
 
 
 export async function addCatalog(data: Omit<Catalog, 'id' | 'catalogCode'>) {
-  const placeholderImage = 'https://placehold.co/600x400.png';
-  const placeholderFile = 'placeholder.pdf';
-  const isBase64 = (str: string | undefined): boolean => !!str && str.startsWith('data:');
-
-  const dataForFirestore: Omit<Catalog, 'id' | 'catalogCode'> = {
-    ...data,
-    featuredImage: isBase64(data.featuredImage) ? placeholderImage : data.featuredImage,
-    slideshows: (data.slideshows || []).map(s => ({
-      ...s,
-      image: isBase64(s.image) ? placeholderImage : s.image,
-    })),
-    galleryImages: (data.galleryImages || []).map(img => isBase64(img) ? placeholderImage : img),
-    marketingKits: (data.marketingKits || []).map(kit => ({
-      ...kit,
-      featuredImage: isBase64(kit.featuredImage) ? placeholderImage : kit.featuredImage,
-      uploadedFile: isBase64(kit.uploadedFile) ? (kit.uploadedFile.startsWith('data:image') ? placeholderImage : placeholderFile) : kit.uploadedFile,
-    })),
-  };
-
-  // Clean up data before validation.
+  // Clean up data before validation. This now uses the raw data with base64 images.
   const cleanedData = {
-    ...dataForFirestore,
-    slideshows: (dataForFirestore.slideshows || []).filter(s => s.image && s.title),
-    faqs: (dataForFirestore.faqs || []).filter(f => f.question && f.answer),
-    marketingKits: (dataForFirestore.marketingKits || []).filter(k => k.featuredImage && k.nameOrTitle && k.uploadedFile),
-    galleryImages: (dataForFirestore.galleryImages || []).filter(g => g),
-    videoLink: dataForFirestore.videoLink || '',
+    ...data,
+    slideshows: (data.slideshows || []).filter(s => s.image && s.title),
+    faqs: (data.faqs || []).filter(f => f.question && f.answer),
+    marketingKits: (data.marketingKits || []).filter(k => k.featuredImage && k.nameOrTitle && k.uploadedFile),
+    galleryImages: (data.galleryImages || []).filter(g => g),
+    videoLink: data.videoLink || '',
   };
 
   const validation = catalogSchema.safeParse(cleanedData);
@@ -110,6 +91,9 @@ export async function addCatalog(data: Omit<Catalog, 'id' | 'catalogCode'>) {
     return { success: true, message: 'Catalog added successfully!' };
   } catch (error) {
     console.error('Error adding catalog:', error);
+    if (error instanceof Error && (error.message.includes('exceeds the maximum size') || error.message.includes('bytes exceeded'))) {
+        return { success: false, error: 'The catalog data is too large to be saved, likely due to large images. Please use smaller images.' };
+    }
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
     return { success: false, error: errorMessage };
   }
@@ -178,15 +162,9 @@ export async function addMarketingKit(data: z.infer<typeof addMarketingKitSchema
     const catalogDoc = querySnapshot.docs[0];
     const catalogData = catalogDoc.data() as Catalog;
     
-    const placeholderImage = 'https://placehold.co/600x400.png';
-    const placeholderFile = 'placeholder.pdf';
-    const isBase64 = (str: string | undefined): boolean => !!str && str.startsWith('data:');
-
     const newKit: CatalogMarketingKit = {
       ...kitData,
       id: `MR${Math.random().toString().slice(2, 12)}`,
-      featuredImage: isBase64(kitData.featuredImage) ? placeholderImage : kitData.featuredImage,
-      uploadedFile: isBase64(kitData.uploadedFile) ? (kitData.uploadedFile.startsWith('data:image') ? placeholderImage : placeholderFile) : kitData.uploadedFile,
     };
     
     const updatedKits = [...(catalogData.marketingKits || []), newKit];
@@ -198,6 +176,9 @@ export async function addMarketingKit(data: z.infer<typeof addMarketingKitSchema
     return { success: true, message: 'Marketing kit added successfully!' };
   } catch (error) {
     console.error('Error adding marketing kit:', error);
+    if (error instanceof Error && (error.message.includes('exceeds the maximum size') || error.message.includes('bytes exceeded'))) {
+        return { success: false, error: 'The catalog data is too large to be saved, likely due to large images. Please use smaller images.' };
+    }
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
     return { success: false, error: errorMessage };
   }
