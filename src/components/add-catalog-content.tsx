@@ -42,24 +42,6 @@ const step2Schema = z.object({
     'Associate Partner': z.coerce.number().optional(),
     'Channel Partner': z.coerce.number().optional(),
   }).optional(),
-}).superRefine((data, ctx) => {
-  if (data.earningType === 'partner_category_commission') {
-    if (!data.partnerCategoryCommissions || Object.values(data.partnerCategoryCommissions).every(v => v === undefined || v === null)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'At least one partner commission must be set.',
-        path: ['partnerCategoryCommissions'],
-      });
-    }
-  } else {
-    if (data.earning === undefined || data.earning === null || data.earning < 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'A positive earning value is required for this earning type.',
-        path: ['earning'],
-      });
-    }
-  }
 });
 
 
@@ -120,7 +102,27 @@ const combinedSchema = step1Schema
   .merge(step6Schema)
   .merge(step7Schema)
   .merge(step8Schema)
-  .merge(step9Schema);
+  .merge(step9Schema)
+  .superRefine((data, ctx) => {
+    if (data.earningType === 'partner_category_commission') {
+      if (!data.partnerCategoryCommissions || Object.values(data.partnerCategoryCommissions).every(v => v === undefined || v === null)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'At least one partner commission must be set.',
+          path: ['partnerCategoryCommissions'],
+        });
+      }
+    } else {
+      if (data.earning === undefined || data.earning === null || data.earning < 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'A positive earning value is required for this earning type.',
+          path: ['earning'],
+        });
+      }
+    }
+  });
+
 
 type FormValues = z.infer<typeof combinedSchema>;
 
