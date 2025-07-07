@@ -1,4 +1,4 @@
-import type { Property, User, Lead, PropertyType, Contact, UpdateMessage, Enquiry, Receivable, Payable, PaymentHistory } from '@/types';
+import type { Property, User, Lead, PropertyType, Contact, UpdateMessage, Enquiry, Receivable, Payable, PaymentHistory, SupportTicket } from '@/types';
 
 export const initialUsersForSeed: User[] = [
   { id: '1', name: 'Admin User', email: 'admin@estateflow.com', role: 'Admin', avatar: 'https://placehold.co/40x40.png' },
@@ -168,6 +168,37 @@ export const initialPaymentHistory: PaymentHistory[] = [
     { id: 'ph4', date: '2024-05-18', name: 'Payment from Partner User', transactionId: 'TXN123459', amount: 2500, paymentMethod: 'Bank Transfer', type: 'Credit' },
     { id: 'ph5', date: '2024-05-17', name: 'Payment to Freelance Developer', transactionId: 'TXN123460', amount: 12000, paymentMethod: 'Wallet', type: 'Debit' },
 ];
+
+export const supportTickets: SupportTicket[] = [
+  {
+    id: 't1',
+    ticketId: 'TID1',
+    date: '3/10/2024',
+    userName: 'Rameshwari Maheshwari',
+    userType: 'Customer',
+    supportFor: 'C00001 - Digital Marketing Services',
+    status: 'Latest',
+  },
+  {
+    id: 't2',
+    ticketId: 'TID2',
+    date: '3/09/2024',
+    userName: 'John Doe',
+    userType: 'Partner',
+    supportFor: 'CAT-002 - Payout Issue',
+    status: 'Processing',
+  },
+  {
+    id: 't3',
+    ticketId: 'TID3',
+    date: '3/08/2024',
+    userName: 'Jane Smith',
+    userType: 'Seller',
+    supportFor: 'Login problem',
+    status: 'Solved',
+  },
+];
+
 
 // Mock user data is now in initialUsersForSeed and will be removed from general export
 // export const users: User[] = [ ... ];

@@ -1,6 +1,5 @@
 
 
-
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -268,4 +267,14 @@ export interface ContentItem {
   featuredImage: string;
   catalogCode?: string;
   contentType: 'Article' | 'Video' | 'FAQs';
+}
+
+export interface SupportTicket {
+  id: string;
+  ticketId: string;
+  date: string;
+  userName: string;
+  userType: 'Customer' | 'Partner' | 'Seller';
+  supportFor: string;
+  status: 'Latest' | 'Processing' | 'Solved';
 }

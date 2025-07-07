@@ -69,7 +69,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
           )}
           {(isAdmin || isSupportTeam) && (
             <SidebarMenuItem>
-              <SidebarMenuButton href="/updates" isActive={pathname === '/updates'} tooltip="Support Ticket">
+              <SidebarMenuButton href="/support-ticket" isActive={pathname === '/support-ticket'} tooltip="Support Ticket">
                 <LifeBuoy />
                 Support Ticket
               </SidebarMenuButton>
