@@ -15,7 +15,7 @@ const contentSchema = z.object({
   contentType: z.enum(['Article', 'Video', 'FAQs']),
 });
 
-export async function addContent(data: Omit<ContentItem, 'id'>) {
+export async function addContent(data: Omit<ContentItem, 'id' | 'contentCode'>) {
   const validation = contentSchema.safeParse(data);
   if (!validation.success) {
     console.error('Validation errors:', validation.error.flatten());
@@ -26,6 +26,7 @@ export async function addContent(data: Omit<ContentItem, 'id'>) {
   const dataToSave = {
     ...validation.data,
     featuredImage: data.featuredImage.startsWith('data:') ? 'https://placehold.co/600x400.png' : data.featuredImage,
+    contentCode: `CN${crypto.randomUUID().substring(0, 9).toUpperCase()}`,
   };
 
   try {

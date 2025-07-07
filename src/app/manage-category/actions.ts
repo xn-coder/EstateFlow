@@ -12,7 +12,7 @@ const categorySchema = z.object({
   url: z.string().url('Must be a valid URL'),
 });
 
-export async function addCategory(data: Omit<Category, 'id'>) {
+export async function addCategory(data: Omit<Category, 'id' | 'categoryCode'>) {
   const validation = categorySchema.safeParse(data);
   if (!validation.success) {
     return { success: false, error: 'Invalid data submitted.' };
@@ -23,6 +23,7 @@ export async function addCategory(data: Omit<Category, 'id'>) {
   const dataToSave = {
     ...validation.data,
     imageUrl: data.imageUrl.startsWith('data:') ? 'https://placehold.co/600x400.png' : data.imageUrl,
+    categoryCode: `CAT${crypto.randomUUID().substring(0, 6).toUpperCase()}`,
   };
 
   try {

@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -39,6 +40,7 @@ export async function loginUser(email: string, password: string) {
           avatar: 'https://placehold.co/40x40.png',
           passwordHash: passwordHash,
           status: 'Active',
+          userCode: `US${crypto.randomUUID().substring(0, 10).toUpperCase()}`,
         });
         console.log('Admin user created. You can now log in with the credentials from .env.local.');
       }

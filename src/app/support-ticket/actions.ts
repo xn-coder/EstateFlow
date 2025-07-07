@@ -25,7 +25,7 @@ export async function addSupportTicket(data: Omit<SupportTicket, 'id' | 'ticketI
     }
 
     try {
-        const ticketId = `TID-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
+        const ticketId = `TID${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
         const dataToSave: Omit<SupportTicket, 'id'> = {
             ...validation.data,
             ticketId,

@@ -1,9 +1,4 @@
 
-
-
-
-
-
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -19,6 +14,7 @@ export interface User {
   status?: 'Pending' | 'Active' | 'Deactivated';
   partnerCode?: string;
   feeStatus?: 'Pending Payment' | 'Paid' | 'Not Applicable';
+  userCode?: string;
 }
 
 export interface PartnerData {
@@ -279,6 +275,7 @@ export interface Category {
   name: string;
   imageUrl: string;
   url: string;
+  categoryCode?: string;
 }
 
 export interface ContentItem {
@@ -289,6 +286,7 @@ export interface ContentItem {
   featuredImage: string;
   catalogCode?: string;
   contentType: 'Article' | 'Video' | 'FAQs';
+  contentCode?: string;
 }
 
 export interface SupportTicket {

@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -129,6 +128,7 @@ export async function addUser(userData: z.infer<typeof addUserSchema>) {
             passwordHash: passwordHash,
             avatar: userData.avatar || `https://placehold.co/40x40.png`,
             status: 'Active',
+            userCode: `US${crypto.randomUUID().substring(0, 10).toUpperCase()}`,
         });
 
         return { success: true, message: 'User added successfully.' };

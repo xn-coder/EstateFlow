@@ -97,7 +97,7 @@ export async function confirmEnquiry(enquiryId: string) {
             }
 
             if (existingCustomers.empty) {
-                const customerId = `CUST-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
+                const customerId = `CD${crypto.randomUUID().substring(0, 10).toUpperCase()}`;
                 const newCustomer: Omit<Customer, 'id'> = {
                     customerId: customerId,
                     name: enquiry.customerName,

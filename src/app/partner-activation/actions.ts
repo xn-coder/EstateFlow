@@ -49,8 +49,34 @@ export async function activatePartner(userId: string): Promise<{ success: boolea
   try {
     const userRef = doc(db, 'users', userId);
     
-    // Generate the partner ID
-    const partnerCode = `DAS${crypto.randomUUID().substring(0, 6).toUpperCase()}`;
+    // Fetch profile to determine partner category
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) throw new Error("User not found to generate partner code.");
+    const user = userDoc.data() as User;
+    if (!user.partnerProfileId) throw new Error("User has no partner profile linked.");
+    
+    const profileRef = doc(db, 'partnerProfiles', user.partnerProfileId);
+    const profileDoc = await getDoc(profileRef);
+    if (!profileDoc.exists()) throw new Error("Partner profile not found.");
+    const profile = profileDoc.data() as PartnerData;
+
+    let prefix: string;
+    switch (profile.partnerCategory) {
+      case 'Affiliate Partner':
+        prefix = 'AF';
+        break;
+      case 'Associate Partner':
+        prefix = 'AS';
+        break;
+      case 'Channel Partner':
+        prefix = 'CP';
+        break;
+      default:
+        // Fallback prefix
+        prefix = 'DAS';
+    }
+
+    const partnerCode = `${prefix}${crypto.randomUUID().substring(0, 9).toUpperCase()}`;
 
     await updateDoc(userRef, {
       status: 'Active',
@@ -59,7 +85,8 @@ export async function activatePartner(userId: string): Promise<{ success: boolea
     return { success: true };
   } catch (error) {
     console.error("Error activating partner:", error);
-    return { success: false, error: 'Failed to activate partner.' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to activate partner.';
+    return { success: false, error: errorMessage };
   }
 }
 
