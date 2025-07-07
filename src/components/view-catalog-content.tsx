@@ -15,7 +15,7 @@ import Link from 'next/link';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { submitEnquiry } from '@/app/manage-orders/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -113,6 +113,12 @@ const EnquiryForm = ({ catalog, currentUser }: { catalog: Catalog, currentUser: 
             <CardContent>
                 <FormProvider {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormItem>
+                            <FormLabel>Partner ID</FormLabel>
+                            <FormControl>
+                                <Input value={currentUser.partnerCode || 'N/A'} readOnly disabled />
+                            </FormControl>
+                        </FormItem>
                         <FormField control={form.control} name="customerName" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Customer Name" {...field} /></FormControl><FormMessage /></FormItem> )} />
                         <FormField control={form.control} name="customerPhone" render={({ field }) => ( <FormItem><FormControl><Input placeholder="Phone Number" {...field} /></FormControl><FormMessage /></FormItem> )} />
                         <FormField control={form.control} name="customerEmail" render={({ field }) => ( <FormItem><FormControl><Input type="email" placeholder="Customer Email Details" {...field} /></FormControl><FormMessage /></FormItem> )} />
