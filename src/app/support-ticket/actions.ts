@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, orderBy, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import * as z from 'zod';
 import type { SupportTicket, User } from '@/types';
 
@@ -107,4 +107,14 @@ export async function updateTicketStatus(data: z.infer<typeof updateTicketSchema
         console.error("Error updating ticket status:", error);
         return { success: false, error: 'Failed to update ticket.' };
     }
+}
+
+export async function deleteSupportTicket(ticketId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await deleteDoc(doc(db, 'supportTickets', ticketId));
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting support ticket:", error);
+    return { success: false, error: 'Failed to delete ticket.' };
+  }
 }

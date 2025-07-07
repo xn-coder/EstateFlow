@@ -15,10 +15,23 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Mail, Phone, CalendarIcon, Info } from 'lucide-react';
 import type { SupportTicket, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { updateTicketStatus } from '@/app/support-ticket/actions';
+import { updateTicketStatus, deleteSupportTicket } from '@/app/support-ticket/actions';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
 
 const resolveSchema = z.object({
   resolvedAt: z.date().optional(),
@@ -43,6 +56,7 @@ interface ProcessTicketContentProps {
 
 export default function ProcessTicketContent({ ticket, currentUser, onUpdate }: ProcessTicketContentProps) {
     const { toast } = useToast();
+    const router = useRouter();
     
     const form = useForm<ResolveFormValues>({
         resolver: zodResolver(resolveSchema),
@@ -79,6 +93,16 @@ export default function ProcessTicketContent({ ticket, currentUser, onUpdate }: 
         if (result.success) {
             toast({ title: 'Ticket Resolved', description: 'The ticket has been marked as resolved with your notes.' });
             onUpdate();
+        } else {
+            toast({ title: 'Error', description: result.error, variant: 'destructive' });
+        }
+    };
+    
+    const handleDelete = async () => {
+        const result = await deleteSupportTicket(ticket.id);
+        if (result.success) {
+            toast({ title: 'Ticket Deleted', description: 'The support ticket has been permanently deleted.'});
+            router.push('/support-ticket');
         } else {
             toast({ title: 'Error', description: result.error, variant: 'destructive' });
         }
@@ -146,8 +170,24 @@ export default function ProcessTicketContent({ ticket, currentUser, onUpdate }: 
 
                         <div className="flex flex-col sm:flex-row gap-4 pt-4">
                             <Button type="button" onClick={() => handleStatusUpdate('Processing')} className="w-full sm:w-auto flex-1 bg-orange-500 hover:bg-orange-600">Processing</Button>
-                            <Button type="submit" className="w-full sm:w-auto flex-1 bg-green-500 hover:bg-green-600">Resolved Now</Button>
-                            <Button type="button" onClick={() => form.reset()} className="w-full sm:w-auto flex-1 bg-red-500 hover:bg-red-600">Reset Details</Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button type="button" variant="destructive" className="w-full sm:w-auto flex-1">Delete Ticket</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This will permanently delete ticket {ticket.ticketId}.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            <Button type="submit" className="w-full sm:w-auto flex-1 bg-green-500 hover:bg-green-600">Resolve Ticket</Button>
                         </div>
                     </CardContent>
                 </Card>

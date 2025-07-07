@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone, Settings, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import SendDirectMessageDialog from './send-direct-message-dialog';
 
 const StatCard = ({ title, value, description }: { title: string; value: string; description: string }) => (
   <Card>
@@ -27,8 +28,8 @@ const DetailRow = ({ label, value }: { label: string; value?: React.ReactNode })
     </div>
   );
 
-const ActionButton = ({ children, icon }: { children: React.ReactNode; icon: React.ReactNode; }) => (
-    <Button variant="outline" className="w-full justify-between h-12 text-base font-normal">
+const ActionButton = ({ children, icon, asChild, ...props }: { children: React.ReactNode; icon: React.ReactNode; asChild?: boolean;[x: string]: any; }) => (
+    <Button variant="outline" className="w-full justify-between h-12 text-base font-normal" asChild={asChild} {...props}>
       <span>{children}</span>
       {icon}
     </Button>
@@ -120,7 +121,9 @@ export default function ViewPartnerProfileContent({ partnerInfo }: { partnerInfo
         </Card>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <ActionButton icon={<Mail />}>Send Message</ActionButton>
+            <SendDirectMessageDialog partner={user}>
+                <ActionButton icon={<Mail />}>Send Message</ActionButton>
+            </SendDirectMessageDialog>
             <ActionButton icon={<WhatsAppIcon />}>WhatsApp</ActionButton>
             <ActionButton icon={<Phone />}>Call Now</ActionButton>
         </div>
