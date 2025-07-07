@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -18,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import type { WebsiteData } from '@/types';
+import type { WebsiteData, User } from '@/types';
 import { updateLinks } from '@/app/manage-website/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,11 +33,12 @@ const linkDetailsSchema = z.object({
 
 interface EditLinkDetailsDialogProps {
   children: React.ReactNode;
+  currentUser: User;
   links: WebsiteData['links'];
   onUpdate: () => void;
 }
 
-export default function EditLinkDetailsDialog({ children, links, onUpdate }: EditLinkDetailsDialogProps) {
+export default function EditLinkDetailsDialog({ children, currentUser, links, onUpdate }: EditLinkDetailsDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
 
@@ -52,7 +54,7 @@ export default function EditLinkDetailsDialog({ children, links, onUpdate }: Edi
   }, [open, links, form]);
 
   const onSubmit = async (values: z.infer<typeof linkDetailsSchema>) => {
-    const result = await updateLinks(values);
+    const result = await updateLinks(currentUser.id, values);
     if (result.success) {
       toast({ title: 'Success', description: 'Link details updated successfully.' });
       onUpdate();

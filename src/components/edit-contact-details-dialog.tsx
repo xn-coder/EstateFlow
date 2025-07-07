@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -19,7 +20,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { WebsiteData } from '@/types';
+import type { WebsiteData, User } from '@/types';
 import { updateContactDetails } from '@/app/manage-website/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,11 +33,12 @@ const contactDetailsSchema = z.object({
 
 interface EditContactDetailsDialogProps {
   children: React.ReactNode;
+  currentUser: User;
   contactDetails: WebsiteData['contactDetails'];
   onUpdate: () => void;
 }
 
-export default function EditContactDetailsDialog({ children, contactDetails, onUpdate }: EditContactDetailsDialogProps) {
+export default function EditContactDetailsDialog({ children, currentUser, contactDetails, onUpdate }: EditContactDetailsDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
 
@@ -52,7 +54,7 @@ export default function EditContactDetailsDialog({ children, contactDetails, onU
   }, [open, contactDetails, form]);
 
   const onSubmit = async (values: z.infer<typeof contactDetailsSchema>) => {
-    const result = await updateContactDetails(values);
+    const result = await updateContactDetails(currentUser.id, values);
     if (result.success) {
       toast({ title: 'Success', description: 'Contact details updated successfully.' });
       onUpdate();

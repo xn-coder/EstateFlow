@@ -1,10 +1,12 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import bcrypt from 'bcryptjs';
 import * as z from 'zod';
+import { websiteData as initialWebsiteData } from '@/lib/website-data';
 
 const sellerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -31,6 +33,8 @@ export async function registerSeller(data: z.infer<typeof sellerSchema>) {
       return { success: false, error: 'A user with this email already exists.' };
     }
     
+    const { partnerFees, ...userWebsiteData } = initialWebsiteData;
+
     const passwordHash = await bcrypt.hash(password, 10);
     
     // Create a corresponding user entry
@@ -43,6 +47,7 @@ export async function registerSeller(data: z.infer<typeof sellerSchema>) {
       avatar: `https://placehold.co/40x40.png`,
       status: 'Active', // Sellers are active by default
       userCode: `SLR${Math.random().toString().slice(2, 12)}`,
+      websiteData: userWebsiteData,
     });
 
     return { success: true, message: 'Seller registered successfully. You can now log in.' };

@@ -2,35 +2,57 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import type { WebsiteData } from '@/types';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import type { User, WebsiteData, FeeApplicablePartnerCategory } from '@/types';
 import { websiteData as initialWebsiteData } from '@/lib/website-data';
 import * as z from 'zod';
 
-const configRef = doc(db, 'website', 'config');
+const globalConfigRef = doc(db, 'website', 'config');
 
-export async function getWebsiteData(): Promise<WebsiteData> {
+export async function getWebsiteData(userId: string): Promise<Omit<WebsiteData, 'partnerFees'>> {
+  const { partnerFees, ...defaultUserData } = initialWebsiteData;
+  if (!userId) {
+    console.error("getWebsiteData called without a userId.");
+    return defaultUserData;
+  }
+
   try {
-    const docSnap = await getDoc(configRef);
+    const userRef = doc(db, 'users', userId);
+    const docSnap = await getDoc(userRef);
 
     if (docSnap.exists()) {
-      const data = docSnap.data() as WebsiteData;
-      // One-time data migration for partnerFees
-      if (!data.partnerFees) {
-        await updateDoc(configRef, { partnerFees: initialWebsiteData.partnerFees });
-        data.partnerFees = initialWebsiteData.partnerFees;
+      const userData = docSnap.data() as User;
+      if (userData.websiteData) {
+        return userData.websiteData;
+      } else {
+        await updateDoc(userRef, { websiteData: defaultUserData });
+        return defaultUserData;
       }
-      return data;
     } else {
-      await setDoc(configRef, initialWebsiteData);
-      return initialWebsiteData;
+      console.error(`User with ID ${userId} not found.`);
+      return defaultUserData;
     }
   } catch (error) {
-    console.error("Error fetching or creating website data:", error);
-    // Return initial data as a fallback if firestore fails
-    return initialWebsiteData;
+    console.error(`Error fetching website data for user ${userId}:`, error);
+    return defaultUserData;
   }
 }
+
+export async function getPartnerFees(): Promise<WebsiteData['partnerFees']> {
+  try {
+    const docSnap = await getDoc(globalConfigRef);
+    if (docSnap.exists() && docSnap.data()?.partnerFees) {
+      return docSnap.data().partnerFees;
+    } else {
+      await updateDoc(globalConfigRef, { partnerFees: initialWebsiteData.partnerFees }, { merge: true });
+      return initialWebsiteData.partnerFees;
+    }
+  } catch (error) {
+    console.error("Error fetching partner fees:", error);
+    return initialWebsiteData.partnerFees;
+  }
+}
+
 
 // Schemas for validation
 const businessInfoSchema = z.object({
@@ -79,55 +101,60 @@ const partnerFeesSchema = z.object({
 
 
 // Update functions
-export async function updateBusinessInfo(data: z.infer<typeof businessInfoSchema>) {
+export async function updateBusinessInfo(userId: string, data: z.infer<typeof businessInfoSchema>) {
   const validation = businessInfoSchema.safeParse(data);
   if (!validation.success) return { success: false, error: 'Invalid data' };
   try {
-    await updateDoc(configRef, { businessInfo: data });
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { 'websiteData.businessInfo': data });
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to update business info.' };
   }
 }
 
-export async function updateSlideshows(data: z.infer<typeof slideshowItemSchema>[]) {
+export async function updateSlideshows(userId: string, data: z.infer<typeof slideshowItemSchema>[]) {
   const validation = z.array(slideshowItemSchema).safeParse(data);
   if (!validation.success) return { success: false, error: 'Invalid slideshow data' };
   try {
-    await updateDoc(configRef, { slideshows: data });
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { 'websiteData.slideshows': data });
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to update slideshows.' };
   }
 }
 
-export async function updateContactDetails(data: z.infer<typeof contactDetailsSchema>) {
+export async function updateContactDetails(userId: string, data: z.infer<typeof contactDetailsSchema>) {
    const validation = contactDetailsSchema.safeParse(data);
   if (!validation.success) return { success: false, error: 'Invalid data' };
   try {
-    await updateDoc(configRef, { contactDetails: data });
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { 'websiteData.contactDetails': data });
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to update contact details.' };
   }
 }
 
-export async function updateLegalInfo(data: z.infer<typeof legalInfoSchema>) {
+export async function updateLegalInfo(userId: string, data: z.infer<typeof legalInfoSchema>) {
   const validation = legalInfoSchema.safeParse(data);
   if (!validation.success) return { success: false, error: 'Invalid data' };
   try {
-    await updateDoc(configRef, { legalInfo: data });
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { 'websiteData.legalInfo': data });
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to update legal info.' };
   }
 }
 
-export async function updateLinks(data: z.infer<typeof linksSchema>) {
+export async function updateLinks(userId: string, data: z.infer<typeof linksSchema>) {
   const validation = linksSchema.safeParse(data);
   if (!validation.success) return { success: false, error: 'Invalid data' };
   try {
-    await updateDoc(configRef, { links: data });
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { 'websiteData.links': data });
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to update links.' };
@@ -138,14 +165,9 @@ export async function updatePartnerFees(data: z.infer<typeof partnerFeesSchema>)
   const validation = partnerFeesSchema.safeParse(data);
   if (!validation.success) return { success: false, error: 'Invalid data' };
   try {
-    await updateDoc(configRef, { partnerFees: data });
+    await updateDoc(globalConfigRef, { partnerFees: data });
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to update partner fees.' };
   }
-}
-
-export async function getPartnerFees() {
-    const data = await getWebsiteData();
-    return data.partnerFees;
 }

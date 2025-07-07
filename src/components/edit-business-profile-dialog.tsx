@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -23,7 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload } from 'lucide-react';
 import { updateBusinessInfo } from '@/app/manage-website/actions';
 import { useToast } from '@/hooks/use-toast';
-import type { WebsiteData } from '@/types';
+import type { WebsiteData, User } from '@/types';
 import { ScrollArea } from './ui/scroll-area';
 
 const businessProfileSchema = z.object({
@@ -36,11 +37,12 @@ const businessProfileSchema = z.object({
 
 interface EditBusinessProfileDialogProps {
   children: React.ReactNode;
+  currentUser: User;
   businessInfo: WebsiteData['businessInfo'];
   onUpdate: () => void;
 }
 
-export default function EditBusinessProfileDialog({ children, businessInfo, onUpdate }: EditBusinessProfileDialogProps) {
+export default function EditBusinessProfileDialog({ children, currentUser, businessInfo, onUpdate }: EditBusinessProfileDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [logoPreview, setLogoPreview] = React.useState<string | null>(businessInfo.avatar);
   const { toast } = useToast();
@@ -83,7 +85,7 @@ export default function EditBusinessProfileDialog({ children, businessInfo, onUp
   };
 
   const onSubmit = async (values: z.infer<typeof businessProfileSchema>) => {
-    const result = await updateBusinessInfo(values);
+    const result = await updateBusinessInfo(currentUser.id, values);
     if (result.success) {
       toast({ title: 'Success', description: 'Business profile updated successfully.' });
       onUpdate();

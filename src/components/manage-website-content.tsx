@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import * as React from 'react';
@@ -19,8 +21,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { getWebsiteData } from '@/app/manage-website/actions';
-import type { WebsiteData } from '@/types';
+import { getWebsiteData, getPartnerFees } from '@/app/manage-website/actions';
+import type { WebsiteData, User } from '@/types';
 import { feeApplicablePartnerCategories } from '@/types';
 import { Skeleton } from './ui/skeleton';
 
@@ -35,7 +37,7 @@ const InfoRow: React.FC<{ label: string; children: React.ReactNode }> = ({ label
 );
 
 // A card with an edit button in the header
-const EditableCard: React.FC<{ title: string; children: React.ReactNode; editComponent: React.ReactNode; className?: string }> = ({ title, children, editComponent, className }) => (
+const EditableCard: React.FC<{ title: string; children: React.ReactNode; editComponent?: React.ReactNode; className?: string }> = ({ title, children, editComponent, className }) => (
     <Card className={className}>
         <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-semibold">{title}</CardTitle>
@@ -57,24 +59,31 @@ const ContentSkeleton = () => (
 );
 
 
-export default function ManageWebsiteContent() {
-  const [websiteData, setWebsiteData] = React.useState<WebsiteData | null>(null);
+export default function ManageWebsiteContent({ currentUser }: { currentUser: User }) {
+  const [websiteData, setWebsiteData] = React.useState<Omit<WebsiteData, 'partnerFees'> | null>(null);
+  const [partnerFees, setPartnerFees] = React.useState<WebsiteData['partnerFees'] | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   const fetchAndSetWebsiteData = React.useCallback(async () => {
-    const data = await getWebsiteData();
-    setWebsiteData(data);
+    setLoading(true);
+    const [userData, feesData] = await Promise.all([
+        getWebsiteData(currentUser.id),
+        getPartnerFees()
+    ]);
+    setWebsiteData(userData);
+    setPartnerFees(feesData);
     setLoading(false);
-  }, []);
+  }, [currentUser.id]);
 
   React.useEffect(() => {
-    setLoading(true);
     fetchAndSetWebsiteData();
   }, [fetchAndSetWebsiteData]);
 
-  if (loading || !websiteData) {
+  if (loading || !websiteData || !partnerFees) {
     return <ContentSkeleton />;
   }
+  
+  const isAdmin = currentUser.role === 'Admin';
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -90,7 +99,7 @@ export default function ManageWebsiteContent() {
                         <p className="text-muted-foreground">{websiteData.businessInfo.tagline}</p>
                     </div>
                 </div>
-                <EditBusinessProfileDialog businessInfo={websiteData.businessInfo} onUpdate={fetchAndSetWebsiteData}>
+                <EditBusinessProfileDialog currentUser={currentUser} businessInfo={websiteData.businessInfo} onUpdate={fetchAndSetWebsiteData}>
                     <Button variant="ghost" size="icon">
                         <Pencil className="h-5 w-5" />
                     </Button>
@@ -101,7 +110,7 @@ export default function ManageWebsiteContent() {
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-semibold">Slideshow</CardTitle>
-                 <EditSlideshowDialog slideshows={websiteData.slideshows} onUpdate={fetchAndSetWebsiteData}>
+                 <EditSlideshowDialog currentUser={currentUser} slideshows={websiteData.slideshows} onUpdate={fetchAndSetWebsiteData}>
                     <Button variant="ghost" size="icon">
                         <Pencil className="h-4 w-4" />
                     </Button>
@@ -156,7 +165,7 @@ export default function ManageWebsiteContent() {
         <EditableCard
             title="Contact Details"
             editComponent={
-                <EditContactDetailsDialog contactDetails={websiteData.contactDetails} onUpdate={fetchAndSetWebsiteData}>
+                <EditContactDetailsDialog currentUser={currentUser} contactDetails={websiteData.contactDetails} onUpdate={fetchAndSetWebsiteData}>
                     <Button variant="ghost" size="icon">
                         <Pencil className="h-4 w-4" />
                     </Button>
@@ -170,30 +179,32 @@ export default function ManageWebsiteContent() {
                 <InfoRow label="Address">{websiteData.contactDetails.address}</InfoRow>
            </div>
         </EditableCard>
-
-        <EditableCard
-            title="Partner Registration Fees"
-            editComponent={
-                <EditPartnerFeesDialog partnerFees={websiteData.partnerFees} onUpdate={fetchAndSetWebsiteData}>
-                    <Button variant="ghost" size="icon">
-                        <Pencil className="h-4 w-4" />
-                    </Button>
-                </EditPartnerFeesDialog>
-            }
-        >
-            <div className="divide-y">
-                {feeApplicablePartnerCategories.map((category) => (
-                    <InfoRow key={category} label={category}>
-                        {websiteData.partnerFees?.[category] ? `₹${websiteData.partnerFees[category]?.toLocaleString()}` : 'Not Set'}
-                    </InfoRow>
-                ))}
-            </div>
-        </EditableCard>
+        
+        {isAdmin && (
+            <EditableCard
+                title="Partner Registration Fees"
+                editComponent={
+                    <EditPartnerFeesDialog partnerFees={partnerFees} onUpdate={fetchAndSetWebsiteData}>
+                        <Button variant="ghost" size="icon">
+                            <Pencil className="h-4 w-4" />
+                        </Button>
+                    </EditPartnerFeesDialog>
+                }
+            >
+                <div className="divide-y">
+                    {feeApplicablePartnerCategories.map((category) => (
+                        <InfoRow key={category} label={category}>
+                            {partnerFees?.[category] ? `₹${partnerFees[category]?.toLocaleString()}` : 'Not Set'}
+                        </InfoRow>
+                    ))}
+                </div>
+            </EditableCard>
+        )}
 
         <EditableCard
             title="Website About &amp; Legal Link"
             editComponent={
-                <EditLegalInfoDialog legalInfo={websiteData.legalInfo} onUpdate={fetchAndSetWebsiteData}>
+                <EditLegalInfoDialog currentUser={currentUser} legalInfo={websiteData.legalInfo} onUpdate={fetchAndSetWebsiteData}>
                     <Button variant="ghost" size="icon">
                         <Pencil className="h-4 w-4" />
                     </Button>
@@ -230,7 +241,7 @@ export default function ManageWebsiteContent() {
         <EditableCard
             title="Your Link Details"
             editComponent={
-                <EditLinkDetailsDialog links={websiteData.links} onUpdate={fetchAndSetWebsiteData}>
+                <EditLinkDetailsDialog currentUser={currentUser} links={websiteData.links} onUpdate={fetchAndSetWebsiteData}>
                     <Button variant="ghost" size="icon">
                         <Pencil className="h-4 w-4" />
                     </Button>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -21,7 +22,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Upload, Plus, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { WebsiteData, SlideshowItem } from '@/types';
+import type { WebsiteData, User } from '@/types';
 import { updateSlideshows } from '@/app/manage-website/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,11 +39,12 @@ const slideshowSchema = z.object({
 
 interface EditSlideshowDialogProps {
   children: React.ReactNode;
+  currentUser: User;
   slideshows: WebsiteData['slideshows'];
   onUpdate: () => void;
 }
 
-export default function EditSlideshowDialog({ children, slideshows, onUpdate }: EditSlideshowDialogProps) {
+export default function EditSlideshowDialog({ children, currentUser, slideshows, onUpdate }: EditSlideshowDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
   
@@ -76,7 +78,7 @@ export default function EditSlideshowDialog({ children, slideshows, onUpdate }: 
   };
   
   const onSubmit = async (values: z.infer<typeof slideshowSchema>) => {
-    const result = await updateSlideshows(values.slideshows);
+    const result = await updateSlideshows(currentUser.id, values.slideshows);
     if (result.success) {
       toast({ title: 'Success', description: 'Slideshows updated successfully.' });
       onUpdate();

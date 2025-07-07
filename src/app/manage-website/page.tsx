@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect } from 'react';
@@ -76,7 +77,7 @@ export default function ManageWebsitePage() {
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          <ManageWebsiteContent />
+          <ManageWebsiteContent currentUser={user} />
         </main>
         <DashboardFooter />
       </SidebarInset>

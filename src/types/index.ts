@@ -1,4 +1,5 @@
 
+
 export type Role = 'Admin' | 'Seller' | 'Partner' | 'Manager' | 'Business Manager' | 'Support Team' | 'Wallet Manager';
 
 export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Land';
@@ -21,6 +22,7 @@ export interface User {
   partnerCode?: string;
   feeStatus?: 'Pending Payment' | 'Paid' | 'Not Applicable';
   userCode?: string;
+  websiteData?: Omit<WebsiteData, 'partnerFees'>;
 }
 
 export interface PartnerData {

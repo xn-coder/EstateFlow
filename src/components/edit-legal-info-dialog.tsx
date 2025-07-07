@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -19,7 +20,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { WebsiteData } from '@/types';
+import type { WebsiteData, User } from '@/types';
 import { updateLegalInfo } from '@/app/manage-website/actions';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
@@ -34,11 +35,12 @@ const legalInfoSchema = z.object({
 
 interface EditLegalInfoDialogProps {
   children: React.ReactNode;
+  currentUser: User;
   legalInfo: WebsiteData['legalInfo'];
   onUpdate: () => void;
 }
 
-export default function EditLegalInfoDialog({ children, legalInfo, onUpdate }: EditLegalInfoDialogProps) {
+export default function EditLegalInfoDialog({ children, currentUser, legalInfo, onUpdate }: EditLegalInfoDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
 
@@ -54,7 +56,7 @@ export default function EditLegalInfoDialog({ children, legalInfo, onUpdate }: E
   }, [open, legalInfo, form]);
 
   const onSubmit = async (values: z.infer<typeof legalInfoSchema>) => {
-    const result = await updateLegalInfo(values);
+    const result = await updateLegalInfo(currentUser.id, values);
     if (result.success) {
       toast({ title: 'Success', description: 'Legal info updated successfully.' });
       onUpdate();

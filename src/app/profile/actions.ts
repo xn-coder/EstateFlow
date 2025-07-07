@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -8,6 +9,7 @@ import type { Role, User } from '@/types';
 import { qualifications } from '@/types';
 import bcrypt from 'bcryptjs';
 import { ADMIN_ROLES } from '@/lib/roles';
+import { websiteData as initialWebsiteData } from '@/lib/website-data';
 
 // --- Update Profile Action ---
 const profileUpdateSchema = z.object({
@@ -120,6 +122,8 @@ export async function addUser(userData: z.infer<typeof addUserSchema>) {
             return { success: false, error: 'A user with this email already exists.' };
         }
 
+        const { partnerFees, ...userWebsiteData } = initialWebsiteData;
+
         const passwordHash = await bcrypt.hash(userData.password, 10);
         const userCodePrefix = userData.role === 'Admin' ? 'SLR' : 'US';
         await addDoc(collection(db, 'users'), {
@@ -131,6 +135,7 @@ export async function addUser(userData: z.infer<typeof addUserSchema>) {
             avatar: userData.avatar || `https://placehold.co/40x40.png`,
             status: 'Active',
             userCode: `${userCodePrefix}${Math.random().toString().slice(2, 12)}`,
+            websiteData: userWebsiteData,
         });
 
         return { success: true, message: 'User added successfully.' };
