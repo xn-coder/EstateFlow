@@ -339,13 +339,24 @@ export default function AddCatalogContent() {
                           </Select><FormMessage /></FormItem>
                         )} />
                         
-                        <FormField control={control} name="earning" render={({ field }) => (
-                            <FormItem>
+                        <FormField
+                            control={control}
+                            name="earning"
+                            render={({ field }) => (
+                                <FormItem>
                                 <FormLabel>Earning*</FormLabel>
-                                <FormControl><Input type="number" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value ?? ''} /></FormControl>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        {...field}
+                                        onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
+                                        value={field.value ?? ''}
+                                    />
+                                </FormControl>
                                 <FormMessage />
-                            </FormItem>
-                        )} />
+                                </FormItem>
+                            )}
+                        />
                         
                         <Card>
                             <CardHeader>
