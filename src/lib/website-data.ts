@@ -37,4 +37,9 @@ export const websiteData: WebsiteData = {
     linkedin: 'https://www.linkedin.com/in/cozpartner',
     youtube: 'https://www.youtube.com/cozpartner',
   },
+  partnerFees: {
+    'Super Affiliate Partner': 200,
+    'Associate Partner': 300,
+    'Channel Partner': 400,
+  },
 };

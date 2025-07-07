@@ -22,8 +22,8 @@ import { format, subYears } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { registerPartner } from './actions';
-import { qualifications } from '@/types';
-import { partnerRegistrationFees } from '@/lib/config';
+import { qualifications, FeeApplicablePartnerCategory, WebsiteData } from '@/types';
+import { getPartnerFees } from '../manage-website/actions';
 
 // Zod schemas for each step
 const personalDetailsSchema = z.object({
@@ -140,6 +140,13 @@ export default function SignupPage() {
   const [step, setStep] = React.useState(1);
   const router = useRouter();
   const { toast } = useToast();
+  const [partnerFees, setPartnerFees] = React.useState<WebsiteData['partnerFees'] | null>(null);
+
+  React.useEffect(() => {
+    getPartnerFees().then(data => {
+        setPartnerFees(data);
+    });
+  }, []);
 
   const methods = useForm<FormValues>({
     resolver: zodResolver(combinedSchemaForValidation),
@@ -169,7 +176,7 @@ export default function SignupPage() {
 
   const { trigger, handleSubmit, formState: { isSubmitting }, watch } = methods;
   const partnerCategory = watch('partnerCategory');
-  const registrationFee = partnerCategory ? partnerRegistrationFees[partnerCategory as keyof typeof partnerRegistrationFees] : null;
+  const registrationFee = partnerCategory && partnerFees ? partnerFees[partnerCategory as FeeApplicablePartnerCategory] : null;
 
   const nextStep = async () => {
     const currentStepFields = steps[step - 1].fields;
@@ -302,11 +309,13 @@ export default function SignupPage() {
                                     <SelectItem value="Channel Partner">Channel Partner</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {registrationFee && (
-                              <FormDescription>
+                            {partnerFees === null ? (
+                                <FormDescription>Loading fees...</FormDescription>
+                            ) : registrationFee != null ? (
+                                <FormDescription>
                                 Registration Fee: ₹{registrationFee.toLocaleString()}
-                              </FormDescription>
-                            )}
+                                </FormDescription>
+                            ) : null}
                             <FormMessage />
                         </FormItem>
                     )} />

@@ -12,6 +12,7 @@ import EditSlideshowDialog from './edit-slideshow-dialog';
 import EditContactDetailsDialog from './edit-contact-details-dialog';
 import EditLegalInfoDialog from './edit-legal-info-dialog';
 import EditLinkDetailsDialog from './edit-link-details-dialog';
+import EditPartnerFeesDialog from './edit-partner-fees-dialog';
 import {
   Carousel,
   CarouselContent,
@@ -48,6 +49,7 @@ const ContentSkeleton = () => (
     <div className="space-y-6 max-w-7xl mx-auto">
         <Skeleton className="h-[125px] w-full" />
         <Skeleton className="h-[400px] w-full" />
+        <Skeleton className="h-[250px] w-full" />
         <Skeleton className="h-[250px] w-full" />
         <Skeleton className="h-[300px] w-full" />
         <Skeleton className="h-[300px] w-full" />
@@ -166,6 +168,23 @@ export default function ManageWebsiteContent() {
                 <InfoRow label="Display Phone Number">{websiteData.contactDetails.phone}</InfoRow>
                 <InfoRow label="Display Email Details">{websiteData.contactDetails.email}</InfoRow>
                 <InfoRow label="Address">{websiteData.contactDetails.address}</InfoRow>
+           </div>
+        </EditableCard>
+
+        <EditableCard
+            title="Partner Registration Fees"
+            editComponent={
+                <EditPartnerFeesDialog partnerFees={websiteData.partnerFees} onUpdate={fetchAndSetWebsiteData}>
+                    <Button variant="ghost" size="icon">
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                </EditPartnerFeesDialog>
+            }
+        >
+           <div className="divide-y">
+                {websiteData.partnerFees && Object.entries(websiteData.partnerFees).map(([category, fee]) => (
+                     <InfoRow key={category} label={category}>{fee ? `₹${fee.toLocaleString()}` : 'Not Set'}</InfoRow>
+                ))}
            </div>
         </EditableCard>
 

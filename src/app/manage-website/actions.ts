@@ -64,6 +64,12 @@ const linksSchema = z.object({
     youtube: z.string().url(),
 });
 
+const partnerFeesSchema = z.object({
+  'Super Affiliate Partner': z.coerce.number().min(0),
+  'Associate Partner': z.coerce.number().min(0),
+  'Channel Partner': z.coerce.number().min(0),
+});
+
 
 // Update functions
 export async function updateBusinessInfo(data: z.infer<typeof businessInfoSchema>) {
@@ -119,4 +125,20 @@ export async function updateLinks(data: z.infer<typeof linksSchema>) {
   } catch (error) {
     return { success: false, error: 'Failed to update links.' };
   }
+}
+
+export async function updatePartnerFees(data: z.infer<typeof partnerFeesSchema>) {
+  const validation = partnerFeesSchema.safeParse(data);
+  if (!validation.success) return { success: false, error: 'Invalid data' };
+  try {
+    await updateDoc(configRef, { partnerFees: data });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: 'Failed to update partner fees.' };
+  }
+}
+
+export async function getPartnerFees() {
+    const data = await getWebsiteData();
+    return data.partnerFees;
 }

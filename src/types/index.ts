@@ -6,6 +6,9 @@ export type PropertyType = 'House' | 'Apartment' | 'Villa' | 'Commercial' | 'Lan
 export const qualifications = ["Post graduate", "Graduate", "Under graduate", "12th", "10th"] as const;
 export type Qualification = typeof qualifications[number];
 
+export const feeApplicablePartnerCategories = ['Super Affiliate Partner', 'Associate Partner', 'Channel Partner'] as const;
+export type FeeApplicablePartnerCategory = typeof feeApplicablePartnerCategories[number];
+
 export interface User {
   id: string;
   name: string;
@@ -42,7 +45,7 @@ export interface PartnerData {
   aadhaarCard: string;
   panCard: string;
   position?: string;
-  partnerCategory: 'Affiliate Partner' | 'Super Affiliate Partner' | 'Associate Partner' | 'Channel Partner';
+  partnerCategory: 'Affiliate Partner' | FeeApplicablePartnerCategory;
   paymentProof?: string;
 }
 
@@ -115,6 +118,9 @@ export interface WebsiteData {
     instagram: string;
     linkedin: string;
     youtube: string;
+  };
+  partnerFees: {
+    [key in FeeApplicablePartnerCategory]?: number;
   };
 }
 
