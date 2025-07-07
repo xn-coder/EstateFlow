@@ -60,6 +60,10 @@ export async function getEnquiries(): Promise<SubmittedEnquiry[]> {
 }
 
 export async function confirmEnquiry(enquiry: SubmittedEnquiry) {
+    if (!enquiry || !enquiry.id || !enquiry.customerEmail || !enquiry.submittedBy || !enquiry.submittedBy.id) {
+        return { success: false, error: 'Invalid enquiry data provided.' };
+    }
+    
     if (enquiry.status !== 'New') {
         return { success: false, error: 'This enquiry has already been processed.' };
     }
