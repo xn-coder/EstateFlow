@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, orderBy, where, doc, updateDoc, runTransaction, getDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, where, doc, updateDoc, runTransaction, getDoc, limit } from 'firebase/firestore';
 import * as z from 'zod';
 import type { Customer, SubmittedEnquiry } from '@/types';
 
@@ -65,32 +65,43 @@ export async function confirmEnquiry(enquiryId: string) {
     }
     
     const enquiryRef = doc(db, 'enquiries', enquiryId);
-
+    
     try {
+        // First, read the enquiry data outside the transaction
+        const enquiryDocSnap = await getDoc(enquiryRef);
+        if (!enquiryDocSnap.exists()) {
+            throw new Error("Enquiry not found.");
+        }
+
+        const enquiry = { id: enquiryDocSnap.id, ...enquiryDocSnap.data() } as SubmittedEnquiry;
+        if (!enquiry || !enquiry.customerEmail || !enquiry.submittedBy || !enquiry.submittedBy.id) {
+            throw new Error('Invalid or incomplete enquiry data. Cannot proceed.');
+        }
+
+        if (enquiry.status !== 'New') {
+            return { success: true, message: "Enquiry already processed." };
+        }
+
+        // Then, perform the customer existence check OUTSIDE the transaction
+        // This is a requirement for the web/client SDK
+        const customersRef = collection(db, 'customers');
+        const customerQuery = query(customersRef, where("email", "==", enquiry.customerEmail), limit(1));
+        const existingCustomers = await getDocs(customerQuery);
+        
         await runTransaction(db, async (transaction) => {
-            const enquiryDoc = await transaction.get(enquiryRef);
-
-            if (!enquiryDoc.exists()) {
-                throw new Error("Enquiry not found.");
+            // Re-read enquiry doc inside transaction to ensure atomicity for the update
+            const freshEnquiryDoc = await transaction.get(enquiryRef);
+            if (!freshEnquiryDoc.exists()) {
+                throw new Error("Enquiry not found inside transaction.");
             }
-            
-            const enquiry = { id: enquiryDoc.id, ...enquiryDoc.data() } as SubmittedEnquiry;
-
-            if (!enquiry || !enquiry.customerEmail || !enquiry.submittedBy || !enquiry.submittedBy.id) {
-                throw new Error('Invalid or incomplete enquiry data. Cannot proceed.');
-            }
-
-            if (enquiry.status !== 'New') {
-                // This is not an error, just means it was already processed.
-                // We don't throw an error to avoid rolling back other potential transaction items.
-                console.log("Enquiry already processed.");
+            const freshEnquiryData = freshEnquiryDoc.data() as SubmittedEnquiry;
+            // Check status again to prevent race conditions
+            if (freshEnquiryData.status !== 'New') {
+                console.log("Enquiry was processed by another request.");
                 return;
             }
 
-            const customersRef = collection(db, 'customers');
-            const customerQuery = query(customersRef, where("email", "==", enquiry.customerEmail));
-            const existingCustomers = await transaction.get(customerQuery);
-            
+            // Use the result from the query we ran before the transaction
             if (existingCustomers.empty) {
                 const customerId = `CUST${Math.floor(100000 + Math.random() * 900000)}`;
                 const newCustomer: Omit<Customer, 'id'> = {
