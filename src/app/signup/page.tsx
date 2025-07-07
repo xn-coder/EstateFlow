@@ -235,7 +235,7 @@ export default function SignupPage() {
                             captionLayout="dropdown-buttons"
                             fromYear={oneHundredYearsAgo.getFullYear()}
                             toYear={eighteenYearsAgo.getFullYear()}
-                            disabled={(date) => date > eighteenYearsAgo}
+                            disabled={(date) => date > eighteenYearsAgo || date < oneHundredYearsAgo}
                             initialFocus
                           />
                         </PopoverContent>
