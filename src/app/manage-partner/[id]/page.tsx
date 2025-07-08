@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -68,7 +69,7 @@ export default function ViewPartnerProfilePage() {
   const [partnerInfo, setPartnerInfo] = useState<PartnerActivationInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const authorizedRoles = ['Admin', 'Manager'];
+  const authorizedRoles = ['Admin', 'Manager', 'Seller'];
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -99,14 +100,17 @@ export default function ViewPartnerProfilePage() {
   if (!authorizedRoles.includes(user.role)) {
     return <ViewPartnerProfileSkeleton />;
   }
+  
+  const isAdminOrManager = user.role === 'Admin' || user.role === 'Manager';
+  const isSeller = user.role === 'Seller';
 
   return (
     <SidebarProvider>
-      <AdminSidebar role={user.role} />
+      {(isAdminOrManager || isSeller) && <AdminSidebar role={user.role} />}
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          <ViewPartnerProfileContent partnerInfo={partnerInfo} />
+          <ViewPartnerProfileContent partnerInfo={partnerInfo} currentUser={user} />
         </main>
         <DashboardFooter />
       </SidebarInset>

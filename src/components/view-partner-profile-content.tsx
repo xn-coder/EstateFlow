@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { PartnerActivationInfo } from '@/types';
+import type { PartnerActivationInfo, User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -63,8 +63,9 @@ const ListItem = ({ children, href = "#" }: { children: React.ReactNode; href?: 
 );
 
 
-export default function ViewPartnerProfileContent({ partnerInfo }: { partnerInfo: PartnerActivationInfo }) {
+export default function ViewPartnerProfileContent({ partnerInfo, currentUser }: { partnerInfo: PartnerActivationInfo, currentUser: User }) {
   const { user, profile } = partnerInfo;
+  const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Manager';
   
   const listItems = [
     { label: 'View Enquiry' },
@@ -89,9 +90,11 @@ export default function ViewPartnerProfileContent({ partnerInfo }: { partnerInfo
                         <p className="text-sm text-muted-foreground">{user.partnerCode || 'DSA 000 000 001'}</p>
                     </div>
                 </div>
-                  <Button variant="ghost" size="icon">
-                    <Mail className="h-5 w-5" />
-                </Button>
+                <SendDirectMessageDialog partner={user}>
+                    <Button variant="ghost" size="icon">
+                        <Mail className="h-5 w-5" />
+                    </Button>
+                </SendDirectMessageDialog>
             </CardContent>
         </Card>
 
@@ -105,9 +108,11 @@ export default function ViewPartnerProfileContent({ partnerInfo }: { partnerInfo
         <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <CardTitle className="text-base font-semibold">Contact Details</CardTitle>
-                <Button variant="ghost" size="icon">
-                    <Settings className="h-5 w-5" />
-                </Button>
+                {isAdmin && (
+                    <Button variant="ghost" size="icon">
+                        <Settings className="h-5 w-5" />
+                    </Button>
+                )}
             </CardHeader>
             <CardContent>
                 <DetailRow label="Contact Name" value={profile.name} />
