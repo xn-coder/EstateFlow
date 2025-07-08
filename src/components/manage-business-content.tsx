@@ -18,6 +18,9 @@ import AddUserDialog from './add-user-dialog';
 import { getCategories } from '@/app/manage-category/actions';
 import { getPartnerFees } from '@/app/manage-website/actions';
 import { feeApplicablePartnerCategories } from '@/types';
+import { getEnquiries } from '@/app/manage-orders/actions';
+import { getCustomers } from '@/app/manage-customers/actions';
+import { getLeaderboardData } from '@/app/leaderboard/actions';
 
 // Components for Admin View
 const AdminListItem = ({ children, href = "#", isDialog = false, DialogComponent }: { children: React.ReactNode; href?: string; isDialog?: boolean; DialogComponent?: React.ReactElement; }) => {
@@ -261,13 +264,17 @@ const SellerBusinessView = () => {
 
 
 // Components for Partner View
-const PartnerStatCard = ({ title, value, description }: { title: string, value: string, description: string }) => (
+const PartnerStatCard = ({ title, value, description, loading }: { title: string, value: string, description: string, loading: boolean }) => (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-3xl font-bold">{value}</p>
+        {loading ? (
+            <Skeleton className="h-10 w-3/4 mb-1" />
+        ) : (
+            <p className="text-4xl font-bold">{value}</p>
+        )}
         <p className="text-xs text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
@@ -284,13 +291,53 @@ const ListItem = ({ href, children }: { href: string; children: React.ReactNode 
 
 
 const PartnerBusinessDeskView = () => {
+    const { user: currentUser } = useAuth();
+    const [stats, setStats] = React.useState({
+        enquiries: 0,
+        customers: 0,
+        leaderboardRank: 'N/A',
+    });
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchDeskData = async () => {
+            if (!currentUser) return;
+            setLoading(true);
+
+            try {
+                const [enquiryData, customerData, leaderboardData] = await Promise.all([
+                    getEnquiries(currentUser.id),
+                    getCustomers(currentUser.id),
+                    getLeaderboardData(),
+                ]);
+
+                const rankIndex = leaderboardData.findIndex(entry => entry.partner.id === currentUser.id);
+                const rank = rankIndex !== -1 ? (rankIndex + 1).toString() : 'N/A';
+
+                setStats({
+                    enquiries: enquiryData.length,
+                    customers: customerData.length,
+                    leaderboardRank: rank,
+                });
+
+            } catch (error) {
+                console.error("Failed to fetch partner business desk data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (currentUser) {
+            fetchDeskData();
+        }
+    }, [currentUser]);
+
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <PartnerStatCard title="Enquiry" value="1000" description="Leads" />
-                <PartnerStatCard title="Customer" value="1000" description="Clients" />
-                <PartnerStatCard title="Associate" value="100" description="Team" />
-                <PartnerStatCard title="Leaderboard" value="10001" description="Current Rank" />
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <PartnerStatCard title="Enquiry" value={stats.enquiries.toString()} description="Leads" loading={loading} />
+                <PartnerStatCard title="Customer" value={stats.customers.toString()} description="Clients" loading={loading} />
+                <PartnerStatCard title="Leaderboard" value={stats.leaderboardRank} description="Current Rank" loading={loading} />
             </div>
 
             <Card>
