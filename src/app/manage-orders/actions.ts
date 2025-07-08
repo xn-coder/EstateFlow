@@ -51,13 +51,14 @@ export async function submitEnquiry(data: Omit<SubmittedEnquiry, 'id' | 'enquiry
 export async function getEnquiries(partnerId?: string): Promise<SubmittedEnquiry[]> {
     try {
         const enquiriesRef = collection(db, 'enquiries');
-        const q = partnerId 
-            ? query(enquiriesRef, where('submittedBy.id', '==', partnerId), orderBy('createdAt', 'desc'))
-            : query(enquiriesRef, orderBy('createdAt', 'desc'));
-            
+        const q = query(enquiriesRef, orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
-        const allEnquiries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubmittedEnquiry));
+        let allEnquiries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubmittedEnquiry));
         
+        if (partnerId) {
+            allEnquiries = allEnquiries.filter(enquiry => enquiry.submittedBy.id === partnerId);
+        }
+
         return allEnquiries;
     } catch (error) {
         console.error("Error fetching enquiries:", error);
