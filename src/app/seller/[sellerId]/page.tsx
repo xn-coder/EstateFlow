@@ -1,8 +1,15 @@
 
-import { getWebsiteData } from '@/app/manage-website/actions';
-import { notFound } from 'next/navigation';
+'use client';
+
+import * as React from 'react';
+import { getWebsiteData, submitSellerEnquiry } from '@/app/manage-website/actions';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
 import {
   Carousel,
   CarouselContent,
@@ -13,20 +20,118 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Facebook, Instagram, Linkedin, Youtube, Mail, MapPin, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { WebsiteData } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export default async function SellerLandingPage({ params }: { params: { sellerId: string } }) {
-  const sellerId = params.sellerId;
-  const websiteData = await getWebsiteData(sellerId);
 
-  // If no user/website data is found for the given ID, show a 404 page.
-  if (!websiteData || !websiteData.businessInfo?.name) {
-    notFound();
+const enquirySchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('A valid email is required'),
+  phone: z.string().optional(),
+  message: z.string().min(10, 'Message must be at least 10 characters'),
+});
+
+function EnquiryForm({ sellerId }: { sellerId: string }) {
+  const { toast } = useToast();
+  const form = useForm<z.infer<typeof enquirySchema>>({
+    resolver: zodResolver(enquirySchema),
+    defaultValues: { name: '', email: '', phone: '', message: '' },
+  });
+
+  const onSubmit = async (values: z.infer<typeof enquirySchema>) => {
+    const result = await submitSellerEnquiry({ sellerId, ...values });
+    if (result.success) {
+      toast({ title: 'Success', description: result.message });
+      form.reset();
+    } else {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' });
+    }
+  };
+
+  return (
+    <Card className="shadow-lg">
+      <CardContent className="p-8">
+        <h2 className="text-3xl font-bold text-slate-900 mb-2">Send an Enquiry</h2>
+        <p className="text-slate-500 mb-6">We'll get back to you as soon as possible.</p>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Your Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem> )} />
+              <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone (Optional)</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem> )} />
+            </div>
+            <FormField control={form.control} name="message" render={({ field }) => ( <FormItem><FormLabel>Message</FormLabel><FormControl><Textarea className="min-h-32" {...field} /></FormControl><FormMessage /></FormItem> )} />
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? 'Sending...' : 'Send Message'}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function LandingPageSkeleton() {
+    return (
+        <div className="bg-slate-50 min-h-screen">
+             <header className="bg-white shadow-sm sticky top-0 z-50">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
+                     <Skeleton className="h-12 w-48" />
+                     <Skeleton className="h-10 w-24" />
+                </div>
+            </header>
+            <main>
+                <Skeleton className="h-[60vh] w-full" />
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 space-y-12 md:space-y-20">
+                    <Skeleton className="h-64 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+            </main>
+             <footer className="bg-slate-800">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <Skeleton className="h-16 w-full" />
+                </div>
+            </footer>
+        </div>
+    )
+}
+
+export default function SellerLandingPage() {
+  const params = useParams();
+  const sellerId = params.sellerId as string;
+  const [websiteData, setWebsiteData] = React.useState<Omit<WebsiteData, 'partnerFees'> | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (sellerId) {
+      getWebsiteData(sellerId).then(data => {
+        if (!data || !data.businessInfo?.name) {
+          setWebsiteData(null);
+        } else {
+          setWebsiteData(data);
+        }
+        setLoading(false);
+      });
+    }
+  }, [sellerId]);
+
+  if (loading) {
+    return <LandingPageSkeleton />;
+  }
+  
+  if (!websiteData) {
+    return <div className="flex items-center justify-center min-h-screen"><h1>404 | Seller Not Found</h1></div>;
   }
 
   const { businessInfo, slideshows, contactDetails, legalInfo, links } = websiteData;
 
   return (
-    <div className="bg-slate-50 min-h-screen font-body text-slate-800 antialiased">
+    <div className="bg-slate-50 min-h-screen font-body text-slate-800 antialiased scroll-smooth">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
@@ -37,6 +142,11 @@ export default async function SellerLandingPage({ params }: { params: { sellerId
               <p className="text-sm text-slate-500">{businessInfo.tagline}</p>
             </div>
           </Link>
+           <nav>
+              <Button asChild>
+                <Link href="#contact-form">Contact Us</Link>
+              </Button>
+           </nav>
         </div>
       </header>
 
@@ -48,14 +158,9 @@ export default async function SellerLandingPage({ params }: { params: { sellerId
               <CarouselContent>
                 {slideshows.map((slide) => (
                   <CarouselItem key={slide.id}>
-                    <Link href={slide.link || '#'}>
-                        <div className="relative h-[60vh] max-h-[700px] w-full">
+                    <div className="relative h-[60vh] max-h-[700px] w-full">
                         <Image src={slide.image} alt={slide.title} fill className="object-cover" data-ai-hint="presentation slide" />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <h2 className="text-4xl md:text-6xl font-extrabold text-white text-center drop-shadow-lg px-4">{slide.title}</h2>
-                        </div>
-                        </div>
-                    </Link>
+                    </div>
                   </CarouselItem>
                 ))}
               </CarouselContent>
@@ -72,15 +177,17 @@ export default async function SellerLandingPage({ params }: { params: { sellerId
               <div className="md:grid md:grid-cols-2">
                 <div className="p-8 md:p-12 flex flex-col justify-center">
                   <h2 className="text-3xl font-bold text-slate-900 mb-4">About Us</h2>
-                  <p className="text-slate-600 leading-relaxed">
-                    {legalInfo.about}
-                  </p>
+                  <div className="prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: legalInfo.about.replace(/\n/g, '<br />') }} />
                 </div>
                 <div className="relative h-64 md:h-full min-h-[300px]">
                    <Image src="https://placehold.co/600x400.png" alt="About us image" fill className="object-cover" data-ai-hint="team meeting"/>
                 </div>
               </div>
             </Card>
+          </section>
+          
+          <section id="contact-form">
+            <EnquiryForm sellerId={sellerId} />
           </section>
 
           {/* Contact Us */}

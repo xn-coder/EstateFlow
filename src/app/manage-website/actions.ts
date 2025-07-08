@@ -2,14 +2,14 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, addDoc } from 'firebase/firestore';
 import type { User, WebsiteData, FeeApplicablePartnerCategory } from '@/types';
 import { websiteData as initialWebsiteData } from '@/lib/website-data';
 import * as z from 'zod';
 
 const globalConfigRef = doc(db, 'website', 'config');
 
-export async function getWebsiteData(userId: string): Promise<Omit<WebsiteData, 'partnerFees'>> {
+export async function getWebsiteData(userId: string): Promise<Omit<WebsiteData, 'partnerFees'> | null> {
   const { partnerFees, ...defaultUserData } = initialWebsiteData;
   if (!userId) {
     console.error("getWebsiteData called without a userId.");
@@ -30,7 +30,7 @@ export async function getWebsiteData(userId: string): Promise<Omit<WebsiteData, 
       }
     } else {
       console.error(`User with ID ${userId} not found.`);
-      return defaultUserData;
+      return null;
     }
   } catch (error) {
     console.error(`Error fetching website data for user ${userId}:`, error);
@@ -169,5 +169,32 @@ export async function updatePartnerFees(data: z.infer<typeof partnerFeesSchema>)
     return { success: true };
   } catch (error) {
     return { success: false, error: 'Failed to update partner fees.' };
+  }
+}
+
+const sellerEnquirySchema = z.object({
+  sellerId: z.string(),
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('A valid email is required'),
+  phone: z.string().optional(),
+  message: z.string().min(10, 'Message must be at least 10 characters'),
+});
+
+export async function submitSellerEnquiry(data: z.infer<typeof sellerEnquirySchema>) {
+  const validation = sellerEnquirySchema.safeParse(data);
+  if (!validation.success) {
+    return { success: false, error: 'Invalid data submitted.' };
+  }
+
+  try {
+    await addDoc(collection(db, 'sellerEnquiries'), {
+      ...validation.data,
+      createdAt: new Date().toISOString(),
+      status: 'New',
+    });
+    return { success: true, message: 'Your enquiry has been submitted successfully!' };
+  } catch (error) {
+    console.error('Error submitting seller enquiry:', error);
+    return { success: false, error: 'Failed to submit enquiry.' };
   }
 }
