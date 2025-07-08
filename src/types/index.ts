@@ -187,6 +187,9 @@ export interface Receivable {
   date: string;
   partnerName: string;
   partnerId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
   totalAmount: number;
   pendingAmount: number;
   status: 'Pending' | 'Received';

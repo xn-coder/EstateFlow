@@ -51,14 +51,13 @@ export async function submitEnquiry(data: Omit<SubmittedEnquiry, 'id' | 'enquiry
 export async function getEnquiries(partnerId?: string): Promise<SubmittedEnquiry[]> {
     try {
         const enquiriesRef = collection(db, 'enquiries');
-        const q = query(enquiriesRef, orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-        let allEnquiries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubmittedEnquiry));
-        
+        const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
         if (partnerId) {
-            allEnquiries = allEnquiries.filter(enquiry => enquiry.submittedBy.id === partnerId);
+            constraints.push(where('submittedBy.id', '==', partnerId));
         }
-
+        const q = query(enquiriesRef, ...constraints);
+        const snapshot = await getDocs(q);
+        const allEnquiries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubmittedEnquiry));
         return allEnquiries;
     } catch (error) {
         console.error("Error fetching enquiries:", error);
@@ -161,6 +160,9 @@ export async function confirmOrder(data: {enquiryId: string, amountPaid: number}
                 date: new Date().toISOString().split('T')[0],
                 partnerName: partnerUser.name,
                 partnerId: partnerUser.partnerCode || partnerUser.id,
+                customerName: enquiry.customerName,
+                customerEmail: enquiry.customerEmail,
+                customerPhone: enquiry.customerPhone,
                 totalAmount: catalog.sellingPrice,
                 pendingAmount: pendingAmount,
                 status: pendingAmount <= 0 ? 'Received' : 'Pending',

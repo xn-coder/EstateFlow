@@ -345,6 +345,7 @@ const PartnerBusinessDeskView = () => {
                     <div className="divide-y">
                         <ListItem href="/manage-catalog">Explore Catalog Now</ListItem>
                         <ListItem href="/enquiries">List of Enquiries</ListItem>
+                        <ListItem href="/pending-payments">Pending Customer Payments</ListItem>
                         <ListItem href="/wallet-billing">Send Invoice & Bills</ListItem>
                     </div>
                 </CardContent>

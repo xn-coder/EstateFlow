@@ -21,6 +21,7 @@ import {
   Wallet,
   Trophy,
   Gift,
+  Hourglass,
 } from 'lucide-react';
 
 export default function PartnerSidebar() {
@@ -56,6 +57,12 @@ export default function PartnerSidebar() {
             <SidebarMenuButton href="/manage-business" isActive={pathname.startsWith('/manage-business')} tooltip="Business Desk">
               <Briefcase />
               Business Desk
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton href="/pending-payments" isActive={pathname.startsWith('/pending-payments')} tooltip="Pending Payments">
+              <Hourglass />
+              Pending Payments
             </SidebarMenuButton>
           </SidebarMenuItem>
            <SidebarMenuItem>
