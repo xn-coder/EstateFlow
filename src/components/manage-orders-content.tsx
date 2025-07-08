@@ -9,14 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getEnquiries } from '@/app/manage-orders/actions';
-import type { SubmittedEnquiry } from '@/types';
+import type { SubmittedEnquiry, User } from '@/types';
 import { format, parseISO } from 'date-fns';
 import { ArrowUpDown, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 import ConfirmOrderDialog from './confirm-order-dialog';
 
-export default function ManageOrdersContent() {
+export default function ManageOrdersContent({ currentUser }: { currentUser: User }) {
   const [enquiries, setEnquiries] = React.useState<SubmittedEnquiry[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
@@ -102,7 +102,7 @@ export default function ManageOrdersContent() {
                         <Badge variant={getStatusBadgeVariant(enquiry.status)}>{enquiry.status}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {(enquiry.status === 'New' || enquiry.status === 'Contacted') && (
+                        {(enquiry.status === 'New' || enquiry.status === 'Contacted') && currentUser.role !== 'Seller' && (
                           <ConfirmOrderDialog enquiry={enquiry} onOrderConfirmed={fetchEnquiries}>
                              <Button size="sm">
                                 <CheckCircle className="mr-2 h-4 w-4" />
