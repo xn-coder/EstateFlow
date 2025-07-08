@@ -9,22 +9,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from './ui/badge';
 import { getPartnerWalletData } from '@/app/wallet-billing/actions';
 import { Skeleton } from './ui/skeleton';
+import Link from 'next/link';
 
-const StatCard = ({ title, value, description, loading }: { title: string; value: string; description: string; loading: boolean }) => (
-  <Card>
-    <CardHeader className="pb-2">
-      <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-    </CardHeader>
-    <CardContent>
-       {loading ? (
-            <Skeleton className="h-9 w-3/4 mb-1" />
-        ) : (
-            <div className="text-3xl font-bold">{value}</div>
-        )}
-      <p className="text-xs text-muted-foreground">{description}</p>
-    </CardContent>
-  </Card>
-);
+const StatCard = ({ title, value, description, loading, href }: { title: string; value: string; description: string; loading: boolean, href?: string }) => {
+  const content = (
+    <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+        {loading ? (
+                <Skeleton className="h-9 w-3/4 mb-1" />
+            ) : (
+                <div className="text-3xl font-bold">{value}</div>
+            )}
+        <p className="text-xs text-muted-foreground">{description}</p>
+        </CardContent>
+    </Card>
+  );
+
+  if (href) {
+      return <Link href={href} className="block rounded-lg">{content}</Link>
+  }
+
+  return content;
+};
 
 export default function PartnerWalletContent({ currentUser }: { currentUser: User }) {
     const [walletData, setWalletData] = React.useState<PartnerWalletData | null>(null);
@@ -64,7 +73,7 @@ export default function PartnerWalletContent({ currentUser }: { currentUser: Use
                 <StatCard title="Total Earning" value={walletData ? formatCurrency(walletData.totalEarning) : '₹0'} description="Lifetime earnings" loading={loading} />
                 <StatCard title="Paid Amount" value={walletData ? formatCurrency(walletData.paidAmount) : '₹0'} description="Total amount paid out" loading={loading} />
                 <StatCard title="Pending Amount" value={walletData ? formatCurrency(walletData.pendingAmount) : '₹0'} description="Awaiting payout" loading={loading} />
-                <StatCard title="Reward Points" value={walletData ? walletData.rewardPoints.toString() : '0'} description="Redeemable points" loading={loading} />
+                <StatCard title="Reward Points" value={walletData ? walletData.rewardPoints.toString() : '0'} description="Redeemable points" loading={loading} href="/reward-points-history" />
             </div>
             
             <Card>

@@ -20,6 +20,7 @@ import {
   BookCopy,
   Wallet,
   Trophy,
+  Gift,
 } from 'lucide-react';
 
 export default function PartnerSidebar() {
@@ -73,6 +74,12 @@ export default function PartnerSidebar() {
             <SidebarMenuButton href="/leaderboard" isActive={pathname.startsWith('/leaderboard')} tooltip="Leaderboard">
               <Trophy />
               Leaderboard
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton href="/reward-points-history" isActive={pathname.startsWith('/reward-points-history')} tooltip="Rewards History">
+              <Gift />
+              Rewards
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

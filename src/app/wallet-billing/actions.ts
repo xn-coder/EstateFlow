@@ -3,8 +3,8 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, doc, getDocs, getDoc, writeBatch, updateDoc, addDoc, query, limit, setDoc, where, runTransaction } from 'firebase/firestore';
-import type { Payable, PaymentHistory, Receivable, User, WalletSummary, PartnerWalletData } from '@/types';
+import { collection, doc, getDocs, getDoc, writeBatch, updateDoc, addDoc, query, limit, setDoc, where, runTransaction, orderBy } from 'firebase/firestore';
+import type { Payable, PaymentHistory, Receivable, User, WalletSummary, PartnerWalletData, RewardPointTransaction } from '@/types';
 import * as z from 'zod';
 import bcrypt from 'bcryptjs';
 
@@ -471,7 +471,7 @@ export async function sendRewardPoints(data: z.infer<typeof sendRewardPointsSche
         return { success: false, error: 'Invalid data submitted.' };
     }
 
-    const { recipientId, points, sellerId, password } = validation.data;
+    const { recipientId, points, sellerId, password, description } = validation.data;
 
     try {
         // 1. Verify seller's password
@@ -500,8 +500,9 @@ export async function sendRewardPoints(data: z.infer<typeof sendRewardPointsSche
 
         const partnerDoc = partnerSnapshot.docs[0];
         const partnerRef = doc(db, 'users', partnerDoc.id);
+        const partner = partnerDoc.data() as User;
 
-        // 3. Update points using a transaction for safety
+        // 3. Update points and log transaction
         await runTransaction(db, async (transaction) => {
             const freshPartnerDoc = await transaction.get(partnerRef);
             if (!freshPartnerDoc.exists()) {
@@ -510,6 +511,20 @@ export async function sendRewardPoints(data: z.infer<typeof sendRewardPointsSche
             const currentPoints = freshPartnerDoc.data().rewardPoints || 0;
             const newPoints = currentPoints + points;
             transaction.update(partnerRef, { rewardPoints: newPoints });
+
+            // Log the transaction
+            const rewardHistoryRef = doc(collection(db, 'rewardPointHistory'));
+            const newTransaction: Omit<RewardPointTransaction, 'id'> = {
+                date: new Date().toISOString(),
+                partnerId: partnerDoc.id,
+                partnerName: partner.name,
+                sellerId: sellerId,
+                sellerName: seller.name,
+                points: points,
+                type: 'Credit',
+                description: description || `Points awarded by ${seller.name}`,
+            };
+            transaction.set(rewardHistoryRef, newTransaction);
         });
 
         return { success: true, message: `${points} reward points sent successfully!` };
@@ -518,5 +533,17 @@ export async function sendRewardPoints(data: z.infer<typeof sendRewardPointsSche
         console.error('Error sending reward points:', error);
         const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
         return { success: false, error: errorMessage };
+    }
+}
+
+export async function getRewardPointHistory(partnerId: string): Promise<RewardPointTransaction[]> {
+    try {
+        const historyRef = collection(db, 'rewardPointHistory');
+        const q = query(historyRef, where('partnerId', '==', partnerId), orderBy('date', 'desc'));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as RewardPointTransaction));
+    } catch (error) {
+        console.error("Error fetching reward point history:", error);
+        return [];
     }
 }

@@ -227,6 +227,18 @@ export interface PartnerWalletData {
   transactions: Payable[];
 }
 
+export interface RewardPointTransaction {
+  id: string;
+  date: string; // ISO string
+  partnerId: string;
+  partnerName: string;
+  sellerId: string;
+  sellerName: string;
+  points: number;
+  type: 'Credit' | 'Debit';
+  description: string;
+}
+
 export interface Customer {
   id: string; // document ID
   customerId: string; // custom ID
