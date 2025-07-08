@@ -22,10 +22,17 @@ export async function getWalletSummaryData(userId: string): Promise<WalletSummar
         const userData = userSnap.data() as User;
         const summaryData = userData.walletSummary || { totalBalance: 0, revenue: 0 };
         
-        const sellerId = userData.role === 'Seller' ? userData.id : undefined;
+        const payableConstraints: QueryConstraint[] = [where('status', '==', 'Pending')];
+        const receivableConstraints: QueryConstraint[] = [where('status', '==', 'Pending')];
+        
+        // For Admins, show platform-wide pending amounts. For Sellers, show only their own.
+        if (userData.role === 'Seller') {
+            payableConstraints.push(where('sellerId', '==', userId));
+            receivableConstraints.push(where('sellerId', '==', userId));
+        }
 
-        const payablesQuery = query(collection(db, 'payables'), where('status', '==', 'Pending'), where('sellerId', '==', sellerId));
-        const receivablesQuery = query(collection(db, 'receivables'), where('status', '==', 'Pending'), where('sellerId', '==', sellerId));
+        const payablesQuery = query(collection(db, 'payables'), ...payableConstraints);
+        const receivablesQuery = query(collection(db, 'receivables'), ...receivableConstraints);
 
         const [payablesSnap, receivablesSnap] = await Promise.all([
             getDocs(payablesQuery),
