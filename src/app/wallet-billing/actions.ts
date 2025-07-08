@@ -446,11 +446,76 @@ export async function getPartnerWalletData(partnerId: string): Promise<PartnerWa
       totalEarning,
       paidAmount,
       pendingAmount,
-      rewardPoints: 0, // Not implemented yet
+      rewardPoints: user.rewardPoints || 0,
       transactions,
     };
   } catch (error) {
     console.error("Error fetching partner wallet data:", error);
     return { totalEarning: 0, paidAmount: 0, pendingAmount: 0, rewardPoints: 0, transactions: [] };
   }
+}
+
+// --- Send Reward Points ---
+const sendRewardPointsSchema = z.object({
+  recipientId: z.string().min(1, 'Recipient ID/Code/Email is required.'),
+  points: z.coerce.number().min(1, 'Points must be a positive number.'),
+  description: z.string().optional(),
+  sellerId: z.string(),
+  password: z.string().min(1, 'Your password is required to confirm.'),
+});
+
+export async function sendRewardPoints(data: z.infer<typeof sendRewardPointsSchema>) {
+    const validation = sendRewardPointsSchema.safeParse(data);
+    if (!validation.success) {
+        return { success: false, error: 'Invalid data submitted.' };
+    }
+
+    const { recipientId, points, sellerId, password } = validation.data;
+
+    try {
+        // 1. Verify seller's password
+        const sellerRef = doc(db, 'users', sellerId);
+        const sellerDoc = await getDoc(sellerRef);
+        if (!sellerDoc.exists() || sellerDoc.data().role !== 'Seller') {
+            return { success: false, error: 'Invalid seller account.' };
+        }
+        const seller = sellerDoc.data() as User & { passwordHash: string };
+        const isPasswordValid = await bcrypt.compare(password, seller.passwordHash);
+        if (!isPasswordValid) {
+            return { success: false, error: 'Incorrect password.' };
+        }
+
+        // 2. Find partner by code, then by email
+        const usersRef = collection(db, 'users');
+        let partnerSnapshot = await getDocs(query(usersRef, where('role', '==', 'Partner'), where('partnerCode', '==', recipientId)));
+
+        if (partnerSnapshot.empty) {
+            partnerSnapshot = await getDocs(query(usersRef, where('role', '==', 'Partner'), where('email', '==', recipientId)));
+        }
+        
+        if (partnerSnapshot.empty) {
+            return { success: false, error: `Partner with ID/Email "${recipientId}" not found.` };
+        }
+
+        const partnerDoc = partnerSnapshot.docs[0];
+        const partnerRef = doc(db, 'users', partnerDoc.id);
+
+        // 3. Update points using a transaction for safety
+        await runTransaction(db, async (transaction) => {
+            const freshPartnerDoc = await transaction.get(partnerRef);
+            if (!freshPartnerDoc.exists()) {
+                throw new Error("Partner not found inside transaction.");
+            }
+            const currentPoints = freshPartnerDoc.data().rewardPoints || 0;
+            const newPoints = currentPoints + points;
+            transaction.update(partnerRef, { rewardPoints: newPoints });
+        });
+
+        return { success: true, message: `${points} reward points sent successfully!` };
+
+    } catch (error) {
+        console.error('Error sending reward points:', error);
+        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred.";
+        return { success: false, error: errorMessage };
+    }
 }
