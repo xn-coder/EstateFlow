@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -7,26 +8,26 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import type { SubmittedEnquiry, User } from '@/types';
-import { getEnquiries, confirmEnquiry } from '@/app/manage-orders/actions';
+import { getEnquiries, markEnquiryContacted } from '@/app/manage-orders/actions';
 import { format, parseISO } from 'date-fns';
 import { UserCheck, Phone, Trash2 } from 'lucide-react';
 
-const EnquiryCard = ({ enquiry, onEnquiryConfirmed }: { enquiry: SubmittedEnquiry; onEnquiryConfirmed: () => void; }) => {
+const EnquiryCard = ({ enquiry, onEnquiryUpdated }: { enquiry: SubmittedEnquiry; onEnquiryUpdated: () => void; }) => {
     const { toast } = useToast();
     const [isConfirming, setIsConfirming] = React.useState(false);
 
-    const handleConfirm = async (enquiryId: string) => {
+    const handleMarkContacted = async (enquiryId: string) => {
         setIsConfirming(true);
-        const result = await confirmEnquiry(enquiryId);
+        const result = await markEnquiryContacted(enquiryId);
         if (result.success) {
             toast({
-                title: 'Enquiry Confirmed',
-                description: 'Customer has been created successfully.',
+                title: 'Status Updated',
+                description: 'Enquiry has been marked as contacted.',
             });
-            onEnquiryConfirmed();
+            onEnquiryUpdated();
         } else {
             toast({
-                title: 'Confirmation Failed',
+                title: 'Update Failed',
                 description: result.error,
                 variant: 'destructive',
             });
@@ -38,7 +39,7 @@ const EnquiryCard = ({ enquiry, onEnquiryConfirmed }: { enquiry: SubmittedEnquir
         toast({ title: 'Info', description: `${action} action is not implemented yet.` });
     };
 
-    const isConfirmed = enquiry.status !== 'New';
+    const isActionable = enquiry.status === 'New';
     
     return (
         <Card className="flex flex-col shadow-md">
@@ -56,7 +57,7 @@ const EnquiryCard = ({ enquiry, onEnquiryConfirmed }: { enquiry: SubmittedEnquir
                 <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{format(parseISO(enquiry.createdAt), 'dd MMM yyyy')}</span></div>
             </CardContent>
             <CardFooter className="grid grid-cols-3 gap-2">
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => handleConfirm(enquiry.id)} disabled={isConfirming || isConfirmed}>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => handleMarkContacted(enquiry.id)} disabled={isConfirming || !isActionable}>
                     <UserCheck className="h-4 w-4" />
                 </Button>
                 <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleAction('Call')}><Phone className="h-4 w-4" /></Button>
@@ -72,8 +73,7 @@ export default function EnquiriesContent({ currentUser }: { currentUser: User })
     
     const fetchEnquiries = React.useCallback(async () => {
         setLoading(true);
-        const allEnquiries = await getEnquiries();
-        const partnerEnquiries = allEnquiries.filter(e => e.submittedBy && e.submittedBy.id === currentUser.id);
+        const partnerEnquiries = await getEnquiries(currentUser.id);
         setEnquiries(partnerEnquiries);
         setLoading(false);
     }, [currentUser.id]);
@@ -96,7 +96,7 @@ export default function EnquiriesContent({ currentUser }: { currentUser: User })
             ) : enquiries.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {enquiries.map((enquiry) => (
-                        <EnquiryCard key={enquiry.id} enquiry={enquiry} onEnquiryConfirmed={fetchEnquiries} />
+                        <EnquiryCard key={enquiry.id} enquiry={enquiry} onEnquiryUpdated={fetchEnquiries} />
                     ))}
                 </div>
             ) : (

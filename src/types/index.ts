@@ -174,7 +174,7 @@ export interface SubmittedEnquiry {
   customerPhone: string;
   customerEmail: string;
   customerPincode: string;
-  status: 'New' | 'Contacted' | 'Closed';
+  status: 'New' | 'Contacted' | 'Confirmed' | 'Closed';
   submittedBy: {
     id: string;
     name: string;
@@ -187,6 +187,7 @@ export interface Receivable {
   date: string;
   partnerName: string;
   partnerId: string;
+  totalAmount: number;
   pendingAmount: number;
   status: 'Pending' | 'Received';
   description?: string;

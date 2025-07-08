@@ -49,24 +49,41 @@ export async function submitEnquiry(data: Omit<SubmittedEnquiry, 'id' | 'enquiry
 }
 
 export async function getEnquiries(partnerId?: string): Promise<SubmittedEnquiry[]> {
-  try {
-    const enquiriesRef = collection(db, 'enquiries');
-    const q = query(enquiriesRef, orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    const allEnquiries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubmittedEnquiry));
-    
-    if (partnerId) {
-      return allEnquiries.filter(enquiry => enquiry.submittedBy.id === partnerId);
+    try {
+        const enquiriesRef = collection(db, 'enquiries');
+        const q = partnerId 
+            ? query(enquiriesRef, where('submittedBy.id', '==', partnerId), orderBy('createdAt', 'desc'))
+            : query(enquiriesRef, orderBy('createdAt', 'desc'));
+            
+        const snapshot = await getDocs(q);
+        const allEnquiries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubmittedEnquiry));
+        
+        return allEnquiries;
+    } catch (error) {
+        console.error("Error fetching enquiries:", error);
+        return [];
     }
+}
 
-    return allEnquiries;
+
+export async function markEnquiryContacted(enquiryId: string): Promise<{ success: boolean; error?: string }> {
+  if (!enquiryId) {
+    return { success: false, error: 'Invalid Enquiry ID provided.' };
+  }
+  try {
+    const enquiryRef = doc(db, 'enquiries', enquiryId);
+    await updateDoc(enquiryRef, { status: 'Contacted' });
+    return { success: true, message: 'Enquiry marked as contacted.' };
   } catch (error) {
-    console.error("Error fetching enquiries:", error);
-    return [];
+    console.error('Error marking enquiry as contacted:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+    return { success: false, error: errorMessage };
   }
 }
 
-export async function confirmEnquiry(enquiryId: string) {
+
+export async function confirmOrder(data: {enquiryId: string, amountPaid: number}) {
+    const { enquiryId, amountPaid } = data;
     if (!enquiryId) {
         return { success: false, error: 'Invalid Enquiry ID provided.' };
     }
@@ -74,7 +91,6 @@ export async function confirmEnquiry(enquiryId: string) {
     const enquiryRef = doc(db, 'enquiries', enquiryId);
 
     try {
-        // Perform reads outside the transaction where possible
         const enquiryForCustomerCheck = await getDoc(enquiryRef);
         if (!enquiryForCustomerCheck.exists()) {
             throw new Error("Enquiry not found.");
@@ -86,17 +102,13 @@ export async function confirmEnquiry(enquiryId: string) {
         const existingCustomersSnap = await getDocs(customerQuery);
 
         await runTransaction(db, async (transaction) => {
-            // ----- All reads must come before writes -----
-
-            // 1. Read all necessary documents
             const freshEnquiryDoc = await transaction.get(enquiryRef);
             if (!freshEnquiryDoc.exists()) {
                 throw new Error("Enquiry not found inside transaction.");
             }
             const enquiry = { id: freshEnquiryDoc.id, ...freshEnquiryDoc.data() } as SubmittedEnquiry;
 
-            // Only process if status is 'New'
-            if (enquiry.status !== 'New') {
+            if (enquiry.status === 'Confirmed' || enquiry.status === 'Closed') {
                 return;
             }
 
@@ -119,9 +131,7 @@ export async function confirmEnquiry(enquiryId: string) {
             const walletSummaryRef = doc(db, 'wallet', 'summary');
             const walletSummaryDoc = await transaction.get(walletSummaryRef);
 
-            // ----- All writes happen after reads -----
-
-            // 2. Calculate commission
+            // Calculate commission
             let commissionAmount = 0;
             const commissionPercentage = catalog.partnerCategoryCommissions?.[partnerProfile.partnerCategory];
 
@@ -133,7 +143,7 @@ export async function confirmEnquiry(enquiryId: string) {
                 commissionAmount = catalog.earning;
             }
 
-            // 3. Write new payable if there's a commission
+            // Write new payable if there's a commission
             if (commissionAmount > 0) {
                 const newPayableRef = doc(collection(db, 'payables'));
                 const newPayable: Omit<Payable, 'id'> = {
@@ -147,29 +157,43 @@ export async function confirmEnquiry(enquiryId: string) {
                 transaction.set(newPayableRef, newPayable);
             }
 
-            // 4. Create a receivable for the full order amount
             const newReceivableRef = doc(collection(db, 'receivables'));
+            const pendingAmount = catalog.sellingPrice - amountPaid;
             const newReceivable: Omit<Receivable, 'id'> = {
                 date: new Date().toISOString().split('T')[0],
                 partnerName: partnerUser.name,
                 partnerId: partnerUser.partnerCode || partnerUser.id,
-                pendingAmount: catalog.sellingPrice,
-                status: 'Pending',
+                totalAmount: catalog.sellingPrice,
+                pendingAmount: pendingAmount,
+                status: pendingAmount <= 0 ? 'Received' : 'Pending',
                 description: `Sale of '${catalog.title}'`,
             };
             transaction.set(newReceivableRef, newReceivable);
             
-            // 5. Update wallet summary (revenue only, not balance)
+            // Update wallet summary and payment history
             if (!walletSummaryDoc.exists()) {
-                transaction.set(walletSummaryRef, { totalBalance: 0, revenue: catalog.sellingPrice });
+                transaction.set(walletSummaryRef, { totalBalance: amountPaid, revenue: catalog.sellingPrice });
             } else {
                 const summaryData = walletSummaryDoc.data();
                 transaction.update(walletSummaryRef, {
+                    totalBalance: (summaryData.totalBalance || 0) + amountPaid,
                     revenue: (summaryData.revenue || 0) + catalog.sellingPrice,
                 });
             }
+
+            if (amountPaid > 0) {
+                const newHistory: Omit<PaymentHistory, 'id'> = {
+                    date: new Date().toISOString().split('T')[0],
+                    name: `Payment from ${enquiry.customerName} for '${catalog.title}'`,
+                    transactionId: `PAY${Math.random().toString().slice(2, 14)}`,
+                    amount: amountPaid,
+                    paymentMethod: 'System',
+                    type: 'Credit',
+                };
+                const newHistoryRef = doc(collection(db, 'paymentHistory'));
+                transaction.set(newHistoryRef, newHistory);
+            }
             
-            // 6. Write new customer if they don't exist
             if (existingCustomersSnap.empty) {
                 const customerId = `CD${Math.random().toString().slice(2, 12)}`;
                 const newCustomer: Omit<Customer, 'id'> = {
@@ -186,13 +210,12 @@ export async function confirmEnquiry(enquiryId: string) {
                 transaction.set(newCustomerRef, newCustomer);
             }
 
-            // 7. Update the enquiry status
-            transaction.update(enquiryRef, { status: 'Contacted' });
+            transaction.update(enquiryRef, { status: 'Confirmed' });
         });
 
-        return { success: true, message: 'Enquiry confirmed and processed successfully.' };
+        return { success: true, message: 'Order confirmed and processed successfully.' };
     } catch (error) {
-        console.error('Error confirming enquiry:', error);
+        console.error('Error confirming order:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
         return { success: false, error: errorMessage };
     }
