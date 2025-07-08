@@ -1,19 +1,24 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy, where, QueryConstraint } from 'firebase/firestore';
 import type { Customer } from '@/types';
 
-export async function getCustomers(partnerId?: string): Promise<Customer[]> {
+export async function getCustomers(partnerId?: string, sellerId?: string): Promise<Customer[]> {
   try {
     const customersRef = collection(db, 'customers');
     const q = query(customersRef, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    const allCustomers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer));
+    let allCustomers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer));
 
     if (partnerId) {
-        return allCustomers.filter(customer => customer.createdBy === partnerId);
+        allCustomers = allCustomers.filter(customer => customer.createdBy === partnerId);
+    }
+    
+    if (sellerId) {
+        allCustomers = allCustomers.filter(customer => customer.sellerId === sellerId);
     }
     
     return allCustomers;

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -228,6 +229,7 @@ const SellerBusinessView = () => {
     ];
     
     const accountItems = [
+        { label: 'Manage Customers', href: '/manage-customers' },
         { label: 'Leaderboard', href: '/leaderboard' },
         { label: 'Manage Website', href: '/manage-website' },
         { label: 'My Account', href: '/profile' },

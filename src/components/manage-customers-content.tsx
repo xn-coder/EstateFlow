@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -8,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from './ui/skeleton';
 import { getCustomers } from '@/app/manage-customers/actions';
 import { getUsers } from '@/app/login/actions';
-import type { Customer } from '@/types';
+import type { Customer, User } from '@/types';
 import { format, parseISO } from 'date-fns';
 import { ArrowUpDown, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +18,11 @@ import { Input } from './ui/input';
 import { Search } from 'lucide-react';
 import { Button } from './ui/button';
 
-export default function ManageCustomersContent() {
+interface ManageCustomersContentProps {
+  currentUser: User;
+}
+
+export default function ManageCustomersContent({ currentUser }: ManageCustomersContentProps) {
   const [customers, setCustomers] = React.useState<Customer[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
@@ -29,8 +34,9 @@ export default function ManageCustomersContent() {
   const fetchData = React.useCallback(async () => {
     setLoading(true);
     try {
+        const sellerId = currentUser?.role === 'Seller' ? currentUser.id : undefined;
         const [customerData, userData] = await Promise.all([
-            getCustomers(partnerId || undefined),
+            getCustomers(partnerId || undefined, sellerId),
             getUsers()
         ]);
         setCustomers(customerData);
@@ -50,7 +56,7 @@ export default function ManageCustomersContent() {
         })
     }
     setLoading(false);
-  }, [toast, partnerId]);
+  }, [toast, partnerId, currentUser]);
 
   React.useEffect(() => {
     fetchData();

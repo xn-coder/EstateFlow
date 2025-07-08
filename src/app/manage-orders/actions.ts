@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -179,6 +180,7 @@ export async function confirmEnquiry(enquiryId: string) {
                     pincode: enquiry.customerPincode,
                     createdBy: enquiry.submittedBy.id,
                     createdAt: new Date().toISOString(),
+                    sellerId: catalog.sellerId,
                 };
                 const newCustomerRef = doc(collection(db, 'customers'));
                 transaction.set(newCustomerRef, newCustomer);
