@@ -4,10 +4,11 @@
 
 import * as React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
+import { Pencil, ExternalLink } from 'lucide-react';
 import EditBusinessProfileDialog from './edit-business-profile-dialog';
 import EditSlideshowDialog from './edit-slideshow-dialog';
 import EditContactDetailsDialog from './edit-contact-details-dialog';
@@ -99,11 +100,19 @@ export default function ManageWebsiteContent({ currentUser }: { currentUser: Use
                         <p className="text-muted-foreground">{websiteData.businessInfo.tagline}</p>
                     </div>
                 </div>
-                <EditBusinessProfileDialog currentUser={currentUser} businessInfo={websiteData.businessInfo} onUpdate={fetchAndSetWebsiteData}>
-                    <Button variant="ghost" size="icon">
-                        <Pencil className="h-5 w-5" />
+                <div className="flex items-center gap-2">
+                    <Button asChild>
+                        <Link href={`/seller/${currentUser.id}`} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Preview Website
+                        </Link>
                     </Button>
-                </EditBusinessProfileDialog>
+                    <EditBusinessProfileDialog currentUser={currentUser} businessInfo={websiteData.businessInfo} onUpdate={fetchAndSetWebsiteData}>
+                        <Button variant="ghost" size="icon">
+                            <Pencil className="h-5 w-5" />
+                        </Button>
+                    </EditBusinessProfileDialog>
+                </div>
             </CardContent>
         </Card>
 
