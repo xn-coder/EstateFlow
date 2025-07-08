@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { PartnerActivationInfo, User } from '@/types';
@@ -78,12 +77,6 @@ export default function ViewPartnerProfileContent({ partnerInfo, currentUser }: 
   const { user, profile } = partnerInfo;
   const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Manager';
   const isSeller = currentUser.role === 'Seller';
-  
-  const listItems = [
-    { label: 'Quotation and Invoice' },
-    { label: 'Deactivated Account' },
-    { label: 'Change Password' },
-  ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -154,7 +147,6 @@ export default function ViewPartnerProfileContent({ partnerInfo, currentUser }: 
                           </DialogTrigger>
                       </SendRewardPointsDialog>
                     )}
-                    {listItems.map((item) => <ListItem key={item.label}>{item.label}</ListItem>)}
                 </div>
             </CardContent>
         </Card>
