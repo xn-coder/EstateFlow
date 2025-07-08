@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import * as React from 'react';
@@ -67,10 +69,10 @@ export default function WalletBillingContent({ currentUser }: { currentUser: Use
 
   const fetchSummary = React.useCallback(async () => {
     setLoading(true);
-    const data = await getWalletSummaryData();
+    const data = await getWalletSummaryData(currentUser.id);
     setSummary(data);
     setLoading(false);
-  }, []);
+  }, [currentUser.id]);
 
   React.useEffect(() => {
     fetchSummary();

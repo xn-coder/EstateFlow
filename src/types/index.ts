@@ -27,6 +27,7 @@ export interface User {
   userCode?: string;
   websiteData?: Omit<WebsiteData, 'partnerFees'>;
   rewardPoints?: number;
+  walletSummary?: WalletSummary;
 }
 
 export interface PartnerData {
@@ -194,6 +195,7 @@ export interface Receivable {
   pendingAmount: number;
   status: 'Pending' | 'Received';
   description?: string;
+  sellerId?: string;
 }
 
 export interface Payable {
@@ -204,6 +206,7 @@ export interface Payable {
   payableAmount: number;
   status: 'Pending' | 'Paid';
   description?: string;
+  sellerId?: string;
 }
 
 export interface PaymentHistory {
@@ -214,6 +217,7 @@ export interface PaymentHistory {
     amount: number;
     paymentMethod: string;
     type: 'Credit' | 'Debit';
+    sellerId?: string;
 }
 
 export interface WalletSummary {

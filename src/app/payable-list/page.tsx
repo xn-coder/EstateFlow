@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect } from 'react';
@@ -59,7 +60,7 @@ export default function PayableListPage() {
     if (!loading && user && !authorizedRoles.includes(user.role)) {
       router.push('/'); // Redirect to dashboard if not authorized
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, authorizedRoles]);
 
   if (loading || !user) {
     return <PayableListSkeleton />;

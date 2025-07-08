@@ -54,6 +54,7 @@ export async function registerSeller(data: z.infer<typeof sellerSchema>) {
       status: 'Active', // Sellers are active by default
       userCode: `SLR${Math.random().toString().slice(2, 12)}`,
       websiteData: userWebsiteData,
+      walletSummary: { totalBalance: 0, revenue: 0 },
     });
 
     return { success: true, message: 'Seller registered successfully. You can now log in.' };

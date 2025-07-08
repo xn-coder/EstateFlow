@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -29,10 +30,11 @@ export default function PayableListContent({ currentUser }: PayableListContentPr
 
   const fetchPayables = React.useCallback(async () => {
     setLoading(true);
-    const data = await getPayables();
+    const sellerId = currentUser.role === 'Seller' ? currentUser.id : undefined;
+    const data = await getPayables(sellerId);
     setPayableItems(data);
     setLoading(false);
-  }, []);
+  }, [currentUser]);
 
   React.useEffect(() => {
     fetchPayables();

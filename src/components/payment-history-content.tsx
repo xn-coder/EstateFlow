@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -10,12 +11,16 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, ArrowUpDown, ArrowLeft, Copy, FileDown, Printer } from 'lucide-react';
 import { Badge } from './ui/badge';
-import type { PaymentHistory } from '@/types';
+import type { PaymentHistory, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { getPaymentHistory } from '@/app/wallet-billing/actions';
 import { Skeleton } from './ui/skeleton';
 
-export default function PaymentHistoryContent() {
+interface PaymentHistoryContentProps {
+  currentUser: User;
+}
+
+export default function PaymentHistoryContent({ currentUser }: PaymentHistoryContentProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [paymentHistory, setPaymentHistory] = React.useState<PaymentHistory[]>([]);
@@ -23,10 +28,11 @@ export default function PaymentHistoryContent() {
 
   const fetchHistory = React.useCallback(async () => {
     setLoading(true);
-    const data = await getPaymentHistory();
+    const sellerId = currentUser.role === 'Seller' ? currentUser.id : undefined;
+    const data = await getPaymentHistory(sellerId);
     setPaymentHistory(data);
     setLoading(false);
-  }, []);
+  }, [currentUser]);
 
   React.useEffect(() => {
     fetchHistory();

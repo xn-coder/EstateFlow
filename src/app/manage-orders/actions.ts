@@ -150,6 +150,7 @@ export async function confirmOrder(data: {enquiryId: string, amountPaid: number}
                     payableAmount: commissionAmount,
                     status: 'Pending',
                     description: `Commission for '${catalog.title}'`,
+                    sellerId: catalog.sellerId,
                 };
                 transaction.set(newPayableRef, newPayable);
             }
@@ -167,6 +168,7 @@ export async function confirmOrder(data: {enquiryId: string, amountPaid: number}
                 pendingAmount: pendingAmount,
                 status: pendingAmount <= 0 ? 'Received' : 'Pending',
                 description: `Sale of '${catalog.title}'`,
+                sellerId: catalog.sellerId,
             };
             transaction.set(newReceivableRef, newReceivable);
             
@@ -185,6 +187,19 @@ export async function confirmOrder(data: {enquiryId: string, amountPaid: number}
                 const newCustomerRef = doc(collection(db, 'customers'));
                 transaction.set(newCustomerRef, newCustomer);
             }
+            
+            // Update Seller Wallet
+            const sellerUserRef = doc(db, 'users', catalog.sellerId);
+            const sellerDoc = await transaction.get(sellerUserRef);
+            if (sellerDoc.exists()) {
+                const sellerData = sellerDoc.data() as User;
+                const currentWallet = sellerData.walletSummary || { totalBalance: 0, revenue: 0 };
+                transaction.update(sellerUserRef, {
+                    'walletSummary.totalBalance': currentWallet.totalBalance + amountPaid,
+                    'walletSummary.revenue': currentWallet.revenue + catalog.sellingPrice,
+                });
+            }
+
 
             transaction.update(enquiryRef, { status: 'Confirmed' });
         });

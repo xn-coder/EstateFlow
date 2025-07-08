@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -10,12 +11,16 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Eye, Printer, CheckCircle, ArrowUpDown, ArrowLeft } from 'lucide-react';
 import { Badge } from './ui/badge';
-import type { Receivable } from '@/types';
+import type { Receivable, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { getReceivables, updateReceivableStatus } from '@/app/wallet-billing/actions';
 import { Skeleton } from './ui/skeleton';
 
-export default function ReceivableCashListContent() {
+interface ReceivableCashListContentProps {
+  currentUser: User;
+}
+
+export default function ReceivableCashListContent({ currentUser }: ReceivableCashListContentProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [receivableItems, setReceivableItems] = React.useState<Receivable[]>([]);
@@ -23,10 +28,11 @@ export default function ReceivableCashListContent() {
 
   const fetchReceivables = React.useCallback(async () => {
     setLoading(true);
-    const data = await getReceivables();
+    const sellerId = currentUser.role === 'Seller' ? currentUser.id : undefined;
+    const data = await getReceivables(sellerId);
     setReceivableItems(data);
     setLoading(false);
-  }, []);
+  }, [currentUser]);
 
   React.useEffect(() => {
     fetchReceivables();

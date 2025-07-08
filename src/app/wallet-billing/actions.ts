@@ -3,45 +3,34 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, doc, getDocs, getDoc, writeBatch, updateDoc, addDoc, query, limit, setDoc, where, runTransaction, orderBy } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, writeBatch, updateDoc, addDoc, query, limit, setDoc, where, runTransaction, orderBy, QueryConstraint } from 'firebase/firestore';
 import type { Payable, PaymentHistory, Receivable, User, WalletSummary, PartnerWalletData, RewardPointTransaction } from '@/types';
 import * as z from 'zod';
 import bcrypt from 'bcryptjs';
 
-const receivablesRef = collection(db, 'receivables');
-const payablesRef = collection(db, 'payables');
-const paymentHistoryRef = collection(db, 'paymentHistory');
-const walletSummaryRef = doc(db, 'wallet', 'summary');
-
-// --- Seeding Actions ---
-async function initializeWalletSummary() {
-    const docSnap = await getDoc(walletSummaryRef);
-    if (!docSnap.exists()) {
-        console.log('Initializing wallet summary...');
-        await setDoc(walletSummaryRef, {
-            totalBalance: 100,
-            revenue: 1000,
-        });
-        console.log('Wallet summary initialized.');
-    }
-}
-
 // --- Data Fetching Actions ---
 
-export async function getWalletSummaryData(): Promise<WalletSummary> {
+export async function getWalletSummaryData(userId: string): Promise<WalletSummary> {
     try {
-        await initializeWalletSummary(); // Ensure summary doc exists
+        const userRef = doc(db, 'users', userId);
+        const userSnap = await getDoc(userRef);
 
-        const payablesQuery = query(collection(db, 'payables'), where('status', '==', 'Pending'));
-        const receivablesQuery = query(collection(db, 'receivables'), where('status', '==', 'Pending'));
+        if (!userSnap.exists()) {
+            throw new Error("User not found to fetch wallet summary.");
+        }
+        
+        const userData = userSnap.data() as User;
+        const summaryData = userData.walletSummary || { totalBalance: 0, revenue: 0 };
+        
+        const sellerId = userData.role === 'Seller' ? userData.id : undefined;
 
-        const [summarySnap, payablesSnap, receivablesSnap] = await Promise.all([
-            getDoc(walletSummaryRef),
+        const payablesQuery = query(collection(db, 'payables'), where('status', '==', 'Pending'), where('sellerId', '==', sellerId));
+        const receivablesQuery = query(collection(db, 'receivables'), where('status', '==', 'Pending'), where('sellerId', '==', sellerId));
+
+        const [payablesSnap, receivablesSnap] = await Promise.all([
             getDocs(payablesQuery),
             getDocs(receivablesQuery),
         ]);
-
-        const summaryData = summarySnap.data() as { totalBalance: number; revenue: number };
         
         const totalPayable = payablesSnap.docs.reduce((sum, doc) => sum + doc.data().payableAmount, 0);
         const totalReceivable = receivablesSnap.docs.reduce((sum, doc) => sum + doc.data().pendingAmount, 0);
@@ -58,68 +47,70 @@ export async function getWalletSummaryData(): Promise<WalletSummary> {
     }
 }
 
-export async function getReceivables(): Promise<Receivable[]> {
-  const snapshot = await getDocs(receivablesRef);
+export async function getReceivables(sellerId?: string): Promise<Receivable[]> {
+  const constraints: QueryConstraint[] = [];
+  if (sellerId) {
+      constraints.push(where("sellerId", "==", sellerId));
+  }
+  const q = query(collection(db, 'receivables'), ...constraints);
+  const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Receivable));
 }
 
-export async function getPayables(): Promise<Payable[]> {
-  const snapshot = await getDocs(payablesRef);
+export async function getPayables(sellerId?: string): Promise<Payable[]> {
+  const constraints: QueryConstraint[] = [];
+  if (sellerId) {
+      constraints.push(where("sellerId", "==", sellerId));
+  }
+  const q = query(collection(db, 'payables'), ...constraints);
+  const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payable));
 }
 
-export async function getPaymentHistory(): Promise<PaymentHistory[]> {
-  const snapshot = await getDocs(paymentHistoryRef);
+export async function getPaymentHistory(sellerId?: string): Promise<PaymentHistory[]> {
+  const constraints: QueryConstraint[] = [];
+  if (sellerId) {
+      constraints.push(where("sellerId", "==", sellerId));
+  }
+  const q = query(collection(db, 'paymentHistory'), ...constraints);
+  const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PaymentHistory));
 }
 
 // --- Data Update Actions ---
 
 export async function updateReceivableStatus(id: string, status: 'Pending' | 'Received') {
-  if (status === 'Pending') {
-    // This case is for potential future use (e.g., reversing a transaction)
-    // For now, it only updates the status.
-    try {
-      const docRef = doc(db, 'receivables', id);
-      await updateDoc(docRef, { status });
-      return { success: true };
-    } catch (error) {
-      console.error("Error updating receivable status:", error);
-      return { success: false, error: "Failed to update status." };
-    }
-  }
+  const receivableRef = doc(db, 'receivables', id);
 
-  // Handle 'Received' status with a transaction
   try {
-    const receivableRef = doc(db, 'receivables', id);
+    if (status === 'Pending') {
+      await updateDoc(receivableRef, { status });
+      return { success: true };
+    }
 
+    // Handle 'Received' status with a transaction
     await runTransaction(db, async (transaction) => {
       const receivableDoc = await transaction.get(receivableRef);
-      if (!receivableDoc.exists()) {
-        throw new Error("Receivable document not found!");
-      }
+      if (!receivableDoc.exists()) throw new Error("Receivable document not found!");
       const receivableData = receivableDoc.data() as Receivable;
       
-      if (receivableData.status === 'Received') {
-          console.log("Receivable already marked as Received.");
-          return; // Avoid double-processing
-      }
+      if (receivableData.status === 'Received') return; // Avoid double-processing
+      if (!receivableData.sellerId) throw new Error("Receivable is missing seller ID.");
       
       const amount = receivableData.pendingAmount;
+      const sellerRef = doc(db, 'users', receivableData.sellerId);
+      const sellerDoc = await transaction.get(sellerRef);
+      if (!sellerDoc.exists()) throw new Error("Seller not found for this transaction.");
 
       transaction.update(receivableRef, { status: 'Received' });
 
-      const summaryDoc = await transaction.get(walletSummaryRef);
-      if (!summaryDoc.exists()) {
-          throw new Error("Wallet summary not found!");
-      }
-      const summaryData = summaryDoc.data() as { totalBalance: number; revenue: number };
-      transaction.update(walletSummaryRef, {
-        totalBalance: summaryData.totalBalance + amount,
-        // Revenue is recognized at time of sale, not on payment receipt.
-        // revenue: summaryData.revenue + amount,
+      const sellerData = sellerDoc.data() as User;
+      const currentWallet = sellerData.walletSummary || { totalBalance: 0, revenue: 0 };
+      transaction.update(sellerRef, {
+        'walletSummary.totalBalance': currentWallet.totalBalance + amount,
       });
       
+      const newHistoryRef = doc(collection(db, 'paymentHistory'));
       const newHistory: Omit<PaymentHistory, 'id'> = {
         date: new Date().toISOString().split('T')[0],
         name: `Received from ${receivableData.partnerName}`,
@@ -127,8 +118,8 @@ export async function updateReceivableStatus(id: string, status: 'Pending' | 'Re
         amount,
         paymentMethod: 'System',
         type: 'Credit',
+        sellerId: receivableData.sellerId,
       };
-      const newHistoryRef = doc(collection(db, 'paymentHistory'));
       transaction.set(newHistoryRef, newHistory);
     });
 
@@ -141,49 +132,39 @@ export async function updateReceivableStatus(id: string, status: 'Pending' | 'Re
 }
 
 export async function updatePayableStatus(id: string, status: 'Pending' | 'Paid') {
-   if (status === 'Pending') {
-    try {
-      const docRef = doc(db, 'payables', id);
-      await updateDoc(docRef, { status });
-      return { success: true };
-    } catch (error) {
-      console.error("Error updating payable status:", error);
-      return { success: false, error: "Failed to update status." };
-    }
-  }
+   const payableRef = doc(db, 'payables', id);
 
-  // Handle 'Paid' status with a transaction
-  try {
-    const payableRef = doc(db, 'payables', id);
-    
+   try {
+    if (status === 'Pending') {
+      await updateDoc(payableRef, { status });
+      return { success: true };
+    }
+
+    // Handle 'Paid' status with a transaction
     await runTransaction(db, async (transaction) => {
         const payableDoc = await transaction.get(payableRef);
-        if (!payableDoc.exists()) {
-            throw new Error("Payable document not found!");
-        }
+        if (!payableDoc.exists()) throw new Error("Payable document not found!");
         const payableData = payableDoc.data() as Payable;
 
-        if (payableData.status === 'Paid') {
-            console.log("Payable already marked as Paid.");
-            return; // Avoid double-processing
-        }
+        if (payableData.status === 'Paid') return; // Avoid double-processing
+        if (!payableData.sellerId) throw new Error("Payable is missing seller ID.");
 
         const amount = payableData.payableAmount;
-
-        const summaryDoc = await transaction.get(walletSummaryRef);
-        if (!summaryDoc.exists()) {
-            throw new Error("Wallet summary not found!");
-        }
-        const summaryData = summaryDoc.data() as { totalBalance: number; revenue: number };
+        const sellerRef = doc(db, 'users', payableData.sellerId);
+        const sellerDoc = await transaction.get(sellerRef);
+        if (!sellerDoc.exists()) throw new Error("Seller not found for this transaction.");
+        const sellerData = sellerDoc.data() as User;
+        const currentWallet = sellerData.walletSummary || { totalBalance: 0, revenue: 0 };
         
-        if (summaryData.totalBalance < amount) {
+        if (currentWallet.totalBalance < amount) {
             throw new Error('Insufficient wallet balance.');
         }
 
         transaction.update(payableRef, { status: 'Paid' });
         
-        transaction.update(walletSummaryRef, { totalBalance: summaryData.totalBalance - amount });
+        transaction.update(sellerRef, { 'walletSummary.totalBalance': currentWallet.totalBalance - amount });
 
+        const newHistoryRef = doc(collection(db, 'paymentHistory'));
         const newHistory: Omit<PaymentHistory, 'id'> = {
             date: new Date().toISOString().split('T')[0],
             name: `Paid to ${payableData.recipientName}`,
@@ -191,8 +172,8 @@ export async function updatePayableStatus(id: string, status: 'Pending' | 'Paid'
             amount,
             paymentMethod: 'Wallet',
             type: 'Debit',
+            sellerId: payableData.sellerId,
         };
-        const newHistoryRef = doc(collection(db, 'paymentHistory'));
         transaction.set(newHistoryRef, newHistory);
     });
 
@@ -236,7 +217,6 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
   const { action, amount, paymentMethod, password, userId, recipientId } = validation.data;
 
   try {
-    // 1. Verify admin password
     const userRef = doc(db, 'users', userId);
     const userDoc = await getDoc(userRef);
     if (!userDoc.exists()) {
@@ -248,13 +228,11 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
       return { success: false, error: 'Incorrect admin password.' };
     }
     
-    // 2. Perform transaction logic using Firestore Transaction
     await runTransaction(db, async (transaction) => {
-      const summaryDoc = await transaction.get(walletSummaryRef);
-      if (!summaryDoc.exists()) {
-          throw new Error("Wallet summary not found!");
-      }
-      const summaryData = summaryDoc.data() as { totalBalance: number; revenue: number };
+      const sellerDoc = await transaction.get(userRef);
+      if (!sellerDoc.exists()) throw new Error("Seller user not found!");
+      const sellerData = sellerDoc.data() as User;
+      const currentWallet = sellerData.walletSummary || { totalBalance: 0, revenue: 0 };
       
       let transactionName: string;
       let newHistory: Omit<PaymentHistory, 'id'>;
@@ -269,9 +247,10 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
             amount,
             paymentMethod,
             type: 'Credit',
+            sellerId: userId,
           };
-          transaction.update(walletSummaryRef, {
-            totalBalance: summaryData.totalBalance + amount,
+          transaction.update(userRef, {
+            'walletSummary.totalBalance': currentWallet.totalBalance + amount,
           });
           break;
         
@@ -287,10 +266,11 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
             amount,
             paymentMethod,
             type: 'Credit',
+            sellerId: userId,
           };
-          transaction.update(walletSummaryRef, {
-            totalBalance: summaryData.totalBalance + amount,
-            revenue: summaryData.revenue + amount,
+          transaction.update(userRef, {
+            'walletSummary.totalBalance': currentWallet.totalBalance + amount,
+            'walletSummary.revenue': currentWallet.revenue + amount,
           });
           break;
 
@@ -299,7 +279,7 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
           transactionName = action === 'Send to partner'
             ? `Paid to partner: ${recipientId}`
             : `Paid to customer: ${recipientId}`;
-          if (summaryData.totalBalance < amount) {
+          if (currentWallet.totalBalance < amount) {
             throw new Error('Insufficient wallet balance.');
           }
           newHistory = {
@@ -309,9 +289,10 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
             amount,
             paymentMethod,
             type: 'Debit',
+            sellerId: userId,
           };
-          transaction.update(walletSummaryRef, {
-            totalBalance: summaryData.totalBalance - amount,
+          transaction.update(userRef, {
+            'walletSummary.totalBalance': currentWallet.totalBalance - amount,
           });
           break;
 
@@ -319,8 +300,7 @@ export async function manageWalletTransaction(data: z.infer<typeof manageWalletS
           throw new Error('Invalid wallet action');
       }
       
-      // 3. Add to payment history inside the transaction
-      const newHistoryRef = doc(paymentHistoryRef);
+      const newHistoryRef = doc(collection(db, 'paymentHistory'));
       transaction.set(newHistoryRef, newHistory);
     });
 
@@ -352,7 +332,6 @@ export async function makeAdHocPayment(data: z.infer<typeof adHocPaymentSchema>)
   const { userId, password, amount, paymentMethod, recipientName, recipientId } = data;
 
   try {
-      // 1. Verify admin password
       const userRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userRef);
       if (!userDoc.exists()) {
@@ -364,23 +343,19 @@ export async function makeAdHocPayment(data: z.infer<typeof adHocPaymentSchema>)
           return { success: false, error: 'Incorrect admin password.' };
       }
       
-      // 2. Run transaction
       await runTransaction(db, async (transaction) => {
-          // A. Update wallet balance if necessary
           if (paymentMethod === 'Wallet') {
-              const summaryDoc = await transaction.get(walletSummaryRef);
-              if (!summaryDoc.exists()) {
-                  throw new Error("Wallet summary not found!");
-              }
-              const summaryData = summaryDoc.data() as { totalBalance: number };
-              if (summaryData.totalBalance < amount) {
+              const sellerDoc = await transaction.get(userRef);
+              if (!sellerDoc.exists()) throw new Error("Seller user not found!");
+              const sellerData = sellerDoc.data() as User;
+              const currentWallet = sellerData.walletSummary || { totalBalance: 0, revenue: 0 };
+              if (currentWallet.totalBalance < amount) {
                   throw new Error('Insufficient wallet balance.');
               }
-              transaction.update(walletSummaryRef, { totalBalance: summaryData.totalBalance - amount });
+              transaction.update(userRef, { 'walletSummary.totalBalance': currentWallet.totalBalance - amount });
           }
 
-          // B. Create new payable doc with status 'Paid'
-          const newPayableRef = doc(payablesRef);
+          const newPayableRef = doc(collection(db, 'payables'));
           transaction.set(newPayableRef, {
               date: new Date().toISOString().split('T')[0],
               recipientName: recipientName,
@@ -388,10 +363,10 @@ export async function makeAdHocPayment(data: z.infer<typeof adHocPaymentSchema>)
               payableAmount: amount,
               status: 'Paid',
               description: `Ad-hoc payment to ${recipientName}`,
+              sellerId: userId,
           });
           
-          // C. Create new payment history doc
-          const newHistoryRef = doc(paymentHistoryRef);
+          const newHistoryRef = doc(collection(db, 'paymentHistory'));
           transaction.set(newHistoryRef, {
               date: new Date().toISOString().split('T')[0],
               name: `Paid to ${recipientName}`,
@@ -399,6 +374,7 @@ export async function makeAdHocPayment(data: z.infer<typeof adHocPaymentSchema>)
               amount: amount,
               paymentMethod: paymentMethod,
               type: 'Debit',
+              sellerId: userId,
           });
       });
       
@@ -420,11 +396,10 @@ export async function getPartnerWalletData(partnerId: string): Promise<PartnerWa
     }
     const user = userSnap.data() as User;
     
-    // Partners can be identified by user ID (legacy) or partner code.
     const partnerIdentifier = user.partnerCode || user.id;
 
-    const payablesQuery = query(payablesRef, where('recipientId', '==', partnerIdentifier));
-    const receivablesQuery = query(receivablesRef, where('partnerId', '==', partnerIdentifier), where('status', '==', 'Pending'));
+    const payablesQuery = query(collection(db, 'payables'), where('recipientId', '==', partnerIdentifier));
+    const receivablesQuery = query(collection(db, 'receivables'), where('partnerId', '==', partnerIdentifier), where('status', '==', 'Pending'));
     
     const [payablesSnapshot, receivablesSnapshot] = await Promise.all([
         getDocs(payablesQuery),
@@ -480,7 +455,6 @@ export async function sendRewardPoints(data: z.infer<typeof sendRewardPointsSche
     const { recipientId, points, sellerId, password, description } = validation.data;
 
     try {
-        // 1. Verify seller's password
         const sellerRef = doc(db, 'users', sellerId);
         const sellerDoc = await getDoc(sellerRef);
         if (!sellerDoc.exists() || sellerDoc.data().role !== 'Seller') {
@@ -492,7 +466,6 @@ export async function sendRewardPoints(data: z.infer<typeof sendRewardPointsSche
             return { success: false, error: 'Incorrect password.' };
         }
 
-        // 2. Find partner by code, then by email
         const usersRef = collection(db, 'users');
         let partnerSnapshot = await getDocs(query(usersRef, where('role', '==', 'Partner'), where('partnerCode', '==', recipientId)));
 
@@ -508,7 +481,6 @@ export async function sendRewardPoints(data: z.infer<typeof sendRewardPointsSche
         const partnerRef = doc(db, 'users', partnerDoc.id);
         const partner = partnerDoc.data() as User;
 
-        // 3. Update points and log transaction
         await runTransaction(db, async (transaction) => {
             const freshPartnerDoc = await transaction.get(partnerRef);
             if (!freshPartnerDoc.exists()) {
@@ -518,7 +490,6 @@ export async function sendRewardPoints(data: z.infer<typeof sendRewardPointsSche
             const newPoints = currentPoints + points;
             transaction.update(partnerRef, { rewardPoints: newPoints });
 
-            // Log the transaction
             const rewardHistoryRef = doc(collection(db, 'rewardPointHistory'));
             const newTransaction: Omit<RewardPointTransaction, 'id'> = {
                 date: new Date().toISOString(),
@@ -554,6 +525,7 @@ export async function getRewardPointHistory({ partnerId, sellerId }: { partnerId
         }
         
         if (constraints.length === 0) {
+            // By default, don't return all history if no ID is provided.
             return [];
         }
 

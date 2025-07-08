@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect } from 'react';
@@ -59,7 +60,7 @@ export default function PaymentHistoryPage() {
     if (!loading && user && !authorizedRoles.includes(user.role)) {
       router.push('/'); // Redirect to dashboard if not authorized
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, authorizedRoles]);
 
   if (loading || !user) {
     return <PaymentHistorySkeleton />;
@@ -76,7 +77,7 @@ export default function PaymentHistoryPage() {
       <SidebarInset className="flex flex-col">
         <AppHeader role={user.role} currentUser={user} />
         <main className="flex-1 bg-slate-50 dark:bg-slate-900 p-4 sm:p-6 lg:p-8">
-          <PaymentHistoryContent />
+          <PaymentHistoryContent currentUser={user} />
         </main>
         <DashboardFooter />
       </SidebarInset>
