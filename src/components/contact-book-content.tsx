@@ -10,6 +10,7 @@ import { getUsers } from '@/app/login/actions';
 import type { User } from '@/types';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 function ContactBookSkeleton() {
     return (
@@ -94,11 +95,15 @@ export default function ContactBookContent() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                        <Eye className="h-5 w-5" />
+                      <Button asChild variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                        <Link href={`/manage-partner/${partner.id}`}>
+                          <Eye className="h-5 w-5" />
+                        </Link>
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                        <Mail className="h-5 w-5" />
+                      <Button asChild variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                        <Link href={`/updates?recipientId=${partner.email}`}>
+                          <Mail className="h-5 w-5" />
+                        </Link>
                       </Button>
                     </div>
                   </div>
