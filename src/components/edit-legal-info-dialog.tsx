@@ -46,14 +46,13 @@ export default function EditLegalInfoDialog({ children, currentUser, legalInfo, 
 
   const form = useForm<z.infer<typeof legalInfoSchema>>({
     resolver: zodResolver(legalInfoSchema),
-    defaultValues: legalInfo,
   });
 
   React.useEffect(() => {
     if (open) {
       form.reset(legalInfo);
     }
-  }, [open, legalInfo, form]);
+  }, [open, legalInfo, form.reset]);
 
   const onSubmit = async (values: z.infer<typeof legalInfoSchema>) => {
     const result = await updateLegalInfo(currentUser.id, values);

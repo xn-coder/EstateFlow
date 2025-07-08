@@ -42,22 +42,18 @@ export default function EditPartnerFeesDialog({ children, partnerFees, onUpdate 
 
   const form = useForm<z.infer<typeof partnerFeesSchema>>({
     resolver: zodResolver(partnerFeesSchema),
-    defaultValues: {
-        'Super Affiliate Partner': partnerFees?.['Super Affiliate Partner'] || 0,
-        'Associate Partner': partnerFees?.['Associate Partner'] || 0,
-        'Channel Partner': partnerFees?.['Channel Partner'] || 0,
-    },
   });
 
   React.useEffect(() => {
     if (open) {
-      form.reset({
+      const values = {
         'Super Affiliate Partner': partnerFees?.['Super Affiliate Partner'] || 0,
         'Associate Partner': partnerFees?.['Associate Partner'] || 0,
         'Channel Partner': partnerFees?.['Channel Partner'] || 0,
-      });
+      };
+      form.reset(values);
     }
-  }, [open, partnerFees, form]);
+  }, [open, partnerFees, form.reset]);
 
   const onSubmit = async (values: z.infer<typeof partnerFeesSchema>) => {
     const result = await updatePartnerFees(values);

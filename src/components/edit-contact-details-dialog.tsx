@@ -44,14 +44,13 @@ export default function EditContactDetailsDialog({ children, currentUser, contac
 
   const form = useForm<z.infer<typeof contactDetailsSchema>>({
     resolver: zodResolver(contactDetailsSchema),
-    defaultValues: contactDetails,
   });
 
   React.useEffect(() => {
     if (open) {
       form.reset(contactDetails);
     }
-  }, [open, contactDetails, form]);
+  }, [open, contactDetails, form.reset]);
 
   const onSubmit = async (values: z.infer<typeof contactDetailsSchema>) => {
     const result = await updateContactDetails(currentUser.id, values);

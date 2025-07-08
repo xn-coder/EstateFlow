@@ -48,27 +48,21 @@ export default function EditBusinessProfileDialog({ children, currentUser, busin
 
   const form = useForm<z.infer<typeof businessProfileSchema>>({
     resolver: zodResolver(businessProfileSchema),
-    defaultValues: {
-      name: businessInfo.name,
-      tagline: businessInfo.tagline,
-      metaKeywords: businessInfo.metaKeywords || '',
-      metaDescription: businessInfo.metaDescription || '',
-      avatar: businessInfo.avatar,
-    },
   });
 
   React.useEffect(() => {
     if (open) {
-      form.reset({
+      const values = {
         name: businessInfo.name,
         tagline: businessInfo.tagline,
         metaKeywords: businessInfo.metaKeywords || '',
         metaDescription: businessInfo.metaDescription || '',
         avatar: businessInfo.avatar,
-      });
-      setLogoPreview(businessInfo.avatar);
+      };
+      form.reset(values);
+      setLogoPreview(values.avatar);
     }
-  }, [open, businessInfo, form]);
+  }, [open, businessInfo, form.reset]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

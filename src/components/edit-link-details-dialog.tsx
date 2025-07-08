@@ -44,14 +44,13 @@ export default function EditLinkDetailsDialog({ children, currentUser, links, on
 
   const form = useForm<z.infer<typeof linkDetailsSchema>>({
     resolver: zodResolver(linkDetailsSchema),
-    defaultValues: links,
   });
 
   React.useEffect(() => {
     if (open) {
       form.reset(links);
     }
-  }, [open, links, form]);
+  }, [open, links, form.reset]);
 
   const onSubmit = async (values: z.infer<typeof linkDetailsSchema>) => {
     const result = await updateLinks(currentUser.id, values);
