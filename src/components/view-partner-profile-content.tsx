@@ -10,11 +10,11 @@ import { Mail, Phone, Settings, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import SendDirectMessageDialog from './send-direct-message-dialog';
 import SendRewardPointsDialog from './send-reward-points-dialog';
-import { DialogTrigger } from './ui/dialog';
 import { getEnquiries } from '@/app/manage-orders/actions';
 import { getCustomers } from '@/app/manage-customers/actions';
 import { getPartnerWalletData } from '@/app/wallet-billing/actions';
 import { Skeleton } from './ui/skeleton';
+import { cn } from '@/lib/utils';
 
 const StatCard = ({ title, value, description, loading }: { title: string; value: string; description: string; loading: boolean }) => (
   <Card>
@@ -73,14 +73,16 @@ const ListItem = ({ children, href = "#" }: { children: React.ReactNode; href?: 
     </Link>
 );
 
-const ListItemButton = ({ children }: { children: React.ReactNode; }) => (
-    <div className="w-full text-left">
+const ListItemButton = React.forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<'button'>>(
+    ({ className, children, ...props }, ref) => (
+    <button ref={ref} className={cn("w-full text-left", className)} {...props}>
         <div className="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors">
             <span className="font-medium text-sm">{children}</span>
             <ChevronRight className="h-5 w-5 text-gray-400" />
         </div>
-    </div>
-);
+    </button>
+));
+ListItemButton.displayName = "ListItemButton";
 
 
 export default function ViewPartnerProfileContent({ partnerInfo, currentUser }: { partnerInfo: PartnerActivationInfo, currentUser: User }) {
@@ -181,9 +183,7 @@ export default function ViewPartnerProfileContent({ partnerInfo, currentUser }: 
                     <ListItem href={`/manage-customers?partnerId=${user.id}`}>Manage Customer</ListItem>
                     {isSeller && (
                       <SendRewardPointsDialog currentUser={currentUser} onSuccess={fetchStats} partner={user}>
-                          <DialogTrigger asChild>
-                              <ListItemButton>Send Reward Point</ListItemButton>
-                          </DialogTrigger>
+                          <ListItemButton>Send Reward Point</ListItemButton>
                       </SendRewardPointsDialog>
                     )}
                 </div>
