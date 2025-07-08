@@ -104,7 +104,7 @@ export async function confirmEnquiry(enquiryId: string) {
             const partnerUser = partnerUserDoc.data() as User;
             if (!partnerUser.partnerProfileId) throw new Error("Partner profile ID not found.");
             
-            const partnerProfileRef = doc(db, 'partnerProfiles', user.partnerProfileId);
+            const partnerProfileRef = doc(db, 'partnerProfiles', partnerUser.partnerProfileId);
             const partnerProfileDoc = await transaction.get(partnerProfileRef);
             if (!partnerProfileDoc.exists()) throw new Error("Partner profile not found.");
             const partnerProfile = partnerProfileDoc.data() as PartnerData;
@@ -174,7 +174,7 @@ export async function confirmEnquiry(enquiryId: string) {
                     createdBy: enquiry.submittedBy.id,
                     createdAt: new Date().toISOString(),
                 };
-                const newCustomerRef = doc(customersRef);
+                const newCustomerRef = doc(collection(db, 'customers'));
                 transaction.set(newCustomerRef, newCustomer);
             }
 
