@@ -8,11 +8,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, CheckCircle, AlertTriangle, XCircle, Search } from 'lucide-react';
+import { ArrowUpDown, Search } from 'lucide-react';
 import { getEnquiries } from '@/app/manage-orders/actions';
 import { format, parseISO } from 'date-fns';
 import { Skeleton } from './ui/skeleton';
-import type { SubmittedEnquiry } from '@/types';
+import type { SubmittedEnquiry, User } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
 
 const StatCard = ({ title, value, description }: { title: string; value: string; description: string }) => (
   <Card>
@@ -29,16 +30,20 @@ const StatCard = ({ title, value, description }: { title: string; value: string;
 export default function AdminDashboard() {
   const [enquiryData, setEnquiryData] = React.useState<SubmittedEnquiry[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const { user: currentUser } = useAuth();
 
   React.useEffect(() => {
     const fetchEnquiries = async () => {
-      setLoading(true);
-      const data = await getEnquiries();
-      setEnquiryData(data);
-      setLoading(false);
+      if (currentUser) {
+        setLoading(true);
+        const sellerId = currentUser.role === 'Seller' ? currentUser.id : undefined;
+        const data = await getEnquiries(undefined, sellerId);
+        setEnquiryData(data);
+        setLoading(false);
+      }
     };
     fetchEnquiries();
-  }, []);
+  }, [currentUser]);
 
   const totalProperties = 0; // Replace with dynamic data if needed
   const totalUsers = 0;
@@ -88,7 +93,6 @@ export default function AdminDashboard() {
                   <TableHead className="hidden lg:table-cell"><button className="flex items-center gap-1">Partner ID <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                   <TableHead><button className="flex items-center gap-1">Catalog Name <ArrowUpDown className="h-3 w-3" /></button></TableHead>
                   <TableHead className="hidden lg:table-cell"><button className="flex items-center gap-1">Catalog Code <ArrowUpDown className="h-3 w-3" /></button></TableHead>
-                  <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -102,7 +106,6 @@ export default function AdminDashboard() {
                       <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-28" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-36" /></TableCell>
                       <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
-                      <TableCell><div className="flex items-center gap-2"><Skeleton className="h-6 w-6" /><Skeleton className="h-6 w-6" /><Skeleton className="h-6 w-6" /></div></TableCell>
                     </TableRow>
                   ))
                 ) : enquiryData.length > 0 ? (
@@ -115,21 +118,10 @@ export default function AdminDashboard() {
                         <TableCell className="hidden lg:table-cell">{enquiry.submittedBy.name}</TableCell>
                         <TableCell>{enquiry.catalogTitle}</TableCell>
                         <TableCell className="hidden lg:table-cell">{enquiry.catalogCode}</TableCell>
-                        <TableCell className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon" className="text-green-500 hover:text-green-600 h-6 w-6">
-                                <CheckCircle className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="text-orange-500 hover:text-orange-600 h-6 w-6">
-                                <AlertTriangle className="h-4 w-4" />
-                            </Button>
-                             <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 h-6 w-6">
-                                <XCircle className="h-4 w-4" />
-                            </Button>
-                        </TableCell>
                     </TableRow>
                     ))
                 ) : (
-                    <TableRow><TableCell colSpan={8} className="h-24 text-center">No enquiries found.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="h-24 text-center">No enquiries found.</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>

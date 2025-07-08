@@ -30,9 +30,18 @@ export async function submitEnquiry(data: Omit<SubmittedEnquiry, 'id' | 'enquiry
   }
   
   try {
+    const catalogRef = doc(db, 'catalogs', validation.data.catalogId);
+    const catalogSnap = await getDoc(catalogRef);
+    if (!catalogSnap.exists()) {
+        return { success: false, error: 'The selected catalog does not exist.' };
+    }
+    const catalogData = catalogSnap.data() as Catalog;
+    const sellerId = catalogData.sellerId;
+
     const enquiryId = `ENQ-${Math.random().toString().slice(2, 10)}`;
     const enquiryToSave = {
       ...validation.data,
+      sellerId,
       enquiryId,
       createdAt: new Date().toISOString(),
       status: 'New' as const,
@@ -48,12 +57,15 @@ export async function submitEnquiry(data: Omit<SubmittedEnquiry, 'id' | 'enquiry
   }
 }
 
-export async function getEnquiries(partnerId?: string): Promise<SubmittedEnquiry[]> {
+export async function getEnquiries(partnerId?: string, sellerId?: string): Promise<SubmittedEnquiry[]> {
     try {
         const enquiriesRef = collection(db, 'enquiries');
         const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
         if (partnerId) {
             constraints.push(where('submittedBy.id', '==', partnerId));
+        }
+        if (sellerId) {
+            constraints.push(where('sellerId', '==', sellerId));
         }
         const q = query(enquiriesRef, ...constraints);
         const snapshot = await getDocs(q);

@@ -23,10 +23,11 @@ export default function ManageOrdersContent({ currentUser }: { currentUser: User
 
   const fetchEnquiries = React.useCallback(async () => {
     setLoading(true);
-    const data = await getEnquiries(partnerId || undefined);
+    const sellerId = currentUser.role === 'Seller' ? currentUser.id : undefined;
+    const data = await getEnquiries(partnerId || undefined, sellerId);
     setEnquiries(data);
     setLoading(false);
-  }, [partnerId]);
+  }, [partnerId, currentUser]);
 
   React.useEffect(() => {
     fetchEnquiries();

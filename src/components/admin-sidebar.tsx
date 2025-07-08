@@ -18,8 +18,8 @@ import {
   LifeBuoy,
   Wallet,
   Bell,
-  Building2,
 } from 'lucide-react';
+import Image from 'next/image';
 
 interface AdminSidebarProps {
   role: Role;
@@ -38,10 +38,10 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
     <Sidebar collapsible="icon" variant="sidebar" side="left">
       <SidebarHeader className="border-b">
         <div className="flex h-12 items-center justify-center gap-2 px-2">
-          <Building2 className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold text-primary font-headline group-data-[collapsible=icon]:hidden">
-            EstateFlow
-          </h1>
+          <Image src="/logo.png" alt="EstateFlow Logo" width={32} height={32} />
+          <div className="group-data-[collapsible=icon]:hidden">
+            <Image src="/logo-name.png" alt="EstateFlow" width={120} height={32} />
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>

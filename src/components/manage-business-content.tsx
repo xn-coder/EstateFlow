@@ -20,7 +20,10 @@ import { getPartnerFees } from '@/app/manage-website/actions';
 import { feeApplicablePartnerCategories } from '@/types';
 import { getEnquiries } from '@/app/manage-orders/actions';
 import { getCustomers } from '@/app/manage-customers/actions';
-import { getLeaderboardData } from '@/app/leaderboard/actions';
+import { getActivePartners } from '@/app/manage-partner/actions';
+import { getUsers } from '@/app/login/actions';
+import { ADMIN_ROLES } from '@/lib/roles';
+
 
 // Components for Admin View
 const AdminListItem = ({ children, href = "#", isDialog = false, DialogComponent }: { children: React.ReactNode; href?: string; isDialog?: boolean; DialogComponent?: React.ReactElement; }) => {
@@ -69,25 +72,43 @@ const AdminBusinessView = () => {
     const router = useRouter();
     const [categories, setCategories] = React.useState<Category[]>([]);
     const [partnerFees, setPartnerFees] = React.useState<WebsiteData['partnerFees'] | null>(null);
+    const [stats, setStats] = React.useState({ sales: 0, partners: 0, customers: 0, associates: 0 });
+    const [loading, setLoading] = React.useState(true);
 
     const fetchData = React.useCallback(async () => {
-        const [fetchedCategories, fetchedFees] = await Promise.all([
+        setLoading(true);
+        const [fetchedCategories, fetchedFees, enquiries, partners, customers, allUsers] = await Promise.all([
             getCategories(),
-            getPartnerFees()
+            getPartnerFees(),
+            getEnquiries(),
+            getActivePartners(),
+            getCustomers(),
+            getUsers(),
         ]);
         setCategories(fetchedCategories);
         setPartnerFees(fetchedFees);
+
+        const sales = enquiries.filter(e => e.status === 'Confirmed' || e.status === 'Closed').length;
+        const associates = allUsers.filter(u => ADMIN_ROLES.includes(u.role)).length;
+        setStats({
+            sales,
+            partners: partners.length,
+            customers: customers.length,
+            associates,
+        });
+
+        setLoading(false);
     }, []);
 
     React.useEffect(() => {
         fetchData();
     }, [fetchData]);
 
-    const AdminStatCard = ({ title, value, description }: { title: string; value: string; description: string; }) => (
+    const AdminStatCard = ({ title, value, description, loading }: { title: string; value: string; description: string; loading?: boolean }) => (
       <Card className="bg-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-normal text-muted-foreground">{title}</CardTitle>
-          <p className="text-3xl font-bold">{value}</p>
+          {loading ? <Skeleton className="h-9 w-1/2 mt-1" /> : <p className="text-3xl font-bold">{value}</p>}
         </CardHeader>
         <CardContent>
           <p className="text-xs text-muted-foreground">{description}</p>
@@ -156,10 +177,10 @@ const AdminBusinessView = () => {
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <AdminStatCard title="Sales" value="1000" description="Order" />
-                <AdminStatCard title="Partner" value="1000" description="Members" />
-                <AdminStatCard title="Customer" value="100" description="User" />
-                <AdminStatCard title="Associate" value="10" description="Team" />
+                <AdminStatCard title="Sales" value={stats.sales.toString()} description="Order" loading={loading} />
+                <AdminStatCard title="Partner" value={stats.partners.toString()} description="Members" loading={loading} />
+                <AdminStatCard title="Customer" value={stats.customers.toString()} description="User" loading={loading} />
+                <AdminStatCard title="Associate" value={stats.associates.toString()} description="Team" loading={loading} />
             </div>
 
             <Card>

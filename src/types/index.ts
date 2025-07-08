@@ -181,6 +181,7 @@ export interface SubmittedEnquiry {
     name: string;
     role: Role;
   };
+  sellerId?: string;
 }
 
 export interface Receivable {

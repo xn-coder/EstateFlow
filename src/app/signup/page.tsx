@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarIcon, Upload, Building2 } from 'lucide-react';
+import { CalendarIcon, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, subYears } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -211,10 +212,8 @@ export default function SignupPage() {
       <Card className="w-full max-w-2xl my-8">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-2 mb-4">
-                <Building2 className="h-10 w-10 text-primary" />
-                <h1 className="text-4xl font-bold text-primary font-headline">
-                EstateFlow
-                </h1>
+                <Image src="/logo.png" alt="EstateFlow Logo" width={40} height={40} />
+                <Image src="/logo-name.png" alt="EstateFlow" width={160} height={40} />
             </div>
             <CardTitle className="text-2xl">Partner Registration</CardTitle>
             <CardDescription>{steps[step-1].title}</CardDescription>

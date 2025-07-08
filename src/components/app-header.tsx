@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Role, User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Building2, User as UserIcon, LogOut, Briefcase, Wallet, Globe, Book, LifeBuoy } from 'lucide-react';
+import { User as UserIcon, LogOut, Briefcase, Wallet, Globe, Book, LifeBuoy } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,10 +38,10 @@ export default function AppHeader({
       <div className="flex items-center gap-2 sm:gap-4">
         {hasSidebar && <SidebarTrigger />}
         <div className="flex items-center gap-2">
-          <Building2 className="h-8 w-8 text-primary" />
-          <h1 className="hidden sm:block text-2xl font-bold text-primary font-headline">
-            EstateFlow
-          </h1>
+          <Image src="/logo.png" alt="EstateFlow Logo" width={32} height={32} />
+          <div className="hidden sm:block">
+            <Image src="/logo-name.png" alt="EstateFlow" width={120} height={32} />
+          </div>
         </div>
       </div>
 

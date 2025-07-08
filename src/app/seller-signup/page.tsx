@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Building2 } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,10 +69,8 @@ export default function SellerSignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
            <div className="flex justify-center items-center gap-2 mb-4">
-            <Building2 className="h-10 w-10 text-primary" />
-            <h1 className="text-4xl font-bold text-primary font-headline">
-              EstateFlow
-            </h1>
+            <Image src="/logo.png" alt="EstateFlow Logo" width={40} height={40} />
+            <Image src="/logo-name.png" alt="EstateFlow" width={160} height={40} />
           </div>
           <CardTitle className="text-2xl">Create a Seller Account</CardTitle>
           <CardDescription>Join our platform to start selling properties.</CardDescription>

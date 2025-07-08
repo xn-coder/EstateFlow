@@ -5,11 +5,18 @@ import { Building2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PropertyListings from '@/components/property-listings';
 import AdminDashboard from '@/components/admin-dashboard';
-import type { Role } from '@/types';
+import type { Role, User } from '@/types';
 import * as React from 'react';
 import { ADMIN_ROLES } from '@/lib/roles';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardContent({ role }: { role: Role }) {
+  const { user } = useAuth();
+
+  if (!user) {
+    return null; // Or a loading skeleton
+  }
+
   if (ADMIN_ROLES.includes(role) || role === 'Seller') {
     return <AdminDashboard />;
   }
