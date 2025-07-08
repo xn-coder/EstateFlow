@@ -32,16 +32,19 @@ const step1Schema = z.object({
   featuredImage: z.string().min(1, 'Featured image is required'),
 });
 
+const partnerEarningSchema = z.object({
+    earningType: z.enum(['Fixed rate', 'commission', 'reward point'], { required_error: "Earning type is required."}),
+    earning: z.coerce.number({ required_error: "Earning value is required."}).min(0, 'Earning value must be positive'),
+}).optional();
+
 const step2Schema = z.object({
   pricingType: z.enum(['INR', 'USD']),
   sellingPrice: z.coerce.number().min(0, 'Selling price must be a positive number'),
-  earningType: z.enum(['Fixed rate', 'commission', 'reward point']),
-  earning: z.coerce.number().min(0, 'Earning must be a positive number'),
   partnerCategoryCommissions: z.object({
-    'Affiliate Partner': z.coerce.number().optional(),
-    'Super Affiliate Partner': z.coerce.number().optional(),
-    'Associate Partner': z.coerce.number().optional(),
-    'Channel Partner': z.coerce.number().optional(),
+    'Affiliate Partner': partnerEarningSchema,
+    'Super Affiliate Partner': partnerEarningSchema,
+    'Associate Partner': partnerEarningSchema,
+    'Channel Partner': partnerEarningSchema,
   }).optional(),
 });
 
@@ -198,8 +201,7 @@ export default function AddCatalogContent({ currentUser, catalogToEdit }: { curr
       featuredImage: '',
       pricingType: 'INR',
       sellingPrice: 0,
-      earningType: 'Fixed rate',
-      earning: 0,
+      partnerCategoryCommissions: {},
       slideshows: [],
       detailsContent: '',
       faqs: [],
@@ -212,7 +214,6 @@ export default function AddCatalogContent({ currentUser, catalogToEdit }: { curr
       termsContent: '',
       writePolicy: false,
       policyContent: '',
-      partnerCategoryCommissions: {},
     },
     mode: 'onChange'
   });
@@ -336,72 +337,63 @@ export default function AddCatalogContent({ currentUser, catalogToEdit }: { curr
 
                   {step === 2 && (
                     <div className="space-y-4">
-                       <FormField control={control} name="pricingType" render={({ field }) => (
+                      <FormField control={control} name="pricingType" render={({ field }) => (
                           <FormItem><FormLabel>Pricing Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                               <SelectContent><SelectItem value="INR">INR</SelectItem><SelectItem value="USD">USD</SelectItem></SelectContent>
                           </Select><FormMessage /></FormItem>
                         )} />
                       <FormField control={control} name="sellingPrice" render={({ field }) => ( <FormItem><FormLabel>Selling Price*</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                      <FormField control={control} name="earningType" render={({ field }) => (
-                          <FormItem><FormLabel>Earning Type</FormLabel><Select 
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}>
-                              <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                              <SelectContent>
-                                <SelectItem value="Fixed rate">Fixed rate</SelectItem>
-                                <SelectItem value="commission">Commission</SelectItem>
-                                <SelectItem value="reward point">Reward Point</SelectItem>
-                              </SelectContent>
-                          </Select><FormMessage /></FormItem>
-                        )} />
-                        
-                        <FormField
-                            control={control}
-                            name="earning"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Earning*</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        {...field}
-                                        onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
-                                        value={field.value ?? ''}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                         
                         <Card>
                             <CardHeader>
-                            <CardTitle className="text-base">Partner Returns (%)</CardTitle>
-                            <CardDescription>Set the return percentage for each partner category. This is optional and separate from the main earning above.</CardDescription>
+                            <CardTitle className="text-lg">Partner Earning Details</CardTitle>
+                            <CardDescription>Set individual earning structures for each partner category. This is optional.</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-6">
                             {partnerCategories.map(category => (
-                                <FormField
-                                key={category}
-                                control={control}
-                                name={`partnerCategoryCommissions.${category}`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>{category}</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                        type="number"
-                                        placeholder="e.g., 10 for 10%"
-                                        {...field}
-                                        onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
-                                        value={field.value ?? ''}
+                                <Card key={category} className="p-4 bg-muted/50">
+                                    <h4 className="font-semibold mb-4">{category}</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <FormField
+                                            control={control}
+                                            name={`partnerCategoryCommissions.${category}.earningType`}
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Earning Type</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="Fixed rate">Fixed rate</SelectItem>
+                                                    <SelectItem value="commission">Commission (%)</SelectItem>
+                                                    <SelectItem value="reward point">Reward Point</SelectItem>
+                                                </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
                                         />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                                />
+                                        <FormField
+                                            control={control}
+                                            name={`partnerCategoryCommissions.${category}.earning`}
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Earning Value</FormLabel>
+                                                <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="Enter value"
+                                                    {...field}
+                                                    onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.valueAsNumber)}
+                                                    value={field.value ?? ''}
+                                                />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                </Card>
                             ))}
                             </CardContent>
                         </Card>

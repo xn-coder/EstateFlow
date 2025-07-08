@@ -142,14 +142,15 @@ export async function confirmOrder(data: {enquiryId: string, amountPaid: number}
             
             // Calculate commission
             let commissionAmount = 0;
-            const commissionPercentage = catalog.partnerCategoryCommissions?.[partnerProfile.partnerCategory];
+            const partnerEarningConfig = catalog.partnerCategoryCommissions?.[partnerProfile.partnerCategory];
 
-            if (commissionPercentage && commissionPercentage > 0) {
-                commissionAmount = (catalog.sellingPrice * commissionPercentage) / 100;
-            } else if (catalog.earningType === 'commission') {
-                commissionAmount = (catalog.sellingPrice * catalog.earning) / 100;
-            } else if (catalog.earningType === 'Fixed rate') {
-                commissionAmount = catalog.earning;
+            if (partnerEarningConfig) {
+                if (partnerEarningConfig.earningType === 'commission') {
+                    commissionAmount = (catalog.sellingPrice * partnerEarningConfig.earning) / 100;
+                } else if (partnerEarningConfig.earningType === 'Fixed rate') {
+                    commissionAmount = partnerEarningConfig.earning;
+                }
+                // Reward points are handled separately, not as a payable commission.
             }
 
             // Write new payable if there's a commission

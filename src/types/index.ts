@@ -281,6 +281,11 @@ export interface CatalogMarketingKit {
   uploadedFile: string;
 }
 
+export interface PartnerEarning {
+  earningType: 'Fixed rate' | 'commission' | 'reward point';
+  earning: number;
+}
+
 export interface Catalog {
   id: string;
   catalogCode: string;
@@ -295,13 +300,8 @@ export interface Catalog {
   // Step 2
   pricingType: 'INR' | 'USD';
   sellingPrice: number;
-  earningType: 'Fixed rate' | 'commission' | 'reward point';
-  earning: number;
   partnerCategoryCommissions?: {
-    'Affiliate Partner'?: number;
-    'Super Affiliate Partner'?: number;
-    'Associate Partner'?: number;
-    'Channel Partner'?: number;
+    [key in PartnerCategory]?: PartnerEarning;
   };
   // Step 3
   slideshows: CatalogSlideshow[];

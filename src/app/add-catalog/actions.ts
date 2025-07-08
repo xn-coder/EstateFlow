@@ -4,7 +4,7 @@
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, limit, doc, updateDoc, getDoc, QueryConstraint } from 'firebase/firestore';
 import * as z from 'zod';
-import type { Catalog, MarketingKitInfo, CatalogMarketingKit } from '@/types';
+import type { Catalog, MarketingKitInfo, CatalogMarketingKit, PartnerEarning } from '@/types';
 
 const catalogSlideshowSchema = z.object({
   id: z.string(),
@@ -26,6 +26,11 @@ const catalogMarketingKitSchema = z.object({
   uploadedFile: z.string().min(1, 'File is required'),
 });
 
+const partnerEarningSchema = z.object({
+  earningType: z.enum(['Fixed rate', 'commission', 'reward point']),
+  earning: z.coerce.number().min(0, 'Earning must be a positive number'),
+});
+
 const catalogSchema: z.ZodType<Omit<Catalog, 'id' | 'catalogCode'>> = z.object({
   // Step 1
   sellerId: z.string(),
@@ -38,13 +43,11 @@ const catalogSchema: z.ZodType<Omit<Catalog, 'id' | 'catalogCode'>> = z.object({
   // Step 2
   pricingType: z.enum(['INR', 'USD']),
   sellingPrice: z.coerce.number().min(0, 'Selling price must be a positive number'),
-  earningType: z.enum(['Fixed rate', 'commission', 'reward point']),
-  earning: z.coerce.number().min(0, 'Earning must be a positive number'),
   partnerCategoryCommissions: z.object({
-    'Affiliate Partner': z.coerce.number().optional(),
-    'Super Affiliate Partner': z.coerce.number().optional(),
-    'Associate Partner': z.coerce.number().optional(),
-    'Channel Partner': z.coerce.number().optional(),
+    'Affiliate Partner': partnerEarningSchema.optional(),
+    'Super Affiliate Partner': partnerEarningSchema.optional(),
+    'Associate Partner': partnerEarningSchema.optional(),
+    'Channel Partner': partnerEarningSchema.optional(),
   }).optional(),
   // Step 3
   slideshows: z.array(catalogSlideshowSchema).optional(),
