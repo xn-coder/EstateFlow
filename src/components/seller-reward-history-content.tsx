@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -13,7 +12,7 @@ import type { RewardPointTransaction, User } from '@/types';
 import { format, parseISO } from 'date-fns';
 import { Badge } from './ui/badge';
 
-export default function RewardPointsHistoryContent({ currentUser }: { currentUser: User }) {
+export default function SellerRewardHistoryContent({ currentUser }: { currentUser: User }) {
   const router = useRouter();
   const [history, setHistory] = React.useState<RewardPointTransaction[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -22,7 +21,7 @@ export default function RewardPointsHistoryContent({ currentUser }: { currentUse
     async function fetchHistory() {
       if (currentUser?.id) {
         setLoading(true);
-        const data = await getRewardPointHistory({ partnerId: currentUser.id });
+        const data = await getRewardPointHistory({ sellerId: currentUser.id });
         setHistory(data);
         setLoading(false);
       }
@@ -40,8 +39,8 @@ export default function RewardPointsHistoryContent({ currentUser }: { currentUse
                 <span className="sr-only">Back</span>
             </Button>
             <div>
-              <CardTitle>Reward Points History</CardTitle>
-              <CardDescription>A log of all your reward point transactions.</CardDescription>
+              <CardTitle>Reward Points Sent History</CardTitle>
+              <CardDescription>A log of all the reward points you have sent to partners.</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -51,8 +50,8 @@ export default function RewardPointsHistoryContent({ currentUser }: { currentUse
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
+                  <TableHead>To Partner</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead>From</TableHead>
                   <TableHead className="text-right">Points</TableHead>
                 </TableRow>
               </TableHeader>
@@ -61,26 +60,26 @@ export default function RewardPointsHistoryContent({ currentUser }: { currentUse
                   [...Array(5)].map((_, i) => (
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                       <TableCell className="text-right"><Skeleton className="h-5 w-20" /></TableCell>
                     </TableRow>
                   ))
                 ) : history.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center">
-                      No reward point transactions found.
+                      You have not sent any reward points.
                     </TableCell>
                   </TableRow>
                 ) : (
                   history.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>{format(parseISO(item.date), 'dd MMM yyyy')}</TableCell>
+                      <TableCell>{item.partnerName}</TableCell>
                       <TableCell>{item.description}</TableCell>
-                      <TableCell>{item.sellerName}</TableCell>
                       <TableCell className="text-right">
-                        <Badge variant={item.type === 'Credit' ? 'success' : 'destructive'} className="font-semibold">
-                          {item.type === 'Credit' ? '+' : '-'} {item.points}
+                        <Badge variant={'success'} className="font-semibold">
+                          {item.points}
                         </Badge>
                       </TableCell>
                     </TableRow>

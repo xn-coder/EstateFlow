@@ -30,6 +30,7 @@ const StatCard = ({ title, value, description, loading }: { title: string; value
 const managementItems = [
   { label: 'Manage Wallet', dialogType: 'manageWallet', roles: [...ADMIN_ROLES, 'Seller'] },
   { label: 'Send Reward Points', dialogType: 'sendPoints', roles: ['Seller'] },
+  { label: 'Reward Points History', href: '/seller-reward-history', roles: ['Seller'] },
   { label: 'Receivable Cash List', href: '/receivable-cash-list', roles: [...ADMIN_ROLES, 'Seller'] },
   { label: 'Payable List', href: '/payable-list', roles: [...ADMIN_ROLES, 'Seller'] },
   { label: 'Payment History', href: '/payment-history', roles: [...ADMIN_ROLES, 'Seller'] },

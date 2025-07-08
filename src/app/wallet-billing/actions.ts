@@ -536,10 +536,24 @@ export async function sendRewardPoints(data: z.infer<typeof sendRewardPointsSche
     }
 }
 
-export async function getRewardPointHistory(partnerId: string): Promise<RewardPointTransaction[]> {
+export async function getRewardPointHistory({ partnerId, sellerId }: { partnerId?: string; sellerId?: string }): Promise<RewardPointTransaction[]> {
     try {
         const historyRef = collection(db, 'rewardPointHistory');
-        const q = query(historyRef, where('partnerId', '==', partnerId), orderBy('date', 'desc'));
+        const constraints = [];
+        if (partnerId) {
+            constraints.push(where('partnerId', '==', partnerId));
+        }
+        if (sellerId) {
+            constraints.push(where('sellerId', '==', sellerId));
+        }
+        
+        if (constraints.length === 0) {
+            return [];
+        }
+
+        constraints.push(orderBy('date', 'desc'));
+
+        const q = query(historyRef, ...constraints);
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as RewardPointTransaction));
     } catch (error) {
