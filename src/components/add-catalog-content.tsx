@@ -26,7 +26,7 @@ import SummernoteEditor from './summernote-editor';
 // Schemas for each step
 const step1Schema = z.object({
   title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
+  metaDescription: z.string().min(1, 'Meta Description is required'),
   metaKeyword: z.string().optional(),
   categoryId: z.string().min(1, 'Category is required'),
   featuredImage: z.string().min(1, 'Featured image is required'),
@@ -195,7 +195,7 @@ export default function AddCatalogContent({ currentUser, catalogToEdit }: { curr
     resolver: zodResolver(combinedSchema),
     defaultValues: {
       title: '',
-      description: '',
+      metaDescription: '',
       metaKeyword: '',
       categoryId: '',
       featuredImage: '',
@@ -305,7 +305,7 @@ export default function AddCatalogContent({ currentUser, catalogToEdit }: { curr
                   {step === 1 && (
                     <div className="space-y-4">
                       <FormField control={control} name="title" render={({ field }) => ( <FormItem><FormLabel>Title*</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                      <FormField control={control} name="description" render={({ field }) => ( <FormItem><FormLabel>Description*</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
+                      <FormField control={control} name="metaDescription" render={({ field }) => ( <FormItem><FormLabel>Meta Description*</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
                       <FormField control={control} name="metaKeyword" render={({ field }) => ( <FormItem><FormLabel>Meta Keyword</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                       <FormField
                         control={control}

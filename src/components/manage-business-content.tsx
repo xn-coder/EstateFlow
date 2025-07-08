@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import type { Category, WebsiteData, User } from '@/types';
 import { Skeleton } from './ui/skeleton';
-import { ChevronRight, Book, Mail } from 'lucide-react';
+import { ChevronRight, Book, Mail, Pencil } from 'lucide-react';
 import AddMarketingKitDialog from './add-marketing-kit-dialog';
 import AddCategoryDialog from './add-category-dialog';
 import AddContentDialog from './add-content-dialog';
@@ -23,6 +23,7 @@ import { getCustomers } from '@/app/manage-customers/actions';
 import { getActivePartners } from '@/app/manage-partner/actions';
 import { getUsers } from '@/app/login/actions';
 import { ADMIN_ROLES } from '@/lib/roles';
+import EditPartnerFeesDialog from './edit-partner-fees-dialog';
 
 
 // Components for Admin View
@@ -143,11 +144,20 @@ const AdminBusinessView = () => {
         { label: 'My Account', href: '/profile' },
     ];
     
-    const PartnerFeesCard = () => (
+    const PartnerFeesCard = ({ partnerFees, fetchData }: { partnerFees: WebsiteData['partnerFees'] | null; fetchData: () => void; }) => (
         <Card>
-            <CardHeader>
-                <CardTitle>Partner Registration Fees</CardTitle>
-                <CardDescription>Fees associated with different partner tiers. Edit these in "Manage Website".</CardDescription>
+             <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Partner Registration Fees</CardTitle>
+                    <CardDescription>Fees associated with different partner tiers.</CardDescription>
+                </div>
+                {partnerFees && (
+                    <EditPartnerFeesDialog partnerFees={partnerFees} onUpdate={fetchData}>
+                        <Button variant="ghost" size="icon">
+                            <Pencil className="h-4 w-4" />
+                        </Button>
+                    </EditPartnerFeesDialog>
+                )}
             </CardHeader>
             <CardContent>
                 <div className="divide-y">
@@ -205,7 +215,7 @@ const AdminBusinessView = () => {
                 </CardContent>
             </Card>
 
-            <PartnerFeesCard />
+            <PartnerFeesCard partnerFees={partnerFees} fetchData={fetchData} />
 
             <Card>
                 <CardContent className="p-0">

@@ -292,7 +292,7 @@ export interface Catalog {
   sellerId: string;
   // Step 1
   title: string;
-  description: string;
+  metaDescription: string;
   metaKeyword?: string;
   categoryId: string;
   categoryName: string;

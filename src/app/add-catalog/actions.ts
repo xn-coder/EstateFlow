@@ -35,7 +35,7 @@ const catalogSchema: z.ZodType<Omit<Catalog, 'id' | 'catalogCode'>> = z.object({
   // Step 1
   sellerId: z.string(),
   title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
+  metaDescription: z.string().min(1, 'Meta Description is required'),
   metaKeyword: z.string().optional(),
   categoryId: z.string().min(1, 'Category is required'),
   categoryName: z.string().min(1, 'Category name is required'),

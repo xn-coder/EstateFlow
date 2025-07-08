@@ -179,27 +179,6 @@ export default function ManageWebsiteContent({ currentUser }: { currentUser: Use
                 <InfoRow label="Address">{websiteData.contactDetails.address}</InfoRow>
            </div>
         </EditableCard>
-        
-        {isAdmin && (
-            <EditableCard
-                title="Partner Registration Fees"
-                editComponent={
-                    <EditPartnerFeesDialog partnerFees={partnerFees} onUpdate={fetchAndSetWebsiteData}>
-                        <Button variant="ghost" size="icon">
-                            <Pencil className="h-4 w-4" />
-                        </Button>
-                    </EditPartnerFeesDialog>
-                }
-            >
-                <div className="divide-y">
-                    {feeApplicablePartnerCategories.map((category) => (
-                        <InfoRow key={category} label={category}>
-                            {partnerFees?.[category] ? `₹${partnerFees[category]?.toLocaleString()}` : 'Not Set'}
-                        </InfoRow>
-                    ))}
-                </div>
-            </EditableCard>
-        )}
 
         <EditableCard
             title="Website About &amp; Legal Link"
