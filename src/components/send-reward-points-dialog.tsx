@@ -95,6 +95,14 @@ export default function SendRewardPointsDialog({ children, currentUser, onSucces
         </DialogHeader>
         <Form {...form}>
           <form id="send-points-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {partner && (
+                <FormItem>
+                  <FormLabel>Partner Name</FormLabel>
+                  <FormControl>
+                    <Input value={partner.name} readOnly disabled />
+                  </FormControl>
+                </FormItem>
+            )}
             <FormField
               control={form.control}
               name="recipientId"

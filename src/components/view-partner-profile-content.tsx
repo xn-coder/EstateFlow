@@ -1,5 +1,7 @@
+
 'use client';
 
+import * as React from 'react';
 import type { PartnerActivationInfo, User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,14 +11,22 @@ import Link from 'next/link';
 import SendDirectMessageDialog from './send-direct-message-dialog';
 import SendRewardPointsDialog from './send-reward-points-dialog';
 import { DialogTrigger } from './ui/dialog';
+import { getEnquiries } from '@/app/manage-orders/actions';
+import { getCustomers } from '@/app/manage-customers/actions';
+import { getPartnerWalletData } from '@/app/wallet-billing/actions';
+import { Skeleton } from './ui/skeleton';
 
-const StatCard = ({ title, value, description }: { title: string; value: string; description: string }) => (
+const StatCard = ({ title, value, description, loading }: { title: string; value: string; description: string; loading: boolean }) => (
   <Card>
     <CardHeader className="pb-4">
       <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
     </CardHeader>
     <CardContent>
-      <p className="text-4xl font-bold">{value}</p>
+      {loading ? (
+        <Skeleton className="h-10 w-3/4" />
+      ) : (
+        <p className="text-4xl font-bold">{value}</p>
+      )}
       <p className="text-xs text-muted-foreground">{description}</p>
     </CardContent>
   </Card>
@@ -78,6 +88,35 @@ export default function ViewPartnerProfileContent({ partnerInfo, currentUser }: 
   const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Manager';
   const isSeller = currentUser.role === 'Seller';
 
+  const [stats, setStats] = React.useState({
+    enquiries: 0,
+    customers: 0,
+    revenue: "₹0",
+    rewards: 0,
+  });
+  const [loadingStats, setLoadingStats] = React.useState(true);
+
+  const fetchStats = React.useCallback(async () => {
+    setLoadingStats(true);
+    const [enquiryData, customerData, walletData] = await Promise.all([
+      getEnquiries(user.id),
+      getCustomers(user.id),
+      getPartnerWalletData(user.id),
+    ]);
+
+    setStats({
+      enquiries: enquiryData.length,
+      customers: customerData.length,
+      revenue: walletData.totalEarning.toLocaleString('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }),
+      rewards: walletData.rewardPoints
+    });
+    setLoadingStats(false);
+  }, [user.id]);
+
+  React.useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
         <Card>
@@ -101,10 +140,10 @@ export default function ViewPartnerProfileContent({ partnerInfo, currentUser }: 
         </Card>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard title="Sales" value="1000" description="Order" />
-            <StatCard title="Customer" value="1000" description="User" />
-            <StatCard title="Revenue" value="100" description="Earning" />
-            <StatCard title="Support" value="10" description="Ticket" />
+            <StatCard title="Total Enquiries" value={stats.enquiries.toString()} description="Leads Generated" loading={loadingStats} />
+            <StatCard title="Total Customers" value={stats.customers.toString()} description="Clients Acquired" loading={loadingStats} />
+            <StatCard title="Total Revenue" value={stats.revenue} description="Lifetime Earnings" loading={loadingStats} />
+            <StatCard title="Reward Points" value={stats.rewards.toString()} description="Points Balance" loading={loadingStats} />
         </div>
 
         <Card>
@@ -141,7 +180,7 @@ export default function ViewPartnerProfileContent({ partnerInfo, currentUser }: 
                     <ListItem href={`/manage-orders?partnerId=${user.id}`}>View Enquiry</ListItem>
                     <ListItem href={`/manage-customers?partnerId=${user.id}`}>Manage Customer</ListItem>
                     {isSeller && (
-                      <SendRewardPointsDialog currentUser={currentUser} onSuccess={() => {}} partner={user}>
+                      <SendRewardPointsDialog currentUser={currentUser} onSuccess={fetchStats} partner={user}>
                           <DialogTrigger asChild>
                               <ListItemButton>Send Reward Point</ListItemButton>
                           </DialogTrigger>
