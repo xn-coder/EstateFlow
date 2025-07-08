@@ -6,6 +6,9 @@ import { Toaster, AuthProvider } from "@/components/ui/toaster";
 export const metadata: Metadata = {
   title: 'EstateFlow',
   description: 'A multi-role real estate selling platform.',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({

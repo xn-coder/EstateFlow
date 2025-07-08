@@ -7,14 +7,12 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { seedUsers } from './actions';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -26,7 +24,6 @@ export default function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [isSeeding, setIsSeeding] = React.useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -60,33 +57,6 @@ export default function LoginPage() {
       setIsSubmitting(false);
     }
   };
-
-  const handleSeed = async () => {
-    setIsSeeding(true);
-    try {
-      const result = await seedUsers();
-      if (result.success) {
-        toast({
-          title: 'Database Seeded',
-          description: result.message,
-        });
-      } else {
-        toast({
-          title: 'Seeding Failed',
-          description: result.error || 'Could not seed the database.',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-       toast({
-        title: 'Seeding Error',
-        description: (error as Error).message || 'An unexpected error occurred.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSeeding(false);
-    }
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-muted p-4">
@@ -132,13 +102,6 @@ export default function LoginPage() {
               </Button>
             </form>
           </Form>
-          <div className="mt-4 text-center text-sm">
-             <Button variant="outline" onClick={handleSeed} disabled={isSeeding} className="w-full">
-                <Database className="mr-2 h-4 w-4" />
-                {isSeeding ? 'Seeding...' : 'Seed Database'}
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2">Adds initial users to Firestore if they don't exist.</p>
-          </div>
            <div className="mt-6 text-center text-sm">
             <p className="text-muted-foreground">Don&apos;t have an account?</p>
             <div className="flex items-center justify-center gap-x-6 mt-2">
