@@ -56,7 +56,6 @@ export default function LeaderboardContent() {
                 <TableRow>
                   <TableHead className="w-[80px]">Rank</TableHead>
                   <TableHead>Partner</TableHead>
-                  <TableHead className="hidden md:table-cell">Partner ID</TableHead>
                   <TableHead className="text-right">Orders</TableHead>
                 </TableRow>
               </TableHeader>
@@ -66,13 +65,12 @@ export default function LeaderboardContent() {
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-5 w-10" /></TableCell>
                       <TableCell><div className="flex items-center gap-2"><Skeleton className="h-10 w-10 rounded-full" /><Skeleton className="h-5 w-32" /></div></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
                       <TableCell className="text-right"><Skeleton className="h-5 w-16" /></TableCell>
                     </TableRow>
                   ))
                 ) : leaderboard.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">No partner data available.</TableCell>
+                    <TableCell colSpan={3} className="h-24 text-center">No partner data available.</TableCell>
                   </TableRow>
                 ) : (
                   leaderboard.map((entry, index) => (
@@ -92,7 +90,6 @@ export default function LeaderboardContent() {
                           <span className="font-medium">{entry.partner.name}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell font-mono text-xs">{entry.partner.partnerCode || 'N/A'}</TableCell>
                       <TableCell className="text-right font-bold text-lg">{entry.orderCount}</TableCell>
                     </TableRow>
                   ))
