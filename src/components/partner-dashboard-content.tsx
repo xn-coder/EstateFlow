@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -8,7 +7,6 @@ import { getEnquiries } from '@/app/manage-orders/actions';
 import { getCustomers } from '@/app/manage-customers/actions';
 import { getPartnerWalletData } from '@/app/wallet-billing/actions';
 import { getSupportTickets } from '@/app/support-ticket/actions';
-import { getLeaderboardData } from '@/app/leaderboard/actions';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from './ui/skeleton';
 import Link from 'next/link';
@@ -46,7 +44,6 @@ export default function PartnerDashboardContent() {
         rewards: 0,
         tickets: 0,
         sales: 0,
-        rank: 'N/A' as (number | 'N/A'),
     });
     const [loading, setLoading] = React.useState(true);
 
@@ -56,19 +53,17 @@ export default function PartnerDashboardContent() {
             setLoading(true);
 
             try {
-                const [enquiryData, customerData, walletData, ticketData, leaderboardData] = await Promise.all([
+                const [enquiryData, customerData, walletData, ticketData] = await Promise.all([
                     getEnquiries(),
                     getCustomers(),
                     getPartnerWalletData(currentUser.id),
                     getSupportTickets(),
-                    getLeaderboardData(),
                 ]);
 
                 const partnerEnquiries = enquiryData.filter(e => e.submittedBy.id === currentUser.id);
                 const partnerCustomers = customerData.filter(c => c.createdBy === currentUser.id);
                 const partnerTickets = ticketData.filter(t => t.userId === currentUser.id);
                 const partnerSales = partnerEnquiries.filter(e => e.status !== 'New').length;
-                const partnerRankIndex = leaderboardData.findIndex(entry => entry.partner.id === currentUser.id);
 
 
                 setStats({
@@ -78,7 +73,6 @@ export default function PartnerDashboardContent() {
                     rewards: walletData.rewardPoints,
                     tickets: partnerTickets.length,
                     sales: partnerSales,
-                    rank: partnerRankIndex > -1 ? partnerRankIndex + 1 : 'N/A',
                 });
             } catch (error) {
                 console.error("Failed to fetch partner dashboard data:", error);
@@ -97,7 +91,6 @@ export default function PartnerDashboardContent() {
     { title: 'Rewards', value: stats.rewards.toString(), description: 'Points earned' },
     { title: 'Customers', value: stats.customers.toString(), description: 'Clients onboarded' },
     { title: 'Support Tickets', value: stats.tickets.toString(), description: 'Your submitted tickets' },
-    { title: 'Leaderboard', description: 'Your current rank', href: '/leaderboard' },
   ];
 
   return (
