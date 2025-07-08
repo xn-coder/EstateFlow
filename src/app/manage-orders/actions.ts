@@ -129,9 +129,6 @@ export async function confirmOrder(data: {enquiryId: string, amountPaid: number}
             if (!partnerProfileDoc.exists()) throw new Error("Partner profile not found.");
             const partnerProfile = partnerProfileDoc.data() as PartnerData;
             
-            const walletSummaryRef = doc(db, 'wallet', 'summary');
-            const walletSummaryDoc = await transaction.get(walletSummaryRef);
-
             // Calculate commission
             let commissionAmount = 0;
             const commissionPercentage = catalog.partnerCategoryCommissions?.[partnerProfile.partnerCategory];
@@ -170,30 +167,6 @@ export async function confirmOrder(data: {enquiryId: string, amountPaid: number}
                 description: `Sale of '${catalog.title}'`,
             };
             transaction.set(newReceivableRef, newReceivable);
-            
-            // Update wallet summary and payment history
-            if (!walletSummaryDoc.exists()) {
-                transaction.set(walletSummaryRef, { totalBalance: amountPaid, revenue: catalog.sellingPrice });
-            } else {
-                const summaryData = walletSummaryDoc.data();
-                transaction.update(walletSummaryRef, {
-                    totalBalance: (summaryData.totalBalance || 0) + amountPaid,
-                    revenue: (summaryData.revenue || 0) + catalog.sellingPrice,
-                });
-            }
-
-            if (amountPaid > 0) {
-                const newHistory: Omit<PaymentHistory, 'id'> = {
-                    date: new Date().toISOString().split('T')[0],
-                    name: `Payment from ${enquiry.customerName} for '${catalog.title}'`,
-                    transactionId: `PAY${Math.random().toString().slice(2, 14)}`,
-                    amount: amountPaid,
-                    paymentMethod: 'System',
-                    type: 'Credit',
-                };
-                const newHistoryRef = doc(collection(db, 'paymentHistory'));
-                transaction.set(newHistoryRef, newHistory);
-            }
             
             if (existingCustomersSnap.empty) {
                 const customerId = `CD${Math.random().toString().slice(2, 12)}`;

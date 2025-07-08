@@ -11,7 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import type { SubmittedEnquiry, User } from '@/types';
 import { getEnquiries, markEnquiryContacted } from '@/app/manage-orders/actions';
 import { format, parseISO } from 'date-fns';
-import { UserCheck, Phone, Trash2, ArrowLeft } from 'lucide-react';
+import { UserCheck, Phone, Trash2, ArrowLeft, CheckCircle } from 'lucide-react';
+import ConfirmOrderDialog from './confirm-order-dialog';
 
 const EnquiryCard = ({ enquiry, onEnquiryUpdated }: { enquiry: SubmittedEnquiry; onEnquiryUpdated: () => void; }) => {
     const { toast } = useToast();
@@ -40,7 +41,8 @@ const EnquiryCard = ({ enquiry, onEnquiryUpdated }: { enquiry: SubmittedEnquiry;
         toast({ title: 'Info', description: `${action} action is not implemented yet.` });
     };
 
-    const isActionable = enquiry.status === 'New';
+    const isContactedActionable = enquiry.status === 'New';
+    const isConfirmActionable = enquiry.status === 'New' || enquiry.status === 'Contacted';
     
     return (
         <Card className="flex flex-col shadow-md">
@@ -57,11 +59,16 @@ const EnquiryCard = ({ enquiry, onEnquiryUpdated }: { enquiry: SubmittedEnquiry;
                 <div className="flex justify-between"><span className="text-muted-foreground">City</span><span className="font-medium">{enquiry.customerPincode}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{format(parseISO(enquiry.createdAt), 'dd MMM yyyy')}</span></div>
             </CardContent>
-            <CardFooter className="grid grid-cols-3 gap-2">
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => handleMarkContacted(enquiry.id)} disabled={isConfirming || !isActionable}>
+            <CardFooter className="grid grid-cols-4 gap-2">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => handleMarkContacted(enquiry.id)} disabled={isConfirming || !isContactedActionable}>
                     <UserCheck className="h-4 w-4" />
                 </Button>
-                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleAction('Call')}><Phone className="h-4 w-4" /></Button>
+                <ConfirmOrderDialog enquiry={enquiry} onOrderConfirmed={onEnquiryUpdated}>
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700" disabled={!isConfirmActionable}>
+                        <CheckCircle className="h-4 w-4" />
+                    </Button>
+                </ConfirmOrderDialog>
+                <Button size="sm" variant="outline" onClick={() => handleAction('Call')}><Phone className="h-4 w-4" /></Button>
                 <Button size="sm" variant="destructive" onClick={() => handleAction('Delete')}><Trash2 className="h-4 w-4" /></Button>
             </CardFooter>
         </Card>

@@ -413,22 +413,25 @@ export async function makeAdHocPayment(data: z.infer<typeof adHocPaymentSchema>)
 
 export async function getPartnerWalletData(partnerId: string): Promise<PartnerWalletData> {
   try {
-    const payablesRef = collection(db, 'payables');
-    
     const userRef = doc(db, 'users', partnerId);
     const userSnap = await getDoc(userRef);
     if (!userSnap.exists()) {
-      return { totalEarning: 0, paidAmount: 0, pendingAmount: 0, rewardPoints: 0, transactions: [] };
+      return { totalEarning: 0, paidAmount: 0, pendingAmount: 0, amountOwed: 0, rewardPoints: 0, transactions: [] };
     }
     const user = userSnap.data() as User;
     
     // Partners can be identified by user ID (legacy) or partner code.
     const partnerIdentifier = user.partnerCode || user.id;
 
-    const q = query(payablesRef, where('recipientId', '==', partnerIdentifier));
-    const snapshot = await getDocs(q);
+    const payablesQuery = query(payablesRef, where('recipientId', '==', partnerIdentifier));
+    const receivablesQuery = query(receivablesRef, where('partnerId', '==', partnerIdentifier), where('status', '==', 'Pending'));
     
-    const transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payable));
+    const [payablesSnapshot, receivablesSnapshot] = await Promise.all([
+        getDocs(payablesQuery),
+        getDocs(receivablesQuery)
+    ]);
+    
+    const transactions = payablesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payable));
 
     let totalEarning = 0;
     let paidAmount = 0;
@@ -443,16 +446,19 @@ export async function getPartnerWalletData(partnerId: string): Promise<PartnerWa
       }
     });
 
+    const amountOwed = receivablesSnapshot.docs.reduce((sum, doc) => sum + doc.data().pendingAmount, 0);
+
     return {
       totalEarning,
       paidAmount,
       pendingAmount,
+      amountOwed,
       rewardPoints: user.rewardPoints || 0,
       transactions,
     };
   } catch (error) {
     console.error("Error fetching partner wallet data:", error);
-    return { totalEarning: 0, paidAmount: 0, pendingAmount: 0, rewardPoints: 0, transactions: [] };
+    return { totalEarning: 0, paidAmount: 0, pendingAmount: 0, amountOwed: 0, rewardPoints: 0, transactions: [] };
   }
 }
 

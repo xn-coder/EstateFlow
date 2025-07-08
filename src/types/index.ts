@@ -224,6 +224,7 @@ export interface PartnerWalletData {
   totalEarning: number;
   paidAmount: number;
   pendingAmount: number;
+  amountOwed: number;
   rewardPoints: number;
   transactions: Payable[];
 }

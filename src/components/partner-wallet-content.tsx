@@ -72,8 +72,8 @@ export default function PartnerWalletContent({ currentUser }: { currentUser: Use
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard title="Total Earning" value={walletData ? formatCurrency(walletData.totalEarning) : '₹0'} description="Lifetime earnings" loading={loading} />
                 <StatCard title="Paid Amount" value={walletData ? formatCurrency(walletData.paidAmount) : '₹0'} description="Total amount paid out" loading={loading} />
-                <StatCard title="Pending Amount" value={walletData ? formatCurrency(walletData.pendingAmount) : '₹0'} description="Awaiting payout" loading={loading} />
-                <StatCard title="Reward Points" value={walletData ? walletData.rewardPoints.toString() : '0'} description="Redeemable points" loading={loading} href="/reward-points-history" />
+                <StatCard title="Pending Payout" value={walletData ? formatCurrency(walletData.pendingAmount) : '₹0'} description="Awaiting from company" loading={loading} />
+                <StatCard title="Amount Owed" value={walletData ? formatCurrency(walletData.amountOwed) : '₹0'} description="Payable to company" loading={loading} />
             </div>
             
             <Card>
