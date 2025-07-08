@@ -13,7 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from './ui/skeleton';
 import Link from 'next/link';
 
-const StatCard = ({ title, value, description, loading, href }: { title: string; value: string; description: string; loading: boolean; href?: string; }) => {
+const StatCard = ({ title, value, description, loading, href }: { title: string; value?: string; description: string; loading: boolean; href?: string; }) => {
   const content = (
     <Card className="shadow-sm hover:shadow-md transition-shadow h-full">
       <CardHeader>
@@ -23,7 +23,7 @@ const StatCard = ({ title, value, description, loading, href }: { title: string;
           {loading ? (
                <Skeleton className="h-10 w-3/4 mb-1" />
           ) : (
-              <p className="text-4xl font-bold">{value}</p>
+             value && <p className="text-4xl font-bold">{value}</p>
           )}
         <p className="text-xs text-muted-foreground">{description}</p>
       </CardContent>
@@ -96,9 +96,8 @@ export default function PartnerDashboardContent() {
     { title: 'Total Earning', value: stats.revenue, description: 'Lifetime revenue' },
     { title: 'Rewards', value: stats.rewards.toString(), description: 'Points earned' },
     { title: 'Customers', value: stats.customers.toString(), description: 'Clients onboarded' },
-    { title: 'Today Deals', value: '30', description: 'Static placeholder' },
     { title: 'Support Tickets', value: stats.tickets.toString(), description: 'Your submitted tickets' },
-    { title: 'Leaderboard', value: stats.rank.toString(), description: 'Your current rank', href: '/leaderboard' },
+    { title: 'Leaderboard', description: 'Your current rank', href: '/leaderboard' },
   ];
 
   return (
