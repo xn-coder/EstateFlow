@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from './ui/skeleton';
@@ -22,12 +23,14 @@ export default function ManageCustomersContent() {
   const { toast } = useToast();
   const router = useRouter();
   const [userMap, setUserMap] = React.useState<Map<string, string>>(new Map());
+  const searchParams = useSearchParams();
+  const partnerId = searchParams.get('partnerId');
 
   const fetchData = React.useCallback(async () => {
     setLoading(true);
     try {
         const [customerData, userData] = await Promise.all([
-            getCustomers(),
+            getCustomers(partnerId || undefined),
             getUsers()
         ]);
         setCustomers(customerData);
@@ -47,7 +50,7 @@ export default function ManageCustomersContent() {
         })
     }
     setLoading(false);
-  }, [toast]);
+  }, [toast, partnerId]);
 
   React.useEffect(() => {
     fetchData();
@@ -59,7 +62,7 @@ export default function ManageCustomersContent() {
       <Card>
         <CardHeader>
            <div className="flex items-center gap-4">
-              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => router.push('/manage-business')}>
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => router.back()}>
                   <ArrowLeft className="h-4 w-4" />
                   <span className="sr-only">Back</span>
               </Button>

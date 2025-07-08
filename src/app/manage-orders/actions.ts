@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, orderBy, where, doc, updateDoc, runTransaction, getDoc, limit } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, where, doc, updateDoc, runTransaction, getDoc, limit, QueryConstraint } from 'firebase/firestore';
 import * as z from 'zod';
 import type { Customer, SubmittedEnquiry, Catalog, User, PartnerData, Payable, PaymentHistory, Receivable } from '@/types';
 
@@ -47,10 +47,14 @@ export async function submitEnquiry(data: Omit<SubmittedEnquiry, 'id' | 'enquiry
   }
 }
 
-export async function getEnquiries(): Promise<SubmittedEnquiry[]> {
+export async function getEnquiries(partnerId?: string): Promise<SubmittedEnquiry[]> {
   try {
     const enquiriesRef = collection(db, 'enquiries');
-    const q = query(enquiriesRef, orderBy('createdAt', 'desc'));
+    const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
+    if (partnerId) {
+        constraints.push(where('submittedBy.id', '==', partnerId));
+    }
+    const q = query(enquiriesRef, ...constraints);
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubmittedEnquiry));
   } catch (error) {

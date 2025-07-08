@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -16,13 +17,15 @@ export default function ManageOrdersContent() {
   const [enquiries, setEnquiries] = React.useState<SubmittedEnquiry[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const partnerId = searchParams.get('partnerId');
 
   const fetchEnquiries = React.useCallback(async () => {
     setLoading(true);
-    const data = await getEnquiries();
+    const data = await getEnquiries(partnerId || undefined);
     setEnquiries(data);
     setLoading(false);
-  }, []);
+  }, [partnerId]);
 
   React.useEffect(() => {
     fetchEnquiries();

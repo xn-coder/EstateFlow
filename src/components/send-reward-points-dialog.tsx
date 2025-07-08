@@ -34,21 +34,40 @@ interface SendRewardPointsDialogProps {
   children: React.ReactNode;
   currentUser: User;
   onSuccess: () => void;
+  partner?: User;
 }
 
-export default function SendRewardPointsDialog({ children, currentUser, onSuccess }: SendRewardPointsDialogProps) {
+export default function SendRewardPointsDialog({ children, currentUser, onSuccess, partner }: SendRewardPointsDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof sendRewardPointsSchema>>({
     resolver: zodResolver(sendRewardPointsSchema),
     defaultValues: {
-      recipientId: '',
+      recipientId: partner?.partnerCode || partner?.email || '',
       points: 0,
       description: '',
       password: '',
     },
   });
+
+  React.useEffect(() => {
+    if (open && partner) {
+      form.reset({
+        recipientId: partner.partnerCode || partner.email || '',
+        points: 0,
+        description: '',
+        password: '',
+      });
+    } else if (open && !partner) {
+      form.reset({
+        recipientId: '',
+        points: 0,
+        description: '',
+        password: '',
+      });
+    }
+  }, [open, partner, form]);
 
   const onSubmit = async (values: z.infer<typeof sendRewardPointsSchema>) => {
     const result = await sendRewardPoints({
@@ -83,7 +102,7 @@ export default function SendRewardPointsDialog({ children, currentUser, onSucces
                 <FormItem>
                   <FormLabel>Partner ID / Code / Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., AF123456789" {...field} />
+                    <Input placeholder="e.g., AF123456789" {...field} disabled={!!partner} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone, Settings, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import SendDirectMessageDialog from './send-direct-message-dialog';
+import SendRewardPointsDialog from './send-reward-points-dialog';
+import { DialogTrigger } from './ui/dialog';
 
 const StatCard = ({ title, value, description }: { title: string; value: string; description: string }) => (
   <Card>
@@ -62,15 +64,22 @@ const ListItem = ({ children, href = "#" }: { children: React.ReactNode; href?: 
     </Link>
 );
 
+const ListItemButton = ({ children }: { children: React.ReactNode; }) => (
+    <div className="w-full text-left">
+        <div className="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors">
+            <span className="font-medium text-sm">{children}</span>
+            <ChevronRight className="h-5 w-5 text-gray-400" />
+        </div>
+    </div>
+);
+
 
 export default function ViewPartnerProfileContent({ partnerInfo, currentUser }: { partnerInfo: PartnerActivationInfo, currentUser: User }) {
   const { user, profile } = partnerInfo;
   const isAdmin = currentUser.role === 'Admin' || currentUser.role === 'Manager';
+  const isSeller = currentUser.role === 'Seller';
   
   const listItems = [
-    { label: 'View Enquiry' },
-    { label: 'Manage Customer' },
-    { label: 'Send Reward Point' },
     { label: 'Quotation and Invoice' },
     { label: 'Deactivated Account' },
     { label: 'Change Password' },
@@ -136,6 +145,15 @@ export default function ViewPartnerProfileContent({ partnerInfo, currentUser }: 
         <Card>
             <CardContent className="p-0">
                   <div className="divide-y">
+                    <ListItem href={`/manage-orders?partnerId=${user.id}`}>View Enquiry</ListItem>
+                    <ListItem href={`/manage-customers?partnerId=${user.id}`}>Manage Customer</ListItem>
+                    {isSeller && (
+                      <SendRewardPointsDialog currentUser={currentUser} onSuccess={() => {}} partner={user}>
+                          <DialogTrigger asChild>
+                              <ListItemButton>Send Reward Point</ListItemButton>
+                          </DialogTrigger>
+                      </SendRewardPointsDialog>
+                    )}
                     {listItems.map((item) => <ListItem key={item.label}>{item.label}</ListItem>)}
                 </div>
             </CardContent>
