@@ -37,11 +37,13 @@ export default function AppHeader({
     <header className="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center border-b bg-card px-2 sm:px-4 shadow-sm">
       <div className="flex items-center gap-2 sm:gap-4">
         {hasSidebar && <SidebarTrigger />}
-        <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="EstateFlow Logo" width={32} height={32} />
-          <div className="hidden sm:block">
-            <Image src="/logo-name.png" alt="EstateFlow" width={120} height={32} />
-          </div>
+        <div className="flex items-center">
+            <div className="block sm:hidden">
+                <Image src="/logo.png" alt="EstateFlow Logo" width={32} height={32} />
+            </div>
+            <div className="hidden sm:block">
+                <Image src="/logo-name.png" alt="EstateFlow" width={120} height={32} />
+            </div>
         </div>
       </div>
 

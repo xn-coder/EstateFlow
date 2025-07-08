@@ -13,6 +13,8 @@ import type { SubmittedEnquiry, User } from '@/types';
 import { format, parseISO } from 'date-fns';
 import { ArrowUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import ConfirmOrderDialog from '@/components/confirm-order-dialog';
 
 export default function ManageOrdersContent({ currentUser }: { currentUser: User }) {
   const [enquiries, setEnquiries] = React.useState<SubmittedEnquiry[]>([]);
@@ -61,6 +63,7 @@ export default function ManageOrdersContent({ currentUser }: { currentUser: User
                   <TableHead>Catalog</TableHead>
                   <TableHead>Submitted By</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -73,11 +76,12 @@ export default function ManageOrdersContent({ currentUser }: { currentUser: User
                       <TableCell><Skeleton className="h-5 w-36" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-28" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-8 w-24" /></TableCell>
                     </TableRow>
                   ))
                 ) : enquiries.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       No enquiries found.
                     </TableCell>
                   </TableRow>
@@ -97,6 +101,13 @@ export default function ManageOrdersContent({ currentUser }: { currentUser: User
                       <TableCell>{enquiry.submittedBy.name}</TableCell>
                       <TableCell>
                         <Badge variant={getStatusBadgeVariant(enquiry.status)}>{enquiry.status}</Badge>
+                      </TableCell>
+                       <TableCell className="text-right">
+                        <ConfirmOrderDialog enquiry={enquiry} onOrderConfirmed={fetchEnquiries}>
+                            <Button variant="outline" size="sm" disabled={enquiry.status === 'Confirmed' || enquiry.status === 'Closed'}>
+                                Confirm
+                            </Button>
+                        </ConfirmOrderDialog>
                       </TableCell>
                     </TableRow>
                   ))

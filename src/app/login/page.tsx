@@ -92,9 +92,8 @@ export default function LoginPage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-           <div className="flex justify-center items-center gap-2 mb-4">
-            <Image src="/logo.png" alt="EstateFlow Logo" width={40} height={40} />
-            <Image src="/logo-name.png" alt="EstateFlow" width={160} height={40} />
+           <div className="flex justify-center items-center mb-4">
+            <Image src="/logo-name.png" alt="EstateFlow" width={180} height={40} />
           </div>
           <CardTitle className="text-2xl">Welcome Back!</CardTitle>
           <CardDescription>Enter your credentials to access your dashboard.</CardDescription>

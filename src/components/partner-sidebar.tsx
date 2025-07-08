@@ -1,4 +1,3 @@
-
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -30,11 +29,13 @@ export default function PartnerSidebar() {
   return (
     <Sidebar collapsible="icon" variant="sidebar" side="left">
       <SidebarHeader className="border-b">
-        <div className="flex h-12 items-center justify-center gap-2 px-2">
-          <Image src="/logo.png" alt="EstateFlow Logo" width={32} height={32} />
-           <div className="group-data-[collapsible=icon]:hidden">
-            <Image src="/logo-name.png" alt="EstateFlow" width={120} height={32} />
-          </div>
+        <div className="flex h-12 items-center justify-center">
+             <div className="hidden group-data-[collapsible=icon]:block">
+                <Image src="/logo.png" alt="EstateFlow Logo" width={32} height={32} />
+            </div>
+            <div className="group-data-[collapsible=icon]:hidden">
+                <Image src="/logo-name.png" alt="EstateFlow" width={120} height={32} />
+            </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
